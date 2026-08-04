@@ -1,6 +1,6 @@
 import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { useLenis } from '@/hooks'
+import { useLenis, useScrollRestoration } from '@/hooks'
 import { usePageTracking } from '@/hooks/usePageTracking'
 import { ROUTES } from '@/constants/routes'
 import { RootLayout } from '@/layouts'
@@ -74,6 +74,16 @@ export default function App() {
   const isAdmin = pathname.startsWith('/admin')
 
   useLenis(!isAdmin)
+
+  /* A link has to land on the page it names. Without this the router
+     keeps the outgoing page's scroll offset, so opening a system from
+     partway down another one dropped the visitor into the middle of it —
+     the variants section, most often. Mounted here rather than in
+     RootLayout so the admin panel gets it too: a long enquiries table
+     scrolled halfway had exactly the same effect on the settings form
+     opened from it. See hooks/useScrollRestoration.js. */
+  useScrollRestoration()
+
   usePageTracking()
 
   return (

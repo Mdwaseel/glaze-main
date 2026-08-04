@@ -1,0 +1,101 @@
+/* Footer — extracted verbatim from the self-contained <style> block
+   in hero.html (lines 5961-6057). Byte-identical in about.html and
+   contact.html. */
+
+.footer {
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  border-top: 1px solid rgba(167, 154, 135, 0.14);
+  padding: clamp(3.5rem, 8vh, 5.5rem) clamp(1.5rem, 5vw, 3rem) 2.5rem;
+}
+
+.footer__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.footer__top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2.5rem;
+}
+
+.footer__brand img {
+  height: 40px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.footer__tag {
+  margin-top: 1rem;
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-size: 0.98rem;
+  color: var(--champagne);
+}
+
+.footer__cols {
+  display: flex;
+  gap: clamp(2.5rem, 6vw, 5.5rem);
+  flex-wrap: wrap;
+}
+
+.footer__col-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.4);
+  margin-bottom: 1.1rem;
+}
+
+.footer__col a {
+  display: block;
+  width: fit-content;
+  position: relative;
+  margin-bottom: 0.65rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: rgba(245, 245, 243, 0.72);
+  transition: color 0.25s ease;
+}
+
+/* Underline-wipe hover */
+.footer__col a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s var(--ease-snap);
+}
+
+.footer__col a:hover {
+  color: var(--arch-bone);
+}
+
+.footer__col a:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.footer__base {
+  margin-top: clamp(3rem, 7vh, 4.5rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(245, 245, 243, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.35);
+}

@@ -1,0 +1,161 @@
+/* ═══════════════════════════════════════════════════════════════
+   404.
+
+   Light ground, so the ordinary site contrast rules apply here — bronze
+   IS the text accent (5.6:1 on bone) and champagne is NOT (2.76:1, decor
+   only). That is the opposite of the chat panel's rule, which is dark.
+
+   Sized so the navbar and footer both stay in play: this is a wrong turn,
+   not a separate document.
+   ═══════════════════════════════════════════════════════════════ */
+
+.nf {
+  display: flex;
+  align-items: center;
+  /* Not 100vh — the navbar sits above it and the footer below, and a full
+     viewport here would push the footer a screen out of reach. */
+  min-height: clamp(520px, 78vh, 760px);
+  padding: clamp(5rem, 12vh, 8rem) clamp(1.5rem, 6vw, 6rem) clamp(4rem, 9vh, 6rem);
+  background: var(--arch-bone);
+}
+
+.nf__inner {
+  width: 100%;
+  max-width: 720px;
+}
+
+.nf__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.nf__title {
+  margin-top: 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  /* Tracks the site's editorial headings rather than inventing a scale. */
+  font-size: clamp(2.4rem, 7vw, 4.25rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--arch-black);
+}
+
+/* The one flourish, and it earns its place: the brand line is "Designed to
+   Disappear", so a missing page disappearing is the site's own joke. */
+.nf__title em {
+  display: block;
+  font-style: italic;
+  color: var(--bronze);
+}
+
+.nf__body {
+  max-width: 52ch;
+  margin-top: 1.6rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.72);   /* 6.9:1 on bone */
+}
+
+.nf__path {
+  padding: 0.1rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--arch-black);
+  background: rgba(114, 102, 85, 0.1);
+  border-radius: 3px;
+  /* A long mistyped URL must not push the column sideways. */
+  overflow-wrap: anywhere;
+}
+
+.nf__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem 1.75rem;
+  margin-top: 2.5rem;
+}
+
+.nf__cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 2rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--arch-bone);
+  background: var(--arch-black);
+  border: 1px solid var(--arch-black);
+  transition: background-color 0.28s var(--ease-snap),
+    border-color 0.28s var(--ease-snap), color 0.28s var(--ease-snap);
+}
+
+.nf__cta:hover {
+  color: var(--arch-bone);
+  background: var(--bronze);
+  border-color: var(--bronze);
+}
+
+.nf__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  border-bottom: 1px solid rgba(114, 102, 85, 0.4);
+  transition: color 0.25s var(--ease-snap), border-color 0.25s var(--ease-snap);
+}
+
+.nf__link:hover {
+  color: var(--arch-black);
+  border-bottom-color: var(--arch-black);
+}
+
+.nf__systems {
+  margin-top: 3.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(27, 27, 27, 0.12);
+}
+
+.nf__systems-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  /* Not champagne: 2.76:1 on bone would fail at 9px. */
+  color: rgba(27, 27, 27, 0.55);
+}
+
+.nf__systems-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  margin-top: 1rem;
+  list-style: none;
+  padding: 0;
+}
+
+.nf__systems-list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;      /* touch target, even in a compact link row */
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--arch-black);
+  transition: color 0.25s var(--ease-snap);
+}
+
+.nf__systems-list a:hover { color: var(--bronze); }
+
+@media (max-width: 600px) {
+  .nf__cta { width: 100%; justify-content: center; }
+  .nf__systems-list { gap: 0 1.5rem; }
+}

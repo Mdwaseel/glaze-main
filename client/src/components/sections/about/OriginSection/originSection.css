@@ -1,0 +1,290 @@
+/* Origin — extracted verbatim from the self-contained <style> block
+   in about.html (lines 1033-1317). All 35 selectors are .origin*
+   prefixed and there are no keyframes, so this file needs no page
+   scoping. Rule and media-query order preserved. */
+
+.origin {
+  position: relative;
+  background: var(--arch-bone);
+  color: var(--arch-black);
+}
+
+.origin__scroll { position: relative; }
+
+/* Animated mode: the tall track + sticky stage (Lenis-friendly,
+   no pin-spacer). Track height is injected by the script. */
+.origin--anim .origin__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.origin__stage {
+  position: relative;
+  padding: clamp(5rem, 12vh, 8rem) clamp(1.5rem, 5vw, 4rem);
+}
+
+.origin__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+}
+
+.origin__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-bottom: 1.5rem;
+}
+
+.origin__label::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin-top: 0.9rem;
+  background: rgba(114, 102, 85, 0.4);
+}
+
+/* Recurring title pattern: upright Playfair + Bodoni-italic accent */
+.origin__heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 3.8vw, 3.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+.origin__heading em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--bronze);
+}
+
+.origin__copy {
+  margin-top: 1.5rem;
+  max-width: 30rem;
+  font-size: clamp(0.98rem, 1.15vw, 1.08rem);
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.72);
+}
+
+/* ── The thread (script-built, anim-only) ──
+   Replaces the old bottom-left plot with the source demo's
+   trail, translated to SVG: a damped head chases the camera
+   from one image's inner edge to the next through the centre
+   corridor, leaving a Catmull-Rom-smoothed ribbon behind it
+   that trims itself away from the tail. A blurred glow pass
+   sits under a bright core and — like the source's
+   depthTest:false tube — it renders above the planes; the
+   route itself hugs the image edges, so it never lies across
+   a photograph. */
+.origin__thread {
+  position: absolute;
+  inset: 0;
+  z-index: 130;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.origin__thread path {
+  fill: none;
+  stroke: var(--champagne);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+
+.origin__thread-glow {
+  stroke-width: 7;
+  filter: blur(4px);
+}
+
+.origin__thread-core {
+  stroke-width: 1.75;
+}
+
+.origin__thread-head {
+  fill: var(--champagne);
+  opacity: 0;
+}
+
+/* ── Era photographs ──
+   Static default: the full archive strip, each with its caption.
+   Animated: each figure becomes a plane hung down the camera
+   line, projected by the script as the scroll flies through. */
+.origin__eras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 1rem;
+}
+
+.origin__era {
+  position: relative;
+}
+
+/* The media wrapper (not the figure) carries the static-mode
+   first-reveal wipe; in the depth flight the controller strips
+   those primitives and owns every reveal itself. */
+.origin__era-media {
+  overflow: hidden;
+}
+
+.origin__era-media img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  filter: saturate(0.85) contrast(1.02);
+}
+
+/* Year · title · one line — under the image in the static
+   strip, seated beside it in the flight. */
+.origin__era-text {
+  margin-top: 0.8rem;
+}
+
+.origin__year,
+.origin__era-title,
+.origin__era-copy {
+  display: block;
+}
+
+.origin__year {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 2.2vw, 2.4rem);
+  line-height: 1;
+  color: var(--bronze);
+}
+
+.origin__era-title {
+  margin-top: 0.4rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.origin__era-copy {
+  margin-top: 0.45rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: rgba(27, 27, 27, 0.6);
+}
+
+/* ── Animated mode: the depth flight ──
+   .origin__inner becomes the projection screen; the intro text
+   and each era figure are planes hung one gap apart down the
+   camera line. The script projects them by hand (translate3d +
+   scale from a shared perspective constant), so the DOM stays
+   flat and every browser depth-sorts identically. CSS
+   `translate` carries the static centring so the script can
+   own `transform` outright. */
+.origin--anim .origin__stage { padding: 0; }
+
+.origin--anim .origin__inner {
+  position: absolute;
+  inset: 0;
+  display: block;
+  max-width: none;
+  margin: 0;
+}
+
+/* Era-tinted haze behind the flight (script-built) */
+.origin__atmo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.origin--anim .origin__text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: min(36rem, 88vw);
+  text-align: center;
+  pointer-events: none;
+  will-change: transform, opacity, filter;
+}
+
+.origin--anim .origin__label::after {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.origin--anim .origin__copy {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.origin--anim .origin__eras {
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+
+.origin--anim .origin__era {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: clamp(16rem, 54vmin, 34rem);
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity, filter;
+}
+
+/* In the flight the text hangs beside its image — on the side
+   the era leans toward (--tr right / --tl left), away from the
+   centre corridor the thread runs through. Small screens keep
+   it under the image. */
+@media (min-width: 861px) {
+  .origin--anim .origin__era-text {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: clamp(10rem, 15vw, 14rem);
+    margin: 0;
+  }
+
+  .origin--anim .origin__era--tr .origin__era-text {
+    left: 100%;
+    margin-left: clamp(1rem, 2vw, 1.8rem);
+  }
+
+  .origin--anim .origin__era--tl .origin__era-text {
+    right: 100%;
+    margin-right: clamp(1rem, 2vw, 1.8rem);
+    text-align: right;
+  }
+}
+
+@media (max-width: 860px) {
+  .origin__inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .origin__eras { gap: 0.6rem; }
+  .origin--anim .origin__era { width: min(24rem, 82vw); }
+}

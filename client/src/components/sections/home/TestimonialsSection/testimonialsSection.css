@@ -1,0 +1,186 @@
+/* Client Voices — extracted verbatim from the self-contained <style>
+   block in hero.html (lines 3747-3928). Rule and media-query order
+   preserved. */
+
+.tsm {
+  position: relative;
+  /* Same dark ground as the timeline above; a hairline and a faint
+     bronze wash keep the two sections from melting into each other. */
+  --tsm-bg: #0A0A0A;
+  --tsm-ink: #F5F5F3;
+  --tsm-muted: rgba(245, 245, 243, 0.55);
+  --tsm-faint: rgba(245, 245, 243, 0.38);
+  --tsm-line: rgba(167, 154, 135, 0.16);
+  --tsm-card: rgba(255, 255, 255, 0.02);
+  background: var(--tsm-bg);
+  color: var(--tsm-ink);
+  border-top: 1px solid rgba(245, 245, 243, 0.06);
+  /* clip, not hidden — keeps Lenis happy (no nested scroll box). */
+  overflow: clip;
+  padding: clamp(5rem, 12vh, 8rem) 0;
+}
+
+.tsm::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(110% 80% at 50% 0%, rgba(114, 102, 85, 0.08), transparent 55%);
+}
+
+/* ── Centered header — same title family as The Collection ── */
+.tsm__head {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 3rem);
+  text-align: center;
+}
+
+.tsm__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.3rem, 4.4vw, 4.2rem);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+.tsm__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.tsm__intro {
+  margin: 1.5rem auto 0;
+  max-width: 520px;
+  font-size: clamp(0.98rem, 1.1vw, 1.06rem);
+  line-height: 1.75;
+  color: var(--tsm-muted);
+}
+
+/* ── Columns ──
+   Static default: three visible stacks, full height, no mask.
+   .tsm--marquee (added by the controller) crops the well and fades
+   the top and bottom edges while the tracks scroll. */
+.tsm__cols {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin: clamp(3rem, 8vh, 5rem) auto 0;
+  padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+  max-width: 1160px;
+}
+.tsm--marquee .tsm__cols {
+  max-height: min(740px, 82vh);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+}
+
+.tsm__col {
+  flex: 0 1 21rem;
+  min-width: 0;
+}
+/* Match the source component: one column on phones, two on
+   tablets, all three on desktop. */
+.tsm__col--2 { display: none; }
+.tsm__col--3 { display: none; }
+@media (min-width: 768px)  { .tsm__col--2 { display: block; } }
+@media (min-width: 1080px) { .tsm__col--3 { display: block; } }
+
+.tsm__track,
+.tsm__set {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+/* The trailing padding makes the track's height exactly two loop
+   periods, so translateY(-50%) lands seamlessly on the clone. */
+.tsm--marquee .tsm__track {
+  padding-bottom: 1.5rem;
+  animation: tsm-scroll var(--tsm-dur, 32s) linear infinite;
+}
+.tsm__col--1 .tsm__track { --tsm-dur: 30s; }
+.tsm__col--2 .tsm__track { --tsm-dur: 38s; }
+.tsm__col--3 .tsm__track { --tsm-dur: 34s; }
+
+@keyframes tsm-scroll {
+  to { transform: translateY(-50%); }
+}
+
+/* Pause while reading, and while the section is offscreen. */
+.tsm--marquee .tsm__col:hover .tsm__track,
+.tsm--idle .tsm__track {
+  animation-play-state: paused;
+}
+
+/* ── Card ── */
+.tsm__card {
+  background: var(--tsm-card);
+  border: 1px solid var(--tsm-line);
+  border-radius: 1.25rem;
+  padding: clamp(1.75rem, 2.4vw, 2.5rem);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+}
+
+.tsm__quote {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--tsm-muted);
+}
+
+.tsm__who {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 1.4rem;
+}
+
+/* Monogram in place of stock portraits — initials in Bodoni on a
+   faint bronze disc. */
+.tsm__ava {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  color: var(--champagne);
+  background: rgba(167, 154, 135, 0.10);
+  border: 1px solid rgba(167, 154, 135, 0.28);
+}
+
+.tsm__name {
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.tsm__role {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: var(--tsm-faint);
+}
+
+/* Belt and braces: even if the marquee class is present, reduced
+   motion gets the static, unmasked layout. */
+@media (prefers-reduced-motion: reduce) {
+  .tsm__track { animation: none !important; }
+  .tsm--marquee .tsm__cols {
+    max-height: none;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .tsm__set[aria-hidden="true"] { display: none; }
+}

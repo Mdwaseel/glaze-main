@@ -1,0 +1,31 @@
+/* Image-Sequence Scroll — shared by the hero and day/night sections.
+   Extracted verbatim from hero.html <style> (lines 646-671).
+   Imported by useScrollSequence, since any section using that hook
+   needs this wrapper/pin/canvas geometry. */
+
+/* ───────────────────────────────────────────
+   Image-Sequence Scroll  (shared: hero + day/night)
+   A tall .seq-scroll wrapper provides scroll travel; the .seq-pin
+   child sticks to the top for a full viewport while a <canvas>
+   paints the current WebP frame (cover-fit) as you scroll.
+─────────────────────────────────────────── */
+.seq-scroll {
+  position: relative;
+  width: 100%;
+}
+
+.seq-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.seq-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}

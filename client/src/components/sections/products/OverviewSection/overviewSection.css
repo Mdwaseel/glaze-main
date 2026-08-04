@@ -1,0 +1,197 @@
+/* Products §03 Overview — extracted verbatim from the self-contained
+   <style> block in products/sliding.html (lines 390-580). Rule and
+   media-query order preserved.
+
+   NO SCOPING. Every selector is `.ovw*`-prefixed and the file declares no
+   keyframes; a full `ovw` search across src/ returns nothing outside this
+   folder. */
+
+/* ═══════════════════════════════════════════════════════════════
+   03 · OVERVIEW
+   Three registers stacked: the claim, the numbers behind it, and
+   the four reasons it holds. Each is separated by a hairline rather
+   than by empty space, so the section reads as one argument instead
+   of three floating blocks.
+═══════════════════════════════════════════════════════════════ */
+.ovw {
+  position: relative;
+  background: var(--arch-white);
+  padding: clamp(4.5rem, 12vh, 8rem) clamp(1.25rem, 5vw, 4rem);
+  overflow: clip;
+}
+.ovw::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(70% 55% at 88% 0%, rgba(114, 102, 85, 0.07), transparent 62%);
+}
+.ovw__inner { position: relative; max-width: 1280px; margin: 0 auto; }
+
+.ovw__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: start;
+  margin-top: clamp(1.8rem, 4vh, 2.6rem);
+}
+
+/* The lead column carries the claim and who it is for; the body
+   column carries the argument. Splitting them this way keeps the two
+   columns close in height instead of leaving a well under the title. */
+.ovw__lead { min-width: 0; }
+
+.ovw__head-title {
+  max-width: 13ch;
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  line-height: 1.02;
+}
+
+.ovw__body p {
+  font-size: clamp(1rem, 1.15vw, 1.12rem);
+  line-height: 1.85;
+  color: rgba(27, 27, 27, 0.72);
+}
+.ovw__body p + p { margin-top: 1.2rem; }
+
+/* ── Best for ── */
+.ovw__best {
+  margin-top: clamp(2.2rem, 5vh, 3rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(27, 27, 27, 0.12);
+}
+.ovw__best-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+.ovw__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+.ovw__chip {
+  padding: 0.55rem 1.05rem;
+  border: 1px solid rgba(114, 102, 85, 0.3);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  background: rgba(114, 102, 85, 0.04);
+  transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+.ovw__chip:hover {
+  background: rgba(114, 102, 85, 0.1);
+  border-color: rgba(114, 102, 85, 0.55);
+}
+
+/* ── The numbers ──
+   Hairlines between the columns give the row a spine; without them
+   four figures in white space read as unrelated. */
+.ovw__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: clamp(3rem, 7vh, 4.5rem);
+  border-top: 1px solid rgba(27, 27, 27, 0.14);
+  border-bottom: 1px solid rgba(27, 27, 27, 0.14);
+}
+.ovw__stat {
+  padding: clamp(1.6rem, 3.5vh, 2.2rem) clamp(1rem, 2.2vw, 2rem);
+}
+.ovw__stat + .ovw__stat { border-left: 1px solid rgba(27, 27, 27, 0.1); }
+.ovw__stat:first-child { padding-left: 0; }
+
+.ovw__stat-num {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 3.8vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+.ovw__stat-unit {
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--bronze);
+}
+.ovw__stat-key {
+  margin-top: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.55);
+  line-height: 1.6;
+}
+
+/* ── The reasons ── */
+.ovw__strengths {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3vw, 3rem);
+  margin-top: clamp(3rem, 7vh, 4.5rem);
+}
+.ovw__str {
+  position: relative;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(27, 27, 27, 0.14);
+  transition: transform 0.5s var(--ease-snap);
+}
+/* A champagne rule runs over the hairline on hover, left to right. */
+.ovw__str::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: -1px;
+  height: 1px;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s var(--ease-snap);
+}
+.ovw__str:hover { transform: translateY(-4px); }
+.ovw__str:hover::before { transform: scaleX(1); }
+
+.ovw__str-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: var(--champagne);
+}
+.ovw__str-title {
+  margin-top: 0.9rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.32rem;
+  line-height: 1.25;
+}
+.ovw__str-copy {
+  margin-top: 0.7rem;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.62);
+}
+
+@media (max-width: 900px) {
+  .ovw__grid { grid-template-columns: 1fr; gap: 2.2rem; }
+  .ovw__head-title { max-width: none; }
+  .ovw__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ovw__stat:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .ovw__stat:nth-child(n + 3) { border-top: 1px solid rgba(27, 27, 27, 0.1); }
+  .ovw__strengths { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .ovw__stats { grid-template-columns: 1fr; }
+  .ovw__stat { padding-left: 0; border-left: 0; }
+  .ovw__stat + .ovw__stat { border-top: 1px solid rgba(27, 27, 27, 0.1); }
+  .ovw__strengths { grid-template-columns: 1fr; }
+}

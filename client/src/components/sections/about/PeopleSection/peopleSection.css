@@ -1,0 +1,258 @@
+/* About §06 The Hands Behind — extracted verbatim from the
+   self-contained <style> block in about.html (lines 3212-3454). Rule and
+   media-query order preserved.
+
+   NO SCOPING. All 34 selectors are `.ppl*`-prefixed (the two `.motion-ok`
+   rules are compounded with `.ppl__card`, so they cannot reach any other
+   page's DOM), the file declares no keyframes, and a full `ppl` search
+   across src/ returns nothing outside this folder. Checked against the
+   Phase 13 collision list; §02b Process remains the only section that has
+   needed a scope.
+
+   ⚠ The section ships PARKED behind the `hidden` attribute — see the note
+   on the <section> in PeopleSection.jsx. `.ppl[hidden]` below is the
+   original's own guard, and it carries `!important` deliberately so the
+   park survives whatever else styles `.ppl`'s display. Kept verbatim. */
+
+.ppl {
+  position: relative;
+  background: var(--arch-bone);
+  color: var(--arch-black);
+  padding: clamp(5.5rem, 14vh, 10rem) clamp(1.5rem, 5vw, 3rem);
+}
+
+/* parked via the `hidden` attribute (see the note on the
+   <section>) — the guard keeps it parked whatever else styles
+   .ppl's display */
+.ppl[hidden] { display: none !important; }
+
+.ppl__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.ppl__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-bottom: 1.5rem;
+}
+
+.ppl__label::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin-top: 0.9rem;
+  background: rgba(114, 102, 85, 0.4);
+}
+
+/* Recurring title pattern: upright Playfair + Bodoni-italic accent */
+.ppl__heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 3.8vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  max-width: 30rem;
+}
+
+.ppl__heading em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--bronze);
+}
+
+.ppl__intro {
+  margin-top: 1.4rem;
+  max-width: 30rem;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.66);
+}
+
+/* ── The grid: deliberately uneven. Single column on phones,
+     offset pairs on tablets, and a 12-column stagger of
+     3 + 2 + 1 cards on desktop. ── */
+.ppl__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  margin-top: clamp(3rem, 8vh, 5.5rem);
+}
+
+@media (min-width: 641px) {
+  .ppl__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3.5rem 1.5rem;
+  }
+  .ppl__card:nth-child(even) { margin-top: 3.5rem; }
+}
+
+@media (min-width: 1021px) {
+  .ppl__grid {
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(2.5rem, 4vw, 4rem) clamp(1.25rem, 2vw, 2rem);
+  }
+  .ppl__card:nth-child(even) { margin-top: 0; }
+  .ppl__card:nth-child(1) { grid-column: 1 / span 4; }
+  .ppl__card:nth-child(2) { grid-column: 6 / span 4; margin-top: 4rem; }
+  .ppl__card:nth-child(3) { grid-column: 10 / span 3; margin-top: 7.5rem; }
+  .ppl__card:nth-child(4) { grid-column: 2 / span 5; margin-top: 1.5rem; }
+  .ppl__card:nth-child(5) { grid-column: 8 / span 3; margin-top: 5.5rem; }
+  .ppl__card:nth-child(6) { grid-column: 5 / span 4; }
+}
+
+/* Per-card crop: aspect + focal point, shared by the still and
+   its colour layer so the hover reveal never shifts the frame. */
+.ppl__card                  { --ppl-ar: 3 / 4;   --ppl-pos: 50% 40%; }
+.ppl__card--craftsman       { --ppl-pos: 50% 28%; }
+.ppl__card--engineer        { --ppl-ar: 4 / 5;   --ppl-pos: 45% 42%; }
+.ppl__card--qa              { --ppl-pos: 72% 45%; }
+.ppl__card--designer        { --ppl-ar: 16 / 10; --ppl-pos: 50% 45%; }
+.ppl__card--fabricator      { --ppl-pos: 55% 32%; }
+.ppl__card--installer       { --ppl-ar: 4 / 5;   --ppl-pos: 55% 25%; }
+
+.ppl__card {
+  position: relative;
+  padding-top: 1.4rem;
+  transition: transform 0.6s var(--ease-snap);
+}
+
+/* Resting hairline (draws in on reveal — motion-ok gated) and the
+   champagne rule that answers hover, as on the values cards. */
+.ppl__card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(27, 27, 27, 0.14);
+}
+
+.ppl__card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s var(--ease-snap);
+}
+
+.motion-ok .ppl__card::before {
+  transform-origin: left;
+  transition: transform 1.3s var(--ease-snap) 0.15s;
+}
+
+.motion-ok .ppl__card.fade-up:not(.is-revealed)::before {
+  transform: scaleX(0);
+}
+
+.ppl__card:hover { transform: translateY(-6px); }
+.ppl__card:hover::after { transform: scaleX(1); }
+
+.ppl__media {
+  position: relative;
+  overflow: hidden;
+  margin-top: 1.3rem;
+}
+
+.ppl__media img {
+  width: 100%;
+  aspect-ratio: var(--ppl-ar);
+  object-fit: cover;
+  object-position: var(--ppl-pos);
+}
+
+/* The colour layer for the glass-mask hover — same photograph,
+   hidden entirely outside fx mode. */
+.ppl__colour {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: var(--ppl-pos);
+  pointer-events: none;
+}
+
+.ppl__meta { margin-top: 1.15rem; }
+
+.ppl__role {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.ppl__name {
+  margin-top: 0.85rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.ppl__line {
+  margin-top: 0.55rem;
+  max-width: 20rem;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: rgba(27, 27, 27, 0.62);
+}
+
+/* ── fx mode: rest in monochrome with only the role showing;
+     hover warms the portrait through a circular glass-mask and
+     lets the name and line rise in. Added by the section script
+     solely for hover-capable fine pointers with motion allowed —
+     everyone else keeps the full-colour static spread. ── */
+.ppl--fx .ppl__media img {
+  filter: grayscale(1) contrast(1.05) brightness(0.95);
+}
+
+.ppl--fx .ppl__colour {
+  display: block;
+  clip-path: circle(0% at 50% 42%);
+  transition: clip-path 0.9s var(--ease-snap);
+}
+
+.ppl--fx .ppl__card:hover .ppl__colour {
+  clip-path: circle(125% at 50% 42%);
+}
+
+.ppl--fx .ppl__name,
+.ppl--fx .ppl__line {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.45s ease, transform 0.6s var(--ease-snap);
+}
+
+.ppl--fx .ppl__card:hover .ppl__name {
+  opacity: 1;
+  transform: none;
+}
+
+.ppl--fx .ppl__card:hover .ppl__line {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.08s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ppl__card,
+  .ppl__card::after,
+  .ppl__card::before {
+    transition: none;
+  }
+  .ppl__card:hover { transform: none; }
+}

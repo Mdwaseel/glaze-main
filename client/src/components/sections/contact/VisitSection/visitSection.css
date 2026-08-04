@@ -1,0 +1,143 @@
+/* Contact §04 Visit Us — extracted verbatim from the self-contained
+   <style> block in contact.html (lines 2001-2126). Rule and media-query
+   order preserved.
+
+   NO SCOPING. Every selector is `.visit*`-prefixed and the file declares
+   no keyframes; a full `visit` search across src/ returns nothing outside
+   this folder and the scoped `:where(.page-contact) .visit a:focus-visible`
+   rule in contact-global.css, which is the dark-band champagne re-tint
+   for this section and is already accounted for there. Checked against
+   the Phase 13 / Phase 27 collision lists.
+
+   `--arch-bone`, `--champagne`, `--font-mono`, `--font-display`,
+   `--font-bodoni` and `--ease-snap` are the shared tokens from
+   styles/global.css — not redefined here, exactly as in the original.
+
+   The band's ground is the literal `#141413` the original uses, not a
+   token: it is one shade off --arch-black and is shared only with §05
+   Map, which declares its own copy. Reproduced as authored. */
+
+.visit {
+  background: #141413;
+  color: var(--arch-bone);
+  padding: clamp(5rem, 12vh, 8rem) clamp(1.5rem, 5vw, 3rem);
+}
+
+.visit__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2.5rem, 6vw, 5rem);
+  align-items: center;
+}
+
+/* Glass eyebrow pill — dark-ground sibling of the header's */
+.visit__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.95rem 0.4rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.85);
+}
+
+.visit__eyebrow::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--champagne);
+}
+
+.visit__title {
+  margin-top: 1.6rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+.visit__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.visit__copy {
+  margin-top: 1.2rem;
+  max-width: 26rem;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.75;
+  color: rgba(245, 245, 243, 0.55);
+}
+
+/* Underline-wipe text link back to the form */
+.visit__link {
+  position: relative;
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.35rem 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  transition: color 0.25s ease;
+}
+
+.visit__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s var(--ease-snap);
+}
+
+.visit__link:hover { color: var(--arch-bone); }
+.visit__link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Two offset vertical images, each on its own parallax plane */
+.visit__figs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: start;
+}
+
+.visit__fig {
+  border-radius: 18px;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.visit__fig img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+}
+
+.visit__fig--b { margin-top: 2.5rem; }
+
+@media (max-width: 960px) {
+  .visit__inner { grid-template-columns: 1fr; }
+  .visit__figs { max-width: 34rem; }
+}

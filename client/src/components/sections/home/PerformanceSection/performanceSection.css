@@ -1,0 +1,262 @@
+/* Engineering Excellence (Performance) — extracted verbatim from the
+   self-contained <style> block in hero.html (lines 2914-3171).
+   Rule and media-query order preserved. */
+
+.eng {
+  position: relative;
+  /* ── Premium engineering canvas ──────────────────────────────────
+     Warm light luxury ground. For a DARK theme instead, set:
+       --eng-ground:#1B1B1B; --eng-ink:#F5F5F3;
+       --eng-muted:rgba(245,245,243,.55); --eng-line:rgba(245,245,243,.16);
+     (the metals already read on either ground).                       */
+  /* Matches the studio grey the product render is shot on — the frame
+     sequence is tone-graded to this exact value, so changing it means
+     re-exporting frames/layers (see the ffmpeg note by the canvas). */
+  --eng-ground: #E3E2E4;          /* soft neutral grey                */
+  --eng-ink: #2B2B2B;             /* near-black graphite text          */
+  --eng-accent: #726655;          /* house bronze — the luxury accent  */
+  --eng-muted: rgba(43, 43, 43, 0.55);
+  --eng-line: rgba(43, 43, 43, 0.16);
+  background: var(--eng-ground);
+  color: var(--eng-ink);
+  overflow: hidden;
+}
+
+/* No graph-paper. Just a whisper-soft warm vignette for depth. */
+.eng::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(140% 120% at 78% 28%, rgba(114, 102, 85, 0.06), transparent 55%),
+    radial-gradient(120% 120% at 18% 95%, rgba(0, 0, 0, 0.035), transparent 60%);
+}
+
+/* Left = heading · Right = product canvas (profile + leaders + cards). */
+.eng__inner {
+  position: relative;
+  min-height: 100vh;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vh, 4rem) clamp(1.25rem, 5vw, 4.5rem);
+  display: grid;
+  grid-template-columns: minmax(270px, 29%) 1fr;
+  align-items: center;
+  gap: clamp(1.5rem, 3vw, 3.5rem);
+}
+
+/* ── Heading (left) ── */
+.eng__head { max-width: 500px; }
+
+.eng__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--eng-accent);
+  margin-bottom: 1.25rem;
+}
+.eng__eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--eng-accent);
+  opacity: 0.7;
+}
+
+.eng__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2.2rem, 3.7vw, 4rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--eng-ink);
+}
+
+.eng__intro {
+  margin-top: 1.4rem;
+  max-width: 500px;
+  font-size: clamp(1rem, 1.15vw, 1.08rem);
+  line-height: 1.75;
+  color: var(--eng-muted);
+}
+
+/* ── Layer index (left, under the intro) ─────────────────────────
+   The five layers as a scroll-synced list: the layer the render is
+   currently taking apart lifts to full opacity + bronze and unfurls
+   its description; the rest stay dimmed. Exactly one row is ever
+   open, so the column keeps a near-constant height. ── */
+.eng__steps {
+  margin-top: clamp(1.5rem, 3vh, 2.3rem);
+  max-width: 460px;
+  list-style: none;
+  padding: 0;
+}
+.eng__step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--eng-line);
+  opacity: 0.4;
+  transition: opacity 0.45s ease;
+}
+.eng__step:last-child { border-bottom: 1px solid var(--eng-line); }
+.eng__step.is-active  { opacity: 1; }
+
+.eng__step-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  line-height: 2.1;
+  color: var(--eng-muted);
+  transition: color 0.45s ease;
+}
+.eng__step-title {
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 1.05vw, 1.02rem);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  transition: color 0.45s ease;
+}
+.eng__step.is-active .eng__step-num,
+.eng__step.is-active .eng__step-title { color: var(--eng-accent); }
+
+/* 0fr → 1fr: an animatable collapse that needs no fixed height. */
+.eng__step-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.eng__step.is-active .eng__step-more { grid-template-rows: 1fr; }
+.eng__step-more > p {
+  overflow: hidden;
+  min-height: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--eng-muted);
+}
+.eng__step.is-active .eng__step-more > p { padding-top: 0.35rem; }
+
+/* Scrub progress — a hairline that fills as the assembly comes apart. */
+.eng__meter {
+  position: relative;
+  max-width: 460px;
+  height: 1px;
+  margin-top: 1.5rem;
+  background: var(--eng-line);
+  overflow: hidden;
+}
+.eng__meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  background: var(--eng-accent);
+}
+
+/* ── Product render (right) ───────────────────────────────────────
+   A scroll-scrubbed WebP sequence (frames/layers/layer_000…144.webp,
+   extracted from videos/layer by layer precision.mp4). The <canvas>
+   paints one frame per scroll tick while the section is pinned; the
+   <img> under it is the no-JS / not-yet-painted state. ── */
+.eng__stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+/* The box is held at the render's own 4:3 so the contain-fit fills it
+   exactly — that keeps the edge feather below sitting on the image's
+   edges instead of on empty letterbox. --plate-h caps the height; the
+   width follows from it, or from the column when that's narrower. */
+.eng__plate {
+  --plate-h: min(80vh, 860px);
+  position: relative;
+  width: min(100%, calc(var(--plate-h) * 4 / 3));
+  max-width: 1100px;
+  aspect-ratio: 4 / 3;
+  margin: 0 auto;
+}
+.eng__still,
+.eng__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.45s ease;
+}
+.eng__canvas { opacity: 0; }
+.eng__canvas.is-ready { opacity: 1; }
+.eng__plate.is-live .eng__still { opacity: 0; }
+
+/* The render was exported with its studio grey tone-matched to
+   --eng-ground, so all that's left is the backdrop's own soft
+   falloff. These two eased ramps wash the last of it back into the
+   page, top/bottom tighter than the sides because the profile runs
+   off both ends of the frame by design. (Explicit rgba — a bare
+   `transparent` fades through black in some engines.) */
+.eng__plate::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background:
+    linear-gradient(to right,
+      var(--eng-ground) 0%, rgba(227, 226, 228, 0.55) 3%, rgba(227, 226, 228, 0.18) 7%, rgba(227, 226, 228, 0) 12%,
+      rgba(227, 226, 228, 0) 88%, rgba(227, 226, 228, 0.18) 93%, rgba(227, 226, 228, 0.55) 97%, var(--eng-ground) 100%),
+    linear-gradient(to bottom,
+      var(--eng-ground) 0%, rgba(227, 226, 228, 0.55) 2.5%, rgba(227, 226, 228, 0.18) 6%, rgba(227, 226, 228, 0) 10%,
+      rgba(227, 226, 228, 0) 90%, rgba(227, 226, 228, 0.18) 94%, rgba(227, 226, 228, 0.55) 97.5%, var(--eng-ground) 100%);
+}
+
+/* ── Responsive ── */
+
+/* Short desktop viewports: the section pins under the fixed nav, so
+   clear it explicitly and tighten the left column enough that the
+   eyebrow and the meter both stay inside the pinned frame. */
+@media (min-width: 981px) and (max-height: 800px) {
+  .eng__inner  { padding-top: 6.5rem; padding-bottom: 1.75rem; }
+  .eng__title  { font-size: clamp(1.9rem, 2.9vw, 2.6rem); }
+  .eng__intro  { margin-top: 1rem; font-size: 0.95rem; line-height: 1.6; }
+  .eng__steps  { margin-top: 1.1rem; }
+  .eng__step   { padding: 0.5rem 0; }
+  .eng__meter  { margin-top: 1rem; }
+  .eng__plate  { --plate-h: min(72vh, 620px); }
+}
+
+@media (max-width: 980px) {
+  .eng__inner {
+    grid-template-columns: 1fr;
+    align-items: start;
+    min-height: auto;
+    gap: 2rem;
+  }
+  .eng__head { max-width: 620px; }
+  .eng__steps { max-width: none; }
+  /* Render leads, copy follows. No pin on small screens — the
+     sequence simply scrubs as the section passes. */
+  .eng__stage { order: -1; }
+  .eng__plate { --plate-h: 200vh; max-width: none; }   /* width = full column */
+  /* Every layer reads at once; nothing is scroll-gated. */
+  .eng__step { opacity: 1; }
+  .eng__step-more { grid-template-rows: 1fr; }
+  .eng__step-more > p { padding-top: 0.35rem; }
+  .eng__meter { display: none; }
+}
+
+/* Reduced motion: the finished exploded render, every layer legible. */
+@media (prefers-reduced-motion: reduce) {
+  .eng__still, .eng__canvas, .eng__step,
+  .eng__step-more, .eng__step-num, .eng__step-title { transition: none; }
+  .eng__step { opacity: 1; }
+  .eng__step-more { grid-template-rows: 1fr; }
+  .eng__step-more > p { padding-top: 0.35rem; }
+  .eng__meter { display: none; }
+}

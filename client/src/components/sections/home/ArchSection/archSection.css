@@ -1,0 +1,350 @@
+/* Architectural Freedom — extracted verbatim from hero.html <style>
+   (lines 1008-1352). Includes the custom follow-cursor, the static
+   fallback block and #arch-progress, which lives outside the section
+   in the original markup. Rule and media-query order preserved. */
+
+/* ───────────────────────────────────────────
+   Architectural Freedom — Horizontal Scroll
+─────────────────────────────────────────── */
+.arch {
+  position: relative;
+  background: var(--arch-bone);
+  color: var(--arch-black);
+  /* total height is injected by JS for the sticky scroll track */
+}
+
+.arch__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 2.5rem;
+}
+
+/* ── Custom "Scroll" cursor (only while hovering this section) ── */
+.arch-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  will-change: transform;
+}
+.arch-cursor__inner {
+  width: 92px;
+  height: 92px;
+  margin-left: -46px;   /* centre the circle on the pointer */
+  margin-top: -46px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(27, 27, 27, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease;
+}
+.arch-cursor.is-active .arch-cursor__inner { transform: scale(1); opacity: 1; }
+.arch-cursor__arrows {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  opacity: 0.9;
+}
+.arch-cursor__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+/* Hide the native cursor over the section while the custom one is shown */
+.arch.is-cursor-active,
+.arch.is-cursor-active * { cursor: none; }
+
+.arch__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 5.5rem 1.5rem 2rem;
+}
+
+.arch__label {
+  display: block;
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #6C6C6C;
+}
+
+.arch__heading {
+  font-family: var(--font-bodoni);
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+
+.arch__heading-italic {
+  font-style: italic;
+}
+
+/* ── Header meta: live counter + category + progress hairline ── */
+.arch__meta {
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.7rem;
+  text-align: right;
+}
+
+.arch__counter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--font-bodoni);
+}
+
+.arch__counter-window {
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.arch__counter-current {
+  display: inline-block;
+  font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+  line-height: 1;
+  font-style: italic;
+  letter-spacing: -0.02em;
+}
+
+.arch__counter-total {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: #6C6C6C;
+}
+
+.arch__meta-cat {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+
+.arch__meta-line {
+  width: 180px;
+  height: 1px;
+  background: rgba(27, 27, 27, 0.12);
+}
+
+.arch__meta-line-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.arch__hint {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #6C6C6C;
+  user-select: none;
+}
+
+.arch__track-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Giant outlined word drifting behind the cards at its own pace */
+.arch__ghost {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 0;
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-size: clamp(9rem, 24vw, 19rem);
+  line-height: 1;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(27, 27, 27, 0.10);
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.arch__track {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.25rem 1.5rem;
+  will-change: transform;
+  transform: translateX(0px);
+}
+
+.arch__card {
+  position: relative;
+  flex: none;
+  width: 78vw;
+  /* fill the track height so cards are never clipped on short screens */
+  height: 100%;
+  max-height: 38rem;
+  overflow: hidden;
+  will-change: transform, clip-path;
+}
+
+.arch__card-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform: scale(1);
+  transition: transform 1200ms cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.arch__card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(35%);
+  transition: filter 1200ms ease-out;
+  will-change: transform;
+}
+
+.arch__card:hover .arch__card-media {
+  transform: scale(1.03);
+}
+
+.arch__card:hover .arch__card-media img {
+  filter: grayscale(0%);
+}
+
+.arch__card-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(27, 27, 27, 0.70) 0%,
+    transparent 55%
+  );
+}
+
+.arch__card-content {
+  position: absolute;
+  inset: 0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: white;
+}
+
+.arch__card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.arch__card-num {
+  color: var(--champagne);
+}
+
+.arch__card-cat {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.arch__card-title {
+  font-family: var(--font-bodoni);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.03em;
+}
+
+.arch__spacer {
+  flex: none;
+  width: 3rem;
+}
+
+@media (min-width: 768px) {
+  .arch__header {
+    padding: 5.5rem 3rem 2rem;
+  }
+  .arch__hint {
+    display: block;
+  }
+  .arch__meta {
+    display: flex;
+  }
+  .arch__track {
+    padding: 1.25rem 3rem;
+  }
+  .arch__card {
+    width: 38vw;
+    height: 82%;
+  }
+  /* editorial rhythm: cards ride high / low, every third runs wide */
+  .arch__card:nth-child(odd)  { align-self: flex-start; }
+  .arch__card:nth-child(even) { align-self: flex-end; }
+  .arch__card:nth-child(3n + 1) { width: 48vw; }
+  .arch__card-content {
+    padding: 2.5rem;
+  }
+}
+
+/* ── Static fallback (reduced motion / GSAP unavailable):
+      a plain swipeable gallery, no pinning, no effects ── */
+.arch--static .arch__sticky {
+  position: static;
+  height: auto;
+  overflow: visible;
+}
+.arch--static .arch__ghost { display: none; }
+.arch--static .arch__track-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.arch--static .arch__track {
+  width: max-content;
+  height: 34rem;
+  max-height: 70vh;
+}
+.arch--static .arch__card {
+  align-self: center;
+  height: 100%;
+}
+
+/* Golden scroll-progress bar (visible only during the section) */
+#arch-progress {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--champagne);
+  opacity: 0;
+  transition: opacity 0.25s linear;
+  z-index: 999;
+  pointer-events: none;
+}

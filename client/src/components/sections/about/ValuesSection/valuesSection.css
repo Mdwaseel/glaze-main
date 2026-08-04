@@ -1,0 +1,182 @@
+/* About §07 Values — extracted verbatim from the self-contained <style>
+   block in about.html (lines 3596-3764). Rule and media-query order
+   preserved.
+
+   NO SCOPING. All 20 selectors are `.values*` / `.vcard*`-prefixed, the
+   file declares no keyframes, and a full `values` / `vcard` search across
+   src/ returns nothing outside this folder. Checked against the Phase 13
+   collision list; §02b Process remains the only section that has needed a
+   scope.
+
+   `.vcard__veil` is styled here but never rendered by the component — the
+   controller creates it, as in the original. See the note in
+   valuesAnimation.js. */
+
+.values {
+  position: relative;
+  background: var(--arch-bone);
+  color: var(--arch-black);
+  padding: clamp(5.5rem, 14vh, 10rem) clamp(1.5rem, 5vw, 3rem);
+}
+
+.values__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.values__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-bottom: 1.5rem;
+}
+
+.values__label::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin-top: 0.9rem;
+  background: rgba(114, 102, 85, 0.4);
+}
+
+.values__heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.2rem, 4.4vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  max-width: 34rem;
+}
+
+.values__heading em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--bronze);
+}
+
+/* ── The deck ── */
+.values__deck {
+  list-style: none;
+  margin-top: clamp(3rem, 8vh, 5rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 10vh, 6rem);
+}
+
+.vcard {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  min-height: min(74vh, 44rem);
+  overflow: hidden;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+}
+
+/* Animated mode: the deck stacks — each card sticks just below
+   the nav and the next slides over it. --peek staggers the
+   resting tops so the stacked edges stay in view. */
+.values--anim .vcard {
+  position: sticky;
+  top: calc(clamp(4.5rem, 10vh, 6.5rem) + var(--peek, 0rem));
+  will-change: transform;
+}
+
+.vcard__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.4rem;
+  padding: clamp(2.25rem, 5vw, 4.5rem);
+}
+
+.vcard__index {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  color: var(--champagne);
+}
+
+.vcard__index::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin-top: 0.9rem;
+  background: rgba(167, 154, 135, 0.4);
+}
+
+.vcard__name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.9rem, 3.6vw, 3.2rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.vcard__name em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.vcard__body {
+  max-width: 24rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(245, 245, 243, 0.62);
+}
+
+.vcard__media {
+  position: relative;
+  overflow: hidden;
+  min-height: 18rem;
+}
+
+.vcard__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* a quiet grade so every photograph sits in the same light */
+.vcard__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, rgba(27, 27, 27, 0.42), transparent 45%);
+  pointer-events: none;
+}
+
+/* The settle-back veil (script-created, animated mode only):
+   dims a card as the next one slides over it. */
+.vcard__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--arch-black);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .vcard {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .vcard__media {
+    order: -1;
+    aspect-ratio: 16 / 10;
+    min-height: 0;
+  }
+  .values--anim .vcard {
+    top: calc(clamp(4rem, 9vh, 5.5rem) + var(--peek, 0rem));
+  }
+}

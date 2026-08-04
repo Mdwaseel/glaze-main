@@ -1,0 +1,430 @@
+/* Systems — scroll-morph category carousel. Extracted verbatim from
+   the self-contained <style> block in hero.html (lines 1736-2134).
+   Rule and media-query order preserved. */
+
+.sysm {
+  position: relative;
+  background: #ffffff;
+  color: #2B2B2B;
+}
+
+/* ── Intro (scrolls normally before the pin) ─────────────────
+   ⚠ THE PADDING IS DELIBERATELY SMALLER THAN THE OTHER SECTIONS'.
+   This block is not free-standing: the sticky stage sits directly
+   under it and cannot pin until the whole intro has scrolled past. On
+   a 1080px viewport the original 18vh/8vh pair made that 552px of
+   travel, and because the stage was still in flow for all of it the
+   card circle — which centres on the STAGE — hung below the fold with
+   a band of empty white above it. That band is what read as "a gap in
+   the homepage".
+
+   Half of the fix is here: less to scroll through. The other half is
+   --sysm-entry below, which centres the circle in the part of the
+   stage that is actually on screen for the travel that remains. */
+.sysm__intro {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: clamp(5rem, 10vh, 7.5rem) 2rem clamp(1.75rem, 3.5vh, 3rem);
+  text-align: center;
+}
+
+.sysm__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+
+.sysm__eyebrow::before,
+.sysm__eyebrow::after {
+  content: '';
+  width: 2.4rem;
+  height: 1px;
+  background: rgba(167, 154, 135, 0.35);
+}
+
+.sysm__heading {
+  margin-top: 1.4rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.4rem, 5.4vw, 4.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+
+.sysm__heading em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.sysm__sub {
+  margin: 1.4rem auto 0;
+  max-width: 34rem;
+  font-weight: 300;
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: rgba(43, 43, 43, 0.6);
+}
+
+/* ── Sticky stage & track ────────────────────────────────── */
+.sysm__scroll {
+  position: relative;
+  /* JS raises this to create the scrub travel */
+}
+
+.sysm__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+/* ── Centre hint (inside the circle, fades as morph begins) ── */
+/* ── Entry offset ────────────────────────────────────────────
+   --sysm-entry is written by the controller every frame: it is half
+   the distance the sticky stage still has to travel before it pins,
+   negative, and it settles to 0 the instant it does pin. Applying it
+   to the two layers that make up the centred field lifts the circle
+   into the middle of what can actually be SEEN on the way in, instead
+   of the middle of a box whose top half is still below the intro.
+
+   Both layers must carry it or they separate — the hint sits inside
+   the ring of cards. The hint keeps its own centring translate, hence
+   the calc() rather than a second transform. */
+.sysm__hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, calc(-50% + var(--sysm-entry, 0px)));
+  z-index: 1;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.sysm__hint-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 3.2vw, 2.4rem);
+  letter-spacing: -0.01em;
+  color: #2B2B2B;
+}
+
+.sysm__hint-title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.sysm__hint-kicker {
+  margin-top: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(43, 43, 43, 0.45);
+}
+
+/* ── Card ring ───────────────────────────────────────────── */
+.sysm__ring {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  /* See the --sysm-entry note above .sysm__hint. The cards carry their
+     own per-card transform, so the offset is applied to their common
+     parent rather than folded into each one. */
+  transform: translateY(var(--sysm-entry, 0px));
+}
+
+.sysm__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+  will-change: transform;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Square frames — the clips are 1440×1440, so the full video
+   is visible with zero cropping. Borderless by design. */
+.sysm__card-frame {
+  display: block;
+  width: 230px;
+  height: 230px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #ECECE8;
+  box-shadow: 0 22px 50px rgba(27, 27, 27, 0.15);
+  transition: transform 0.4s var(--ease-snap), box-shadow 0.4s ease;
+}
+
+/* JS drives filter (greyscale) per-frame — no CSS transition here */
+.sysm__card-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.sysm__card:hover .sysm__card-frame,
+.sysm__card:focus-visible .sysm__card-frame {
+  transform: translateY(-6px);
+}
+
+.sysm__card.is-active .sysm__card-frame {
+  box-shadow: 0 30px 70px rgba(27, 27, 27, 0.22);
+}
+
+.sysm__card-name {
+  display: block;
+  margin-top: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(43, 43, 43, 0.45);
+  transition: color 0.4s ease;
+}
+
+.sysm__card:hover .sysm__card-name {
+  color: rgba(43, 43, 43, 0.8);
+}
+
+.sysm__card.is-active .sysm__card-name {
+  color: var(--champagne);
+}
+
+/* ── Active-category copy (below the cards) ─────────────── */
+.sysm__content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 56%;
+  bottom: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.sysm__info {
+  position: absolute;
+  left: 50%;
+  top: clamp(1rem, 4vh, 2.6rem);
+  transform: translate(-50%, 18px);
+  width: min(92vw, 42rem);
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.45s ease, transform 0.45s var(--ease-snap),
+    visibility 0.45s;
+}
+
+.sysm__info.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.sysm__title {
+  margin-top: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4.4vw, 3.4rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+  color: #1B1B1B;
+}
+
+.sysm__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.sysm__desc {
+  margin: 1rem auto 0;
+  max-width: 30rem;
+  font-weight: 300;
+  font-size: 0.96rem;
+  line-height: 1.7;
+  color: rgba(43, 43, 43, 0.66);
+}
+
+.sysm__specs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 1.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sysm__specs li {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid rgba(43, 43, 43, 0.18);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(43, 43, 43, 0.62);
+}
+
+.sysm__cta-row {
+  margin-top: 1.7rem;
+}
+
+.sysm__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1.9rem;
+  border: 1px solid rgba(167, 154, 135, 0.5);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #2B2B2B;
+  transition: background-color 0.35s var(--ease-snap),
+    color 0.35s var(--ease-snap), border-color 0.35s var(--ease-snap);
+}
+
+.sysm__cta-arrow {
+  display: inline-block;
+  transition: transform 0.35s var(--ease-snap);
+}
+
+.sysm__cta:hover {
+  background: var(--champagne);
+  border-color: var(--champagne);
+  color: #1B1B1B;
+}
+
+.sysm__cta:hover .sysm__cta-arrow {
+  transform: translateX(5px);
+}
+
+/* ── Section progress bar ────────────────────────────────── */
+.sysm__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(43, 43, 43, 0.08);
+  z-index: 4;
+}
+
+.sysm__progress-fill {
+  height: 100%;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* ── Static fallback (reduced motion / GSAP unavailable):
+     cards become a plain centred row, all in colour, with every
+     category's copy stacked below. No pinning, no greyscale. ── */
+.sysm--static .sysm__scroll {
+  height: auto !important;
+}
+
+.sysm--static .sysm__stage {
+  position: static;
+  height: auto;
+  overflow: visible;
+  padding: 3rem 1.5rem 5rem;
+}
+
+.sysm--static .sysm__hint,
+.sysm--static .sysm__progress {
+  display: none;
+}
+
+.sysm--static .sysm__ring {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.sysm--static .sysm__card {
+  position: static;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+.sysm--static .sysm__card-media {
+  filter: none !important;
+}
+
+.sysm--static .sysm__content {
+  position: static;
+  opacity: 1 !important;
+  margin-top: 3.5rem;
+  pointer-events: auto;
+}
+
+.sysm--static .sysm__info {
+  position: static;
+  transform: none;
+  opacity: 1;
+  visibility: visible;
+  margin: 0 auto 3.5rem;
+  pointer-events: auto;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sysm__card-frame {
+    width: 140px;
+    height: 140px;
+  }
+  .sysm__content {
+    top: 54%;
+  }
+  .sysm__info {
+    top: 0.6rem;
+  }
+  .sysm__title {
+    font-size: clamp(1.7rem, 7.5vw, 2.4rem);
+  }
+  .sysm__desc {
+    font-size: 0.9rem;
+  }
+  .sysm__specs {
+    display: none;
+  }
+  .sysm__cta {
+    padding: 0.8rem 1.5rem;
+  }
+}
+
+@media (max-height: 640px) {
+  .sysm__specs {
+    display: none;
+  }
+}

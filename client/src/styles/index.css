@@ -1,0 +1,24 @@
+/* ═══════════════════════════════════════════════════════════════
+   Style entry point.
+
+   Tailwind is loaded WITHOUT Preflight on purpose. Preflight would
+   restyle base elements (img/video become display:block, borders,
+   heading resets, list resets), which silently breaks pixel parity
+   with the original static pages. The original stylesheet already
+   ships its own reset, and it is the single source of truth.
+
+   Layer order below means: Tailwind utilities sit inside @layer, the
+   migrated site CSS is unlayered — so the original CSS always wins a
+   specificity tie. That is deliberate for the migration window.
+   ═══════════════════════════════════════════════════════════════ */
+
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* Migrated global CSS — verbatim from the static pages. */
+@import './global.css';
+
+/* Only scan React source for utility class names. */
+@source '../';

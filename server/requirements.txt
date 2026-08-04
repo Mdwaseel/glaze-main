@@ -1,0 +1,33 @@
+# Core
+asgiref==3.12.1
+Django==6.0.7
+django-cors-headers==4.9.0
+django-environ==0.14.0
+djangorestframework==3.17.1
+djangorestframework_simplejwt==5.5.1
+PyJWT==2.13.0
+sqlparse==0.5.5
+tzdata==2026.3
+
+# PostgreSQL driver.
+#
+# psycopg 3, NOT psycopg2-binary. Two reasons: psycopg2-binary publishes no
+# wheels for Python 3.14 (which this project runs on) and would have to build
+# from source against libpq; and Django 6 speaks psycopg 3 natively through the
+# same `django.db.backends.postgresql` backend, so nothing in settings changes.
+psycopg[binary]==3.3.4
+
+# Password hashing. Argon2id is first in PASSWORD_HASHERS — see settings.py.
+argon2-cffi==25.1.0
+
+# Blog featured images / author portraits (Django's ImageField requires it).
+Pillow==12.3.0
+
+# HTML sanitiser for post content. Rust `ammonia` bindings, the maintained
+# successor to bleach's cleaner. blog/sanitize.py has a stricter stdlib
+# fallback if this is missing, but it is not the path to run in production.
+nh3==0.3.6
+
+# Server-side verification for hosted captcha providers (reCAPTCHA, hCaptcha,
+# Turnstile). Unused by the default 'internal' provider.
+requests==2.34.2

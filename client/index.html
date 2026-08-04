@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!--
+    ⚠ EVERYTHING IN THIS <head> IS THE HOMEPAGE'S, AND THE FALLBACK FOR
+    EVERY OTHER ROUTE.
+
+    This is a single-page app: one document, many routes. components/common/SEO
+    rewrites the title, description, canonical, robots and the og:/twitter:
+    tags on every navigation, so what a visitor's browser and Googlebot (which
+    executes JavaScript) see is per-page and correct.
+
+    What CANNOT be fixed at runtime is the social scrapers. Facebook, WhatsApp,
+    LinkedIn and X fetch the HTML and never run the JavaScript, so a link to
+    /products/casement shared into WhatsApp gets THESE tags — the homepage's —
+    not the Casement page's. That is a property of client-side rendering, not
+    an omission here; the fix is server-side rendering or a prerender layer in
+    front of the static build, and it is written up in the README. Until then
+    the values below are chosen to be a defensible answer for any URL on the
+    site rather than a homepage-specific one.
+  -->
+
+  <title>Glaze — Premium Aluminium Window &amp; Door Systems</title>
+  <meta name="description" content="Aluminium window and door systems engineered to disappear into the architecture — sliding, casement, tilt &amp; turn, lift &amp; slide, bi-fold, pivot and fixed. Designed, fabricated and installed from Hyderabad." />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <link rel="canonical" href="https://www.glazewindowsystems.com/" />
+
+  <!-- ── Favicons ──────────────────────────────────────────────────
+       Supplied set, served from /images/favicon_io/. /favicon.ico also
+       exists at the ROOT because crawlers and older browsers request it
+       there blindly, whatever these tags say. -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon_io/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon_io/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon_io/favicon-16x16.png" />
+  <!-- 192px is what Google Search picks up for the result icon, and it
+       requires a multiple of 48. -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/images/favicon_io/android-chrome-192x192.png" />
+  <link rel="manifest" href="/images/favicon_io/site.webmanifest" />
+  <meta name="theme-color" content="#1B1B1B" />
+
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+  <!-- ── Open Graph (Facebook / WhatsApp / LinkedIn) ────────────────
+       og:image is ABSOLUTE. A relative one is simply dropped by every
+       scraper, which is the difference between a link preview with a
+       photograph and one with a grey box. -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Glaze Window Systems" />
+  <meta property="og:title" content="Glaze — Premium Aluminium Window &amp; Door Systems" />
+  <meta property="og:description" content="Aluminium window and door systems engineered to disappear into the architecture. Seven system families, twelve tested profile series." />
+  <meta property="og:url" content="https://www.glazewindowsystems.com/" />
+  <meta property="og:image" content="https://www.glazewindowsystems.com/og-default.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="A villa glazed with Glaze aluminium systems" />
+  <meta property="og:locale" content="en_IN" />
+
+  <!-- ── X / Twitter ───────────────────────────────────────────────
+       ⚠ NO twitter:site. The company has no X account, and a handle
+       that does not resolve is worse than none — it is a broken
+       reference on every page. Add it here and to sameAs below
+       together, if one is ever opened. -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Glaze — Premium Aluminium Window &amp; Door Systems" />
+  <meta name="twitter:description" content="Aluminium window and door systems engineered to disappear into the architecture." />
+  <meta name="twitter:image" content="https://www.glazewindowsystems.com/og-default.jpg" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+
+  <!--
+    ── Structured data ────────────────────────────────────────────────
+
+    One @graph with three nodes joined by @id, rather than three loose
+    blocks. The @ids are what let a search engine understand that the
+    organisation, the premises you can visit and the website are one
+    entity rather than three — and what per-page schema (BreadcrumbList,
+    Product, BlogPosting) points back at from the React side instead of
+    repeating the publisher on every page.
+
+    ⚠ THIS IS THE ONLY SCHEMA A NON-RENDERING CRAWLER SEES, so the
+    company's identity lives here, in the served HTML, rather than being
+    injected by React. The per-page nodes are added at runtime.
+
+    ⚠ IT DUPLICATES SITE SETTINGS. The phone number, address and social
+    profiles are also editable in the panel, and this block does not read
+    from it — it cannot, it is static HTML. Changing a contact detail
+    means changing it in both places; the README says so next to the
+    Site Settings section.
+
+    ⚠ sameAs IS NOT EMPTY, and that is deliberate: it is the single
+    strongest signal tying these profiles to this business in Google's
+    Knowledge Graph, and leaving it as [] is the most commonly shipped
+    schema mistake there is.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": ["Organization", "HomeAndConstructionBusiness"],
+        "@id": "https://www.glazewindowsystems.com/#organization",
+        "name": "Glaze Window Systems",
+        "alternateName": "Brio Glaze",
+        "url": "https://www.glazewindowsystems.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.glazewindowsystems.com/Glaze%20Logo%20Transparent.png",
+          "width": 2320,
+          "height": 947
+        },
+        "image": "https://www.glazewindowsystems.com/og-default.jpg",
+        "description": "Manufacturer and installer of thermally broken aluminium window and door systems — sliding, casement, tilt & turn, lift & slide, bi-fold, pivot and fixed.",
+        "email": "info@glazewindowsystems.com",
+        "telephone": "+91-76750-23939",
+        "priceRange": "$$$",
+        "currenciesAccepted": "INR",
+        "paymentAccepted": "Bank transfer, UPI, Cheque",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4th Floor, Road No. 5, Jubilee Hills",
+          "addressLocality": "Hyderabad",
+          "addressRegion": "Telangana",
+          "postalCode": "500033",
+          "addressCountry": "IN"
+        },
+        "areaServed": { "@type": "Country", "name": "India" },
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "telephone": "+91-76750-23939",
+            "email": "info@glazewindowsystems.com",
+            "availableLanguage": ["en", "hi", "te"],
+            "areaServed": "IN",
+            "hoursAvailable": {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+              "opens": "10:00",
+              "closes": "19:00"
+            }
+          },
+          {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "email": "info@glazewindowsystems.com",
+            "availableLanguage": ["en", "hi", "te"],
+            "areaServed": "IN"
+          }
+        ],
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            "opens": "10:00",
+            "closes": "19:00"
+          }
+        ],
+        "sameAs": [
+          "https://www.facebook.com/Glazewindowsystems",
+          "https://www.instagram.com/glaze_window_systems/",
+          "https://in.linkedin.com/company/glaze-window-systems",
+          "https://www.youtube.com/@GlazeWindowSystems"
+        ]
+      },
+      {
+        "@type": "LocalBusiness",
+        "@id": "https://www.glazewindowsystems.com/#local-business",
+        "name": "Glaze Window Systems — Jubilee Hills",
+        "url": "https://www.glazewindowsystems.com/contact",
+        "image": "https://www.glazewindowsystems.com/og-default.jpg",
+        "telephone": "+91-76750-23939",
+        "email": "info@glazewindowsystems.com",
+        "priceRange": "$$$",
+        "parentOrganization": { "@id": "https://www.glazewindowsystems.com/#organization" },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "4th Floor, Road No. 5, Jubilee Hills",
+          "addressLocality": "Hyderabad",
+          "addressRegion": "Telangana",
+          "postalCode": "500033",
+          "addressCountry": "IN"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 17.4239,
+          "longitude": 78.4138
+        },
+        "hasMap": "https://www.google.com/maps/search/?api=1&query=Glaze%20Windows%20System%2C%20Jubilee%20Hills%2C%20Hyderabad",
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            "opens": "10:00",
+            "closes": "19:00"
+          }
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://www.glazewindowsystems.com/#website",
+        "url": "https://www.glazewindowsystems.com/",
+        "name": "Glaze Window Systems",
+        "inLanguage": "en",
+        "publisher": { "@id": "https://www.glazewindowsystems.com/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://www.glazewindowsystems.com/blog?search={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- No-JS safety net, carried over verbatim from about.html / contact.html:
+       .fade-up elements otherwise stay at opacity 0 until JS reveals them. -->
+  <noscript>
+    <style>
+      .fade-up { opacity: 1 !important; transform: none !important; }
+      .loader { display: none !important; }
+    </style>
+  </noscript>
+
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

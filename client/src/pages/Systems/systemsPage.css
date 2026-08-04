@@ -1,0 +1,25 @@
+/**
+ * The Systems page shell.
+ *
+ * The carousel itself brings all of its own styling (systemsSection.css,
+ * extracted verbatim from hero.html) and is unchanged by the move. The only
+ * thing a page of its own needs is what the homepage used to provide for
+ * free: something above the section.
+ *
+ * On Home the carousel sat fourth, so the nav bar was already solid and
+ * scrolled past by the time it arrived. Here it is the first thing on the
+ * page, under a fixed 70px bar over a WHITE ground — hence the extra top
+ * padding below, and `alwaysSolid` on the navbar in RootLayout, for the same
+ * reason the blog needs it: the resting bar is white type on a transparent
+ * scrim and would otherwise be invisible.
+ */
+.sysp {
+  background: #ffffff;
+}
+
+/* Added to, not replacing, the section's own intro padding — the intro is
+   deliberately tight (see systemsSection.css) because the sticky stage
+   cannot pin until it has scrolled past, and that reasoning still holds. */
+.sysp > .sysm > .sysm__intro {
+  padding-top: calc(var(--nav-height) + clamp(2.5rem, 6vh, 4.5rem));
+}

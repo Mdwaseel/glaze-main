@@ -1,0 +1,237 @@
+/* Products §07 Glass Switcher — extracted verbatim from the
+   self-contained <style> block in products/sliding.html (lines 894-1123).
+   Rule and media-query order preserved.
+
+   NO SCOPING. Every selector is `.gls*`-prefixed and the file declares no
+   keyframes; a full `gls` search across src/ returns nothing outside this
+   folder. `.is-current` appears only compounded onto a `.gls*` class. */
+
+/* ═══════════════════════════════════════════════════════════════
+   07 · GLASS SWITCHER — one room, eight glazings
+═══════════════════════════════════════════════════════════════ */
+.gls {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: stretch;
+  background: #070A0C;
+  color: var(--arch-bone);
+  overflow: hidden;
+}
+
+.gls__stage { position: absolute; inset: 0; }
+.gls__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.42s ease;
+}
+.gls__layer.is-live { opacity: 1; }
+.gls__layer img { width: 100%; height: 100%; object-fit: cover; }
+
+/* A soft vignette keeps the panel legible without dimming the room. */
+.gls__veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, rgba(6,8,10,0.78) 0%, rgba(6,8,10,0.34) 30%, rgba(6,8,10,0) 55%),
+    linear-gradient(to top, rgba(6,8,10,0.72) 0%, rgba(6,8,10,0) 45%);
+}
+
+.gls__inner {
+  position: relative;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: calc(var(--sys-nav-h) + 3rem) clamp(1.25rem, 4vw, 3rem) clamp(2rem, 5vh, 3rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.gls__head { max-width: 40ch; }
+.gls .eyebrow { color: var(--champagne); }
+.gls__title {
+  margin-top: 1.3rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+.gls__title em { font-family: var(--font-bodoni); font-style: italic; color: var(--champagne); }
+.gls__lede {
+  margin-top: 1.2rem;
+  max-width: 46ch;
+  font-size: 0.95rem;
+  line-height: 1.78;
+  color: rgba(245, 245, 243, 0.66);
+}
+
+.gls__foot { max-width: 42ch; }
+.gls__foot-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+.gls__foot p {
+  margin-top: 0.8rem;
+  font-size: 0.86rem;
+  line-height: 1.75;
+  color: rgba(245, 245, 243, 0.55);
+}
+
+/* ── Floating glassmorphism panel ── */
+.gls__panel {
+  position: absolute;
+  top: 50%;
+  right: clamp(1.25rem, 4vw, 3rem);
+  transform: translateY(-50%);
+  width: min(360px, 34vw);
+  padding: 1.4rem;
+  border-radius: 20px;
+  border: 1px solid rgba(245, 245, 243, 0.16);
+  background: rgba(18, 20, 22, 0.42);
+  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
+  z-index: 3;
+}
+
+.gls__panel-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.45);
+}
+
+.gls__samples {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+
+/* The sample IS the glass — no frame, no plate, no glow. Selection
+   is carried entirely by the label beneath it, so nothing competes
+   with the material itself. */
+.gls__sample {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.gls__sample-img { display: block; aspect-ratio: 1 / 1; }
+.gls__sample-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gls__sample-name {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(245, 245, 243, 0.5);
+  transition: color 0.25s ease;
+}
+.gls__sample-name::after {
+  content: '';
+  position: absolute;
+  left: 50%; bottom: 0.2rem;
+  width: 14px; height: 1px;
+  margin-left: -7px;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transition: transform 0.4s var(--ease-snap);
+}
+.gls__sample:hover .gls__sample-name { color: rgba(245, 245, 243, 0.85); }
+.gls__sample.is-active .gls__sample-name { color: var(--champagne); }
+.gls__sample.is-active .gls__sample-name::after { transform: scaleX(1); }
+
+.gls__spec {
+  margin-top: 1.3rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(245, 245, 243, 0.12);
+}
+.gls__spec-desc {
+  margin-top: 0.7rem;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: rgba(245, 245, 243, 0.6);
+  min-height: 3.3em;
+}
+.gls__rows { margin-top: 0.9rem; }
+.gls__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.42rem 0;
+  border-bottom: 1px dashed rgba(245, 245, 243, 0.09);
+  font-size: 0.78rem;
+}
+.gls__row:last-child { border-bottom: none; }
+.gls__row dt {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.42);
+}
+.gls__row dd {
+  font-weight: 500;
+  color: var(--arch-bone);
+  font-variant-numeric: tabular-nums;
+}
+.gls__fine {
+  margin-top: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.28);
+}
+
+/* Desktop: reserve the panel's column on the flow container itself.
+   Padding the text blocks instead would eat into their own max-width
+   and squeeze the copy to a word per line. */
+@media (min-width: 1025px) {
+  .gls__inner {
+    padding-right: calc(min(360px, 34vw) + clamp(2rem, 5vw, 4rem));
+  }
+}
+
+@media (max-width: 1024px) {
+  .gls { min-height: auto; }
+  /* The scene sits above the copy here, so the nav clearance the
+     desktop layout needs would only open a hole. */
+  .gls__inner { padding-top: clamp(2.5rem, 6vh, 3.5rem); padding-bottom: 0; }
+  .gls__panel {
+    position: relative;
+    top: auto; right: auto;
+    transform: none;
+    width: 100%;
+    margin-top: 2rem;
+  }
+  .gls__veil {
+    background: linear-gradient(to top, rgba(6,8,10,0.9) 0%, rgba(6,8,10,0.4) 50%, rgba(6,8,10,0.55) 100%);
+  }
+  .gls__stage { position: relative; height: 46vh; }
+  .gls { display: block; }
+  .gls__inner { position: relative; }
+  .gls__foot { margin-top: 2rem; padding-bottom: 3rem; }
+}
+@media (max-width: 480px) {
+  .gls__samples { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; }
+}

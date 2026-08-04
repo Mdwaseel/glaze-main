@@ -1,0 +1,776 @@
+/* Products §04 Variants — the cinematic variant reel.
+
+   NOT a port: there is no variant gallery in products/sliding.html. It is
+   new work, and it is written to be indistinguishable from what is around
+   it, so almost every value below is lifted from a rule that already ships
+   on this site rather than chosen fresh:
+
+     ground #070A0C, `.vrt__veil`             ← .gls (Glass Switcher)
+     panel 20px radius / 1px hairline /
+     backdrop blur + saturate / deep
+     shadow / inset top highlight             ← .gls__panel + .hero__btn--secondary
+     `.vrt__title` clamp + Bodoni em          ← .gls__title
+     stage sticky over a JS-sized track       ← .sysm (Home, Systems carousel)
+     `.vrt__progress` hairline + champagne    ← .sysm__progress
+     14px champagne underline wipe,
+     0.4s var(--ease-snap)                    ← .gls__sample-name::after
+     `.vrt__cta` champagne fill on hover,
+     arrow translateX(5px)                    ← .sysm__cta
+     `translateY(-4px)` hover lift            ← .ovw__str:hover
+
+   No new colour, no new font, no new radius, no second glass recipe.
+
+   ── THE LOCAL TOKENS ────────────────────────────────────────────
+   Everything that repeats is declared once on `.vrt` and read from
+   there, so the gutter the title starts at, the gutter the panel ends
+   at and the gutter the rail runs between are provably the same number
+   — this is the "consistent grid" and it is enforced by the cascade
+   rather than by matching literals by eye. Every value is either an
+   existing global token or the same clamp() family the neighbouring
+   sections already use.
+
+   NO SCOPING NEEDED. Every selector is `.vrt*`-prefixed and the file
+   declares no keyframes; a full `vrt` search across src/ returns nothing
+   outside this folder. `.is-live` / `.is-current` / `.is-active` appear
+   only compounded onto a `.vrt*` class. */
+
+/* ═══════════════════════════════════════════════════════════════
+   04 · VARIANTS — one system, one viewport at a time
+═══════════════════════════════════════════════════════════════ */
+.vrt {
+  position: relative;
+  background: #070A0C;
+  color: var(--arch-bone);
+
+  /* ── Grid ──
+     One gutter for the whole section. Wider than the neighbouring
+     sections' clamp(1.25rem, 4vw, 3rem) on purpose: this stage has no
+     container edges of its own, so the air at the frame IS the
+     composition. */
+  --vrt-gutter: clamp(1.5rem, 5vw, 4.5rem);
+  --vrt-panel-w: min(380px, 30vw);
+  /* The offset that stops the layout reading as a two-column template:
+     the panel sits slightly above the optical centre, so the title
+     block and the card are never level with one another. */
+  --vrt-panel-rise: -54%;
+  --vrt-radius: 20px;
+
+  /* ── Ink ──
+     Warm, never pure white. --arch-bone (245,245,243) is already the
+     house's warm white; the muted steps are alpha off that same value
+     rather than a grey, and the quietest metadata takes --champagne at
+     low alpha so labels read as a warm accent instead of dead grey. */
+  --vrt-ink: var(--arch-bone);
+  --vrt-ink-body: rgba(245, 245, 243, 0.72);
+  --vrt-ink-mute: rgba(245, 245, 243, 0.62);
+  /* Champagne rather than a neutral grey, so the metadata labels read
+     warm. 0.82 is the floor that still holds on the brightest clip in
+     the set. */
+  --vrt-label: rgba(167, 154, 135, 0.82);
+  --vrt-hair: rgba(245, 245, 243, 0.10);
+
+  /* ── Time ──
+     Two durations for the whole section, both from the site's existing
+     range, both on the shared easing curve. */
+  --vrt-fast: 0.35s;
+  --vrt-slow: 0.7s;
+}
+
+/* The tall scrub track. JS raises this height to buy one viewport of
+   travel per variant; until it does, the section is exactly one screen
+   and reads correctly. */
+.vrt__scroll { position: relative; }
+
+.vrt__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #070A0C;
+}
+
+/* ── The clips ─────────────────────────────────────────────────
+   All N stacked, one visible.
+
+   The crossfade is a pure opacity dissolve plus a slow settle out of
+   scale(1.045) on the incoming clip — the frame arrives already in
+   motion instead of cutting in at rest. Both properties are composited,
+   so this holds 60fps on a full-bleed 1600px video.
+
+   ⚠ NO `filter:` ON THE WRAPPER. An earlier version dipped the whole
+   media layer to brightness(0.8) through the swap. It looked right but
+   a filter on a full-bleed video forces the compositor to re-render the
+   entire frame every tick for the length of the transition, which is
+   the one thing here that could not hold frame rate. The longer
+   dissolve does the same job for free. */
+.vrt__media { position: absolute; inset: 0; }
+
+.vrt__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.045);
+  transition: opacity var(--vrt-slow) ease, transform 1.6s var(--ease-snap);
+}
+.vrt__layer.is-live { opacity: 1; transform: scale(1); }
+
+.vrt__layer video,
+.vrt__layer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ── Legibility veil ───────────────────────────────────────────
+   ONE soft directional wash, running from the lower left — where the
+   heading and the rail are — up across the frame, plus a short lift at
+   the foot for the numbers. The right third, where the glass card sits,
+   is left almost open: the card now carries a 34px backdrop blur of its
+   own, which is what makes its text legible, so darkening the picture
+   underneath it as well was doing the same job twice and hiding the
+   product to do it.
+
+   ⚠ THE ANGLE IS 112deg AND THAT NUMBER MATTERS. A CSS gradient angle
+   is the direction the ramp POINTS, so the 0% stop sits in the opposite
+   corner: 112deg points right-and-down, which puts full strength in the
+   TOP-LEFT — where the eyebrow, the heading and its champagne italic
+   are. An earlier pass used 74deg, which points right-and-UP and
+   therefore anchors the ramp at the bottom-left; the heading landed
+   halfway down the falloff and the italic disappeared against a
+   white-rendered window. Change the stops freely, but if the angle is
+   changed, re-check where the title projects onto the new axis.
+
+   ⚠ THIS WASH DOES NOT CARRY THE HEADING ON ITS OWN, AND IT IS NOT
+   MEANT TO. --champagne is a mid tone (#A79A87). Against the white
+   kitchen render it needs the ground pulled down past about 0.7 before
+   it separates, and a 0.7 wash across the whole upper-left is exactly
+   the heavy black overlay this section was asked to lose. So the wash
+   is kept soft and open, and the editorial block carries its own local
+   scrim (`.vrt__head::before`) sized to the type rather than to the
+   frame. Net result: less of the picture is covered than before, and
+   the italic reads on every clip in the set. Tune the scrim, not this,
+   when a headline stops holding. */
+.vrt__veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    /* the directional wash — top-left to bottom-right */
+    linear-gradient(
+      112deg,
+      rgba(6, 8, 10, 0.62) 0%,
+      rgba(6, 8, 10, 0.4) 20%,
+      rgba(6, 8, 10, 0.16) 38%,
+      rgba(6, 8, 10, 0.03) 56%,
+      rgba(6, 8, 10, 0) 66%
+    ),
+    /* a short lift at the foot, under the timeline */
+    linear-gradient(to top, rgba(6, 8, 10, 0.6) 0%, rgba(6, 8, 10, 0.2) 16%, rgba(6, 8, 10, 0) 34%);
+}
+
+/* ── Flow column: the section's own title at the head, the variant
+   timeline at the foot. Same shape as .gls__inner. ── */
+.vrt__inner {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: calc(var(--sys-nav-h) + clamp(2.5rem, 6vh, 4.5rem)) var(--vrt-gutter)
+    clamp(2.75rem, 6vh, 4rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2.5rem;
+  pointer-events: none;
+}
+.vrt__inner > * { pointer-events: auto; }
+
+/* ── Editorial column ──────────────────────────────────────────
+   Narrower measure than before (28ch of title, 34ch of lede) with more
+   room around it. Long lines set against a moving picture are the
+   hardest thing on the page to read; short ones with air are the
+   easiest. */
+.vrt__head { position: relative; max-width: 30ch; }
+.vrt .eyebrow { color: var(--champagne); }
+
+/* The local scrim. A soft ellipse sized to the type and bled well past
+   it on every side, so there is no edge anywhere near the words and
+   nothing that reads as a plate behind them — it looks like the corner
+   of the frame falling into shadow, which is what a wash is supposed to
+   look like.
+
+   z-index: -1 keeps it behind its own block's text while still sitting
+   above the clip: `.vrt__inner` is z-index 3 and therefore a stacking
+   context, so a negative child cannot escape past it to the video. */
+.vrt__head::before {
+  content: '';
+  position: absolute;
+  /* ⚠ THE RIGHT BLEED IS THE BIG ONE. `.vrt__head` is 30ch measured at
+     the ROOT size, but `.vrt__title` inside it is 3.6rem — its line box
+     runs a good 80px past the block it sits in, and with a tighter
+     bleed the last word of the italic fell off the end of the ramp. */
+  inset: -3.5rem -11rem -5rem -8rem;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 66% 60% at 36% 46%,
+    rgba(6, 8, 10, 0.74) 0%,
+    rgba(6, 8, 10, 0.58) 44%,
+    rgba(6, 8, 10, 0.26) 68%,
+    rgba(6, 8, 10, 0) 88%
+  );
+}
+
+.vrt__title {
+  margin-top: 1.6rem;
+  max-width: 14ch;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 4vw, 3.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+.vrt__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.vrt__lede {
+  margin-top: 1.5rem;
+  max-width: 34ch;
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: var(--vrt-ink-mute);
+}
+
+/* ── The timeline ──────────────────────────────────────────────
+   Numbers on a hairline, evenly spread. The name belongs to whichever
+   item is current or hovered and is lifted above the line, so a system
+   with eleven formats puts eleven NUMBERS across the foot of the frame
+   rather than eleven strings of type. The name of the current variant
+   is set large in the card anyway; down here it is a preview, not a
+   label. */
+.vrt__rail {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(1.5rem, 3.4vw, 3.2rem);
+  padding-top: 2.6rem;
+  max-width: min(100%, 66ch);
+}
+
+/* The hairline the ticks sit on. */
+.vrt__rail-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 2.6rem;
+  height: 1px;
+  background: var(--vrt-hair);
+}
+
+.vrt__rail-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  /* The negative top margin pulls the tick onto the hairline; the
+     padding is hit area, which a 10px number badly needs. */
+  margin-top: -0.5rem;
+  padding: 0.5rem 0.35rem 0.2rem;
+  color: var(--vrt-ink-mute);
+  transition: color var(--vrt-fast) var(--ease-snap);
+}
+
+/* The tick — a hairline stub hanging off the line, which becomes a
+   champagne mark with a soft glow on the current item.
+
+   ⚠ THE HEIGHT IS FIXED AND scaleY DOES THE GROWING. Animating `height`
+   would push the number down by 6px every time the active item changed,
+   which is a layout shift on every single scroll step. */
+.vrt__rail-tick {
+  width: 1px;
+  height: 15px;
+  background: rgba(245, 245, 243, 0.28);
+  border-radius: 1px;
+  transform: scaleY(0.6);
+  transform-origin: top center;
+  transition: transform var(--vrt-fast) var(--ease-snap),
+    background-color var(--vrt-fast) var(--ease-snap),
+    box-shadow var(--vrt-fast) var(--ease-snap),
+    width var(--vrt-fast) var(--ease-snap);
+}
+
+.vrt__rail-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  /* Letter-spacing is applied to the right of the LAST glyph too, so a
+     centred number sits half a step left of true centre. Pulling the
+     box in by the same amount puts the glyphs back on the tick. */
+  margin-right: -0.24em;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--vrt-fast) var(--ease-snap);
+}
+
+/* The preview name. Absolute so it cannot push the numbers around as it
+   appears, and pointer-events:none so it can overhang its neighbours
+   without stealing their clicks. */
+.vrt__rail-name {
+  position: absolute;
+  bottom: calc(100% - 0.1rem);
+  left: 50%;
+  transform: translate(-50%, 4px);
+  white-space: nowrap;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  opacity: 0;
+  transition: opacity var(--vrt-fast) var(--ease-snap),
+    transform var(--vrt-fast) var(--ease-snap);
+}
+
+/* ── Timeline states ── */
+.vrt__rail-item:hover { color: rgba(245, 245, 243, 0.9); }
+.vrt__rail-item:hover .vrt__rail-tick {
+  transform: scaleY(0.86);
+  background: rgba(245, 245, 243, 0.6);
+}
+
+.vrt__rail-item.is-current { color: var(--champagne); }
+.vrt__rail-item.is-current .vrt__rail-tick {
+  width: 3px;
+  transform: scaleY(1);
+  background: var(--champagne);
+  /* The gentle glow. Two rings, both champagne, both nearly gone — it
+     reads as the light being on rather than as a highlight. */
+  box-shadow: 0 0 0 3px rgba(167, 154, 135, 0.12), 0 0 12px rgba(167, 154, 135, 0.55);
+}
+
+.vrt__rail-item.is-current .vrt__rail-name,
+.vrt__rail-item:hover .vrt__rail-name,
+.vrt__rail-item:focus-visible .vrt__rail-name {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* Two names side by side would collide, so while the pointer is
+   anywhere in the timeline the current item yields its preview to
+   whichever item is actually under the cursor. */
+.vrt__rail:hover .vrt__rail-item.is-current:not(:hover) .vrt__rail-name {
+  opacity: 0;
+  transform: translate(-50%, 4px);
+}
+
+/* ── The floating panel ────────────────────────────────────────
+   Right side, lifted just off centre. This is the section's one piece
+   of glass and it is built the way the hero's secondary button is:
+   a low-opacity fill, a deep backdrop blur, a 1px hairline, a wide soft
+   ambient shadow and a 1px inner highlight along the top edge. The
+   result should read as a pane of architectural glass floating in front
+   of the scene — not as a dark card sitting on top of it.
+
+   ⚠ THE FILL IS THE GLASS SWITCHER'S, UNCHANGED: rgba(18,20,22,0.42).
+   Thinning it to 0.26 and then 0.34 was tried and reverted. It let more
+   of the clip through, but over the bright renders the card stopped
+   reading as a cool pane of glass and started reading as a beige smear
+   — the tint of whatever was behind it won. The dark fill is what makes
+   it glass rather than a window; the deeper blur and the inner highlight
+   below are what make it feel thin. Openness is bought from the veil,
+   which is now far lighter than it was, not from this.
+
+   ⚠ ONE CARD, N CONTENTS — not one card per variant. Two glass
+   surfaces overlapping for the length of a transition would stack their
+   backdrop filters and flash a darker, doubly-blurred box on every
+   change. So the chrome lives here, once, and the variants are stacked
+   inside it.
+
+   ⚠ KEEP BOTH backdrop-filter LINES. Firefox supports the unprefixed
+   property only; Safari the -webkit- one. See the note in
+   vite.config.js about why CSS minification is pinned to esbuild. */
+.vrt__panels {
+  position: absolute;
+  top: 50%;
+  right: var(--vrt-gutter);
+  transform: translateY(var(--vrt-panel-rise));
+  z-index: 4;
+  width: var(--vrt-panel-w);
+  padding: 1.9rem 1.75rem 1.75rem;
+  border-radius: var(--vrt-radius);
+  border: 1px solid rgba(245, 245, 243, 0.14);
+  background: rgba(18, 20, 22, 0.42);
+  backdrop-filter: blur(34px) saturate(150%);
+  -webkit-backdrop-filter: blur(34px) saturate(150%);
+  box-shadow:
+    0 34px 90px -40px rgba(0, 0, 0, 0.72),
+    0 2px 12px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  isolation: isolate;
+  transition: box-shadow 0.5s var(--ease-snap), transform 0.5s var(--ease-snap),
+    border-color 0.5s var(--ease-snap);
+}
+
+/* The cursor highlight — a very soft champagne bloom that follows the
+   pointer across the glass, the way a light source would. The two
+   custom properties are written by the controller on pointermove
+   (rAF-throttled) and default to the card's centre, so the rule is
+   inert until something moves. Paint-only on a 380px box: no layout,
+   no compositing of the video underneath. */
+.vrt__panels::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-snap);
+  background: radial-gradient(
+    240px circle at var(--vrt-mx, 50%) var(--vrt-my, 50%),
+    rgba(167, 154, 135, 0.16),
+    rgba(167, 154, 135, 0) 68%
+  );
+}
+.vrt__panels:hover::before { opacity: 1; }
+
+/* Subtle elevation on hover — the same 4px the overview's reason cards
+   lift by, on top of whatever offset the card is already holding. No
+   scale: it would soften the text the backdrop filter is holding
+   sharp. */
+.vrt__panels:hover {
+  transform: translateY(var(--vrt-panel-rise)) translateY(-4px);
+  border-color: rgba(245, 245, 243, 0.2);
+  box-shadow:
+    0 44px 100px -40px rgba(0, 0, 0, 0.78),
+    0 2px 12px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* A one-cell grid with every variant in that cell: they stack without
+   absolute positioning, so the card takes the height of the TALLEST
+   one and never resizes between variants. A jumping glass panel is
+   the one thing that would give this away as a gallery. */
+.vrt__panels-in { display: grid; }
+
+.vrt__panel {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.vrt__panel.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ── Panel type ────────────────────────────────────────────────
+   Three steps and two weights for the whole card: 500 on the display
+   heading, 400 on everything else. Separation is carried by size,
+   colour and space instead of by weight, which is what keeps a 380px
+   panel from reading as a dense spec sheet. */
+.vrt__eyebrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--vrt-label);
+}
+.vrt__count {
+  color: var(--champagne);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2em;
+}
+
+.vrt__name {
+  margin-top: 1.5rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.65rem, 2.3vw, 2.15rem);
+  line-height: 1.14;
+  letter-spacing: -0.015em;
+  color: var(--vrt-ink);
+}
+
+.vrt__desc {
+  margin-top: 1rem;
+  max-width: 32ch;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.9;
+  color: var(--vrt-ink-body);
+}
+
+/* ── Specifications: architectural metadata ────────────────────
+   Label over value, two up, on a hairline spine. Everything about the
+   spacing is deliberately loose — 1.15rem of vertical padding per row
+   and 0.62rem between a label and its figure — because four numbers
+   with air around them read as specification, and the same four numbers
+   set tight read as a table. The vertical divider the old version had
+   between the columns is gone; the column gap does that job without
+   drawing a line to do it. */
+.vrt__specs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.6rem;
+  margin-top: 1.9rem;
+  border-top: 1px solid var(--vrt-hair);
+}
+.vrt__spec {
+  padding: 1.15rem 0 1.05rem;
+  border-bottom: 1px solid rgba(245, 245, 243, 0.06);
+}
+.vrt__spec:nth-last-child(-n + 2) { border-bottom: none; padding-bottom: 0.25rem; }
+
+.vrt__spec-key {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--vrt-label);
+}
+.vrt__spec-val {
+  display: block;
+  margin-top: 0.62rem;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  color: var(--vrt-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── CTA ───────────────────────────────────────────────────────
+   The site's pill, on dark, with the heavy 0.5-alpha border traded for
+   a hairline and the flat colour swap traded for a fill that wipes in
+   from the left. Same champagne, same destination state, same 5px
+   arrow nudge as .sysm__cta — only the way it gets there is animated.
+
+   The wipe is a ::before at z-index -1 inside an isolated stacking
+   context, so the label sits above it without needing its own layer. */
+.vrt__cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 1.9rem;
+  padding: 0.85rem 1.5rem;
+  border: 1px solid rgba(245, 245, 243, 0.28);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--vrt-ink);
+  transition: color var(--vrt-fast) var(--ease-snap),
+    border-color var(--vrt-fast) var(--ease-snap);
+}
+.vrt__cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s var(--ease-snap);
+}
+.vrt__cta-arrow {
+  display: inline-block;
+  transition: transform var(--vrt-fast) var(--ease-snap);
+}
+
+.vrt__cta:hover,
+.vrt__cta:focus-visible {
+  color: var(--arch-black);
+  border-color: var(--champagne);
+}
+.vrt__cta:hover::before,
+.vrt__cta:focus-visible::before { transform: scaleX(1); }
+.vrt__cta:hover .vrt__cta-arrow,
+.vrt__cta:focus-visible .vrt__cta-arrow { transform: translateX(5px); }
+
+/* ── Section progress ──────────────────────────────────────────
+   A hairline rather than the 2px bar it was. The timeline above says
+   which variant; this only says how far through the section the scroll
+   is, and it should be felt more than read. */
+.vrt__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(245, 245, 243, 0.06);
+  z-index: 5;
+}
+.vrt__progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, rgba(167, 154, 135, 0.35), var(--champagne));
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* ── One variant only (Bi-Fold, until more clips land) ──────────
+   Nothing to scroll through, so nothing is pinned and the timeline and
+   the progress hairline have no job. */
+.vrt--single .vrt__stage { position: relative; }
+.vrt--single .vrt__rail,
+.vrt--single .vrt__progress { display: none; }
+
+/* ── Static: reduced motion, or no scroll driver ────────────────
+   The stage stops pinning and the timeline becomes the only control.
+   Same layout, same panel — the storytelling scroll is what is
+   withdrawn, not the content. */
+.vrt--static .vrt__scroll { height: auto !important; }
+.vrt--static .vrt__stage { position: relative; }
+.vrt--static .vrt__progress { display: none; }
+.vrt--static .vrt__layer { transition: none; transform: none; }
+.vrt--static .vrt__layer.is-live { transform: none; }
+/* Under reduced motion every clip is given native `controls`, and the
+   browser draws them across the foot of the frame — right where the
+   timeline sits. Give the flow column the height of a control bar so
+   the two do not share a row. */
+.vrt--static .vrt__inner { padding-bottom: clamp(4.5rem, 8vh, 6rem); }
+
+/* ── Desktop: reserve the panel's column so the title and the timeline
+   never run under the glass. Padding the blocks individually would eat
+   their own max-width and squeeze the copy. The extra clamp is the air
+   BETWEEN the two columns — the single biggest contributor to the
+   section reading as composed rather than filled. ── */
+@media (min-width: 1025px) {
+  .vrt__inner {
+    padding-right: calc(var(--vrt-panel-w) + var(--vrt-gutter) + clamp(2.5rem, 6vw, 5.5rem));
+  }
+}
+
+/* ── Tablet: same cinematic frame, tighter gutters, panel drops to the
+   foot of the screen where there is room for it. ── */
+@media (max-width: 1024px) {
+  .vrt {
+    --vrt-gutter: clamp(1.25rem, 4vw, 3rem);
+    --vrt-panel-rise: 0%;
+  }
+  .vrt__inner {
+    padding-top: calc(var(--sys-nav-h) + 2rem);
+    padding-bottom: clamp(14rem, 34vh, 20rem);
+  }
+  .vrt__head { max-width: 26ch; }
+  .vrt__title { font-size: clamp(1.85rem, 4.4vw, 2.6rem); }
+  .vrt__lede { display: none; }
+
+  .vrt__panels {
+    top: auto;
+    bottom: clamp(4.75rem, 12vh, 7rem);
+    right: var(--vrt-gutter);
+    left: var(--vrt-gutter);
+    transform: none;
+    width: auto;
+  }
+  .vrt__panels:hover { transform: translateY(-4px); }
+  .vrt__desc { max-width: 46ch; }
+
+  /* The timeline scrolls horizontally here, so the hairline — which is
+     absolutely positioned against the padding box, not the scroll width
+     — would sit still while the ticks moved past it. The ticks carry
+     the line on their own. */
+  .vrt__rail {
+    position: absolute;
+    left: var(--vrt-gutter);
+    right: var(--vrt-gutter);
+    bottom: 1.2rem;
+    padding-top: 0;
+    align-items: center;
+    overflow-x: auto;
+    gap: 1.6rem;
+    max-width: none;
+    scrollbar-width: none;
+  }
+  .vrt__rail::-webkit-scrollbar { display: none; }
+  .vrt__rail-line { display: none; }
+  .vrt__rail-item { flex: 0 0 auto; margin-top: 0; }
+  .vrt__rail-tick { display: none; }
+  /* ⚠ `overflow-x: auto` computes `overflow-y: auto` as well, so the
+     preview name — which is positioned ABOVE its item — was being
+     clipped by the scroll container rather than drawn. It is redundant
+     here anyway: the panel sitting directly above the timeline already
+     carries the variant's name at 2rem. */
+  .vrt__rail-name { display: none; }
+
+  /* The panel has moved under the video rather than beside it, so the
+     wash turns through 90°: weight at the foot for the panel and the
+     timeline, weight at the head for the title. */
+  .vrt__veil {
+    background:
+      linear-gradient(to top, rgba(6, 8, 10, 0.86) 0%, rgba(6, 8, 10, 0.34) 46%, rgba(6, 8, 10, 0) 68%),
+      linear-gradient(to bottom, rgba(6, 8, 10, 0.78) 0%, rgba(6, 8, 10, 0.44) 22%, rgba(6, 8, 10, 0.08) 42%, rgba(6, 8, 10, 0) 54%);
+  }
+}
+
+/* ── Mobile: the panel takes the width, the specs stay two-up ── */
+@media (max-width: 640px) {
+  .vrt__inner { padding-bottom: clamp(15rem, 40vh, 21rem); }
+  .vrt__title { font-size: clamp(1.7rem, 7vw, 2.2rem); }
+  .vrt__panels { padding: 1.5rem 1.35rem 1.4rem; }
+  .vrt__name { font-size: 1.4rem; margin-top: 1.25rem; }
+  .vrt__desc { font-size: 0.85rem; line-height: 1.8; margin-top: 0.85rem; }
+  .vrt__specs { margin-top: 1.5rem; column-gap: 1.1rem; }
+  .vrt__spec { padding: 0.95rem 0 0.85rem; }
+  .vrt__cta { margin-top: 1.5rem; }
+  /* Room at the end for the last number to scroll clear of the fixed
+     chat button, which sits in the same corner on every page. */
+  .vrt__rail { gap: 1.3rem; padding-right: 3.5rem; }
+}
+
+/* ── Short viewports: the lede and some of the panel's air are the
+   first things a 615px-tall laptop can spare. ── */
+@media (max-height: 760px) and (min-width: 1025px) {
+  .vrt__lede { display: none; }
+  .vrt__inner { padding-top: calc(var(--sys-nav-h) + 2rem); }
+  .vrt__panels { padding: 1.5rem 1.5rem 1.4rem; }
+  .vrt__name { margin-top: 1.15rem; }
+  .vrt__desc { margin-top: 0.8rem; line-height: 1.8; }
+  .vrt__specs { margin-top: 1.4rem; }
+  .vrt__spec { padding: 0.85rem 0 0.75rem; }
+  .vrt__cta { margin-top: 1.35rem; }
+}
+
+/* Honour the OS setting even if JS never runs. Transforms are reset as
+   well as transitions — an element parked at scale(1.045) with its
+   transition removed would simply stay there. */
+@media (prefers-reduced-motion: reduce) {
+  .vrt__layer,
+  .vrt__panels,
+  .vrt__panels::before,
+  .vrt__rail-item,
+  .vrt__rail-tick,
+  .vrt__rail-num,
+  .vrt__rail-name,
+  .vrt__cta,
+  .vrt__cta::before,
+  .vrt__cta-arrow {
+    transition: none !important;
+  }
+  .vrt__layer { transform: none !important; }
+  .vrt__panels:hover { transform: translateY(var(--vrt-panel-rise)) !important; }
+  .vrt__cta:hover::before,
+  .vrt__cta:focus-visible::before { transform: scaleX(1) !important; }
+  .vrt__cta:hover .vrt__cta-arrow { transform: none !important; }
+}

@@ -1,0 +1,129 @@
+# Glaze — production stack.
+#
+#   db       PostgreSQL 17. Not published to the host; reachable only on the
+#            compose network.
+#   api      Django + gunicorn. Also not published — nginx is the only way in.
+#   web      nginx: serves the React build and proxies everything Django owns.
+#            The only service with ports on the host.
+#   certbot  Renews the TLS certificate in a loop. No web server restarts.
+#
+# One `.env` at the repo root feeds all of it — both compose's own ${...}
+# substitution and, via env_file, the environment Django reads. Copy
+# .env.example to .env on the server; it is gitignored and never leaves it.
+#
+#   docker compose up -d --build      deploy
+#   docker compose logs -f api        watch Django
+#   ./deploy/deploy.sh                pull, rebuild, restart, verify
+
+name: glaze
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # The container's own role is a superuser, which is what lets the first
+      # migration run CREATE EXTENSION for pg_trgm and unaccent (the chatbot's
+      # typo tolerance) with no manual psql step.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # No backup mount. deploy/backup.sh streams pg_dump to the host's stdout
+      # instead, which sidesteps the trap: the postgres image runs as uid 70,
+      # a bind-mounted host directory keeps the host's ownership, and pg_dump
+      # writing into it fails with a permission error that reads like a
+      # database problem.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    # ⚠ No `ports:` on purpose. Publishing 5432 would expose PostgreSQL to the
+    # internet — and Docker writes its own iptables rules, so a published port
+    # is reachable even when ufw says the port is closed. Reach it with
+    # `docker compose exec db psql`, or over an SSH tunnel.
+
+  api:
+    build:
+      context: ./server
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Overrides whatever .env says: inside the compose network the database
+      # is the service name, never localhost.
+      DB_HOST: db
+      DB_PORT: "5432"
+    volumes:
+      # Uploads. ⚠ THE ONLY COPY — blog images and catalogue media live here
+      # and nowhere else. A named volume survives rebuilds and `docker compose
+      # down`, but NOT `down -v`. Back it up (deploy/backup.sh).
+      - media:/app/media
+      # collectstatic output, shared read-only with nginx.
+      - static:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+    # Also not published. nginx reaches it over the compose network.
+
+  web:
+    build:
+      context: ./client
+      args:
+        # ⚠ Build-time, not runtime. Vite inlines these into the bundle, so
+        # changing one needs `docker compose build web`, not a restart.
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
+        VITE_SITE_URL: ${VITE_SITE_URL:-https://www.glazewindowsystems.com}
+        VITE_NOINDEX: ${VITE_NOINDEX:-}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # NGINX_CONF is bootstrap.conf until the certificate exists, then
+      # app.conf forever. Bind-mounted rather than baked into the image so
+      # that switch — and any later nginx tweak — is a restart, not a rebuild
+      # of a ~350 MB image.
+      - ./deploy/nginx/${NGINX_CONF:-app.conf}:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/nginx/snippets:/etc/nginx/snippets:ro
+      - static:/srv/static:ro
+      - media:/srv/media:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot
+    depends_on:
+      - api
+    # Reload every 6 hours so a certificate renewed overnight is picked up
+    # without anyone logging in. nginx reload is graceful — in-flight requests
+    # finish on the old workers.
+    command: >
+      sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done &
+             exec nginx -g 'daemon off;'"
+
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    # Webroot renewal: certbot drops a challenge file into the shared volume
+    # and nginx serves it. No port juggling, no downtime — the alternative
+    # (--standalone) has to stop nginx to bind port 80.
+    #
+    # Twice daily is what Let's Encrypt recommends. `renew` is a no-op until
+    # the certificate is inside 30 days of expiry, so this is nearly free and
+    # means a failed renewal has ~60 chances to succeed before anything breaks.
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do
+               certbot renew --webroot -w /var/www/certbot --quiet;
+               sleep 12h & wait $${!};
+             done"
+
+volumes:
+  pgdata:
+  media:
+  static:
+  certbot_conf:
+  certbot_www:

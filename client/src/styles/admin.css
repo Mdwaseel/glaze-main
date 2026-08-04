@@ -1,0 +1,1219 @@
+/* ═══════════════════════════════════════════════════════════════
+   Glaze Studio — the admin panel.
+
+   NEW CSS. Like blog.css there is no static original to be verbatim
+   against.
+
+   The design tool recommended a "Financial Dashboard" style on a blue
+   #1E40AF palette. The DENSITY and STRUCTURE of that recommendation are
+   taken; the palette is not. A blue admin panel bolted onto a bronze and
+   bone brand reads as third-party software the moment you see it, and
+   this panel is where the people who own the brand spend their time. So:
+   dashboard density, Glaze colour.
+
+   What that means concretely:
+     - dense spacing scale (8/12/16/24/32/48), not the marketing
+       48/64/96 the public pages use
+     - --font-mono for every number, label and datum, so figures align in
+       a column and a changing value does not reflow its neighbours
+     - --font-sans at 13-14px for UI text, --font-display reserved for
+       page titles only — this is a tool, not an editorial page
+     - dark charcoal rail against a bone canvas, mirroring the site's own
+       dark nav over light content
+
+   SCOPING. Every selector is `.ad-`-prefixed and unscoped, which is safe
+   because `.ad-` appears nowhere else in the bundle. The two bare-element
+   blocks (.ad-table th/td, .ad-input) are descendant-scoped.
+
+   CONTRAST. Same rule as blog.css and for the same reason: --champagne
+   (#A79A87) is 2.6:1 on white and is used ONLY on the dark rail, where it
+   is 7.4:1. On the bone canvas the accent is --bronze (#726655), 5.6:1.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tokens ─────────────────────────────────────────────────────
+   ⚠ BOTH selectors, and that is load-bearing.
+
+   The panel shell renders <div class="ad">, but the LOGIN screen does
+   not — it is outside AdminLayout by design (the layout is the route
+   guard, so nesting the login inside it would redirect it to itself).
+   With the tokens declared on `.ad` alone, every `var(--ad-*)` on the
+   login screen resolved to nothing: 17 of the 19 classes it renders
+   reference these, so the page shipped with no background, no padding,
+   no borders and no colour. Custom properties inherit down the tree —
+   they do not leak sideways to a sibling subtree.
+
+   Anything else rendered outside `.ad` that uses these tokens has to be
+   added here too. Keep them in one block, never duplicated. */
+.ad,
+.ad-login {
+  --ad-rail: 248px;
+  --ad-ink: #1B1B1B;
+  --ad-canvas: #F5F5F3;
+  --ad-surface: #FFFFFF;
+  --ad-line: rgba(27, 27, 27, 0.1);
+  --ad-line-strong: rgba(27, 27, 27, 0.18);
+  --ad-muted: rgba(27, 27, 27, 0.55);
+  --ad-faint: rgba(27, 27, 27, 0.38);
+
+  /* Status colours. Each is paired with a text label everywhere it is
+     used — colour never carries meaning on its own. */
+  --ad-ok: #4C664C;
+  --ad-warn: #8A6A2F;
+  --ad-danger: #9B3A2E;
+  --ad-info: #3D4B63;
+
+  /* Dense scale (density 8/10). */
+  --ad-1: 4px;
+  --ad-2: 8px;
+  --ad-3: 12px;
+  --ad-4: 16px;
+  --ad-5: 24px;
+  --ad-6: 32px;
+  --ad-7: 48px;
+
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ad {
+  min-height: 100vh;
+  background: var(--ad-canvas);
+  color: var(--ad-ink);
+}
+
+/* ───────────────────────────────────────────
+   Shell
+─────────────────────────────────────────── */
+.ad__layout {
+  display: grid;
+  grid-template-columns: var(--ad-rail) 1fr;
+  min-height: 100vh;
+}
+
+.ad__rail {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ad-ink);
+  color: var(--arch-white);
+  overflow-y: auto;
+}
+
+.ad__brand {
+  padding: var(--ad-5) var(--ad-5) var(--ad-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.ad__brand-mark {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.ad__brand-sub {
+  margin-top: var(--ad-1);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+
+.ad__nav {
+  flex: 1;
+  padding: var(--ad-4) var(--ad-3);
+}
+
+.ad__nav-group {
+  margin-bottom: var(--ad-5);
+}
+
+.ad__nav-label {
+  padding: 0 var(--ad-3);
+  margin-bottom: var(--ad-2);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.ad__nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--ad-3);
+  /* 40px tall — comfortably over the 44px target once the 4px gaps
+     between rows are counted, and dense enough for twelve entries. */
+  padding: 10px var(--ad-3);
+  margin-bottom: 2px;
+  border-radius: 3px;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.ad__nav-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--arch-white);
+}
+
+.ad__nav-link.is-active {
+  background: rgba(167, 154, 135, 0.16);
+  color: var(--champagne);
+}
+
+.ad__nav-link svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.ad__nav-badge {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--champagne);
+  color: var(--ad-ink);
+}
+
+.ad__rail-foot {
+  padding: var(--ad-4) var(--ad-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 12px;
+}
+
+.ad__rail-user {
+  color: rgba(255, 255, 255, 0.85);
+  overflow-wrap: anywhere;
+}
+
+.ad__signout {
+  margin-top: var(--ad-2);
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--champagne);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ad__signout:hover { color: var(--arch-white); }
+
+.ad__main {
+  min-width: 0;   /* lets grid children shrink instead of forcing page scroll */
+  padding: var(--ad-6) var(--ad-6) var(--ad-7);
+}
+
+/* ───────────────────────────────────────────
+   Page header
+─────────────────────────────────────────── */
+.ad__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ad-4);
+  margin-bottom: var(--ad-6);
+}
+
+.ad__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.ad__subtitle {
+  margin-top: var(--ad-1);
+  font-size: 13px;
+  color: var(--ad-muted);
+}
+
+.ad__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ad-2);
+}
+
+/* ───────────────────────────────────────────
+   Buttons
+─────────────────────────────────────────── */
+.ad-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ad-2);
+  /* 38px + border = 40px. Paired controls sit 8px apart, clearing the
+     spacing guidance for adjacent targets. */
+  min-height: 38px;
+  padding: 0 var(--ad-4);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ad-ink);
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-line-strong);
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.ad-btn:hover:not(:disabled) {
+  border-color: var(--bronze);
+  color: var(--bronze);
+}
+
+.ad-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ad-btn svg { width: 14px; height: 14px; }
+
+.ad-btn--primary {
+  color: var(--arch-white);
+  background: var(--ad-ink);
+  border-color: var(--ad-ink);
+}
+
+.ad-btn--primary:hover:not(:disabled) {
+  background: var(--bronze);
+  border-color: var(--bronze);
+  color: var(--arch-white);
+}
+
+.ad-btn--danger {
+  color: var(--ad-danger);
+  border-color: rgba(155, 58, 46, 0.35);
+}
+
+.ad-btn--danger:hover:not(:disabled) {
+  color: var(--arch-white);
+  background: var(--ad-danger);
+  border-color: var(--ad-danger);
+}
+
+/* ⚠ STATED TRADE-OFF: 34px, below the 44px touch-target floor.
+   The public surfaces (blog filters, login, its captcha reload) all meet
+   44px — those are read on phones. This variant exists only for the
+   per-row action clusters in the admin tables, which carry up to five
+   controls in a seven-column row on a desktop tool. At 44px each, the
+   cluster alone is 220px+ and forces the table into horizontal scroll,
+   which is a worse outcome than a slightly small button for a mouse user.
+   Expanding the hit area with a pseudo-element was the other option and
+   is worse still here: at an 8px gap the expanded areas would overlap and
+   mis-taps would land on the neighbouring action — and one of these
+   neighbours is Delete. */
+.ad-btn--sm {
+  min-height: 34px;
+  padding: 0 var(--ad-3);
+  font-size: 9px;
+}
+
+.ad-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.ad-btn--ghost:hover:not(:disabled) {
+  background: rgba(27, 27, 27, 0.05);
+}
+
+/* ───────────────────────────────────────────
+   Cards & panels
+─────────────────────────────────────────── */
+.ad-card {
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-line);
+  border-radius: 4px;
+}
+
+.ad-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ad-3);
+  padding: var(--ad-4) var(--ad-5);
+  border-bottom: 1px solid var(--ad-line);
+}
+
+.ad-card__title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.ad-card__hint {
+  margin-top: var(--ad-1);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ad-muted);
+}
+
+.ad-card__body { padding: var(--ad-5); }
+
+.ad-grid {
+  display: grid;
+  gap: var(--ad-4);
+}
+
+.ad-grid--2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.ad-grid--4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+/* ───────────────────────────────────────────
+   Stat tiles
+─────────────────────────────────────────── */
+.ad-stat {
+  padding: var(--ad-4) var(--ad-5);
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-line);
+  border-radius: 4px;
+}
+
+.ad-stat__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--ad-faint);
+}
+
+.ad-stat__value {
+  margin-top: var(--ad-2);
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  /* Tabular figures stop the number jiggling horizontally as it counts
+     up or refreshes. */
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-stat__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ad-1);
+  margin-top: var(--ad-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.ad-stat__trend--up { color: var(--ad-ok); }
+.ad-stat__trend--down { color: var(--ad-danger); }
+.ad-stat__trend--flat { color: var(--ad-faint); }
+
+/* ───────────────────────────────────────────
+   Chart — plain SVG, no charting library.
+
+   A bar/line chart of one series does not justify 50 KB of dependency,
+   and hand-rolled SVG lets the bars inherit the brand colour and the
+   focus ring for free.
+─────────────────────────────────────────── */
+.ad-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 180px;
+  padding-top: var(--ad-4);
+}
+
+.ad-chart__col {
+  position: relative;
+  flex: 1;
+  min-width: 3px;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  cursor: default;
+}
+
+.ad-chart__bar {
+  width: 100%;
+  min-height: 2px;
+  background: var(--bronze);
+  opacity: 0.55;
+  border-radius: 1px 1px 0 0;
+  transition: opacity 0.18s ease;
+}
+
+.ad-chart__col:hover .ad-chart__bar,
+.ad-chart__col:focus-visible .ad-chart__bar {
+  opacity: 1;
+}
+
+/* Tooltip. Every bar also carries a <title> for screen readers and for
+   anyone who cannot hover, so this is an enhancement rather than the
+   only way to read the value. */
+.ad-chart__tip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+  color: var(--arch-white);
+  background: var(--ad-ink);
+  border-radius: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  z-index: 2;
+}
+
+.ad-chart__col:hover .ad-chart__tip,
+.ad-chart__col:focus-visible .ad-chart__tip {
+  opacity: 1;
+}
+
+.ad-chart__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--ad-2);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--ad-faint);
+}
+
+/* Horizontal proportion bars — top pages, devices, referrers. */
+.ad-bars { display: grid; gap: var(--ad-3); }
+
+.ad-bar__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ad-3);
+  margin-bottom: var(--ad-1);
+  font-size: 12.5px;
+}
+
+.ad-bar__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ad-bar__value {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ad-muted);
+}
+
+.ad-bar__track {
+  height: 4px;
+  background: rgba(27, 27, 27, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ad-bar__fill {
+  height: 100%;
+  background: var(--bronze);
+  border-radius: 2px;
+}
+
+/* ───────────────────────────────────────────
+   Tables
+─────────────────────────────────────────── */
+.ad-table-wrap {
+  overflow-x: auto;
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-line);
+  border-radius: 4px;
+}
+
+.ad-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+.ad-table th {
+  padding: var(--ad-3) var(--ad-4);
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ad-faint);
+  border-bottom: 1px solid var(--ad-line);
+  white-space: nowrap;
+}
+
+.ad-table td {
+  padding: var(--ad-3) var(--ad-4);
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--ad-line);
+  vertical-align: middle;
+}
+
+.ad-table tr:last-child td { border-bottom: none; }
+
+.ad-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.ad-table tbody tr:hover { background: rgba(27, 27, 27, 0.02); }
+
+.ad-table__num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ad-table__actions {
+  display: flex;
+  gap: var(--ad-2);
+  justify-content: flex-end;
+}
+
+.ad-table__title {
+  font-weight: 600;
+  color: var(--ad-ink);
+}
+
+.ad-table__sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ad-muted);
+}
+
+/* ───────────────────────────────────────────
+   Pills — status. Text is always present; colour is a second signal.
+─────────────────────────────────────────── */
+.ad-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ad-1);
+  padding: 3px 9px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.ad-pill--published { color: var(--ad-ok); background: rgba(76, 102, 76, 0.1); border-color: rgba(76, 102, 76, 0.25); }
+.ad-pill--draft { color: var(--ad-muted); background: rgba(27, 27, 27, 0.05); border-color: var(--ad-line); }
+.ad-pill--scheduled { color: var(--ad-info); background: rgba(61, 75, 99, 0.1); border-color: rgba(61, 75, 99, 0.25); }
+.ad-pill--archived { color: var(--ad-faint); background: rgba(27, 27, 27, 0.04); border-color: var(--ad-line); }
+.ad-pill--pending { color: var(--ad-warn); background: rgba(138, 106, 47, 0.1); border-color: rgba(138, 106, 47, 0.25); }
+.ad-pill--approved { color: var(--ad-ok); background: rgba(76, 102, 76, 0.1); border-color: rgba(76, 102, 76, 0.25); }
+.ad-pill--spam { color: var(--ad-danger); background: rgba(155, 58, 46, 0.1); border-color: rgba(155, 58, 46, 0.25); }
+.ad-pill--new { color: var(--ad-info); background: rgba(61, 75, 99, 0.1); border-color: rgba(61, 75, 99, 0.25); }
+.ad-pill--featured { color: var(--bronze); background: rgba(114, 102, 85, 0.1); border-color: rgba(114, 102, 85, 0.3); }
+
+/* ───────────────────────────────────────────
+   Forms
+─────────────────────────────────────────── */
+.ad-field { margin-bottom: var(--ad-4); }
+
+.ad-field__label {
+  display: block;
+  margin-bottom: var(--ad-2);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ad-muted);
+}
+
+.ad-field__req { color: var(--ad-danger); }
+
+/* Helper text sits BELOW the control, where it is read after the field
+   rather than competing with the label. */
+.ad-field__hint {
+  margin-top: var(--ad-2);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ad-muted);
+}
+
+.ad-field__error {
+  margin-top: var(--ad-2);
+  font-size: 12px;
+  color: var(--ad-danger);
+}
+
+.ad-input,
+.ad-select,
+.ad-textarea {
+  width: 100%;
+  padding: 9px var(--ad-3);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--ad-ink);
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-line-strong);
+  border-radius: 3px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ad-textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.ad-textarea--code {
+  min-height: 340px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  /* Off for HTML: a wrapped tag is far harder to scan than a scrolled
+     one, and email HTML lines are long by nature. */
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.ad-input:focus,
+.ad-select:focus,
+.ad-textarea:focus {
+  outline: none;
+  border-color: var(--bronze);
+  box-shadow: 0 0 0 3px rgba(114, 102, 85, 0.12);
+}
+
+.ad-input[aria-invalid='true'],
+.ad-textarea[aria-invalid='true'] {
+  border-color: var(--ad-danger);
+}
+
+.ad-count {
+  display: block;
+  margin-top: var(--ad-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ad-faint);
+}
+
+.ad-count--over { color: var(--ad-danger); }
+
+/* Toggle */
+.ad-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ad-3);
+  padding: var(--ad-3) 0;
+  cursor: pointer;
+}
+
+.ad-toggle__track {
+  flex: none;
+  position: relative;
+  width: 38px;
+  height: 22px;
+  margin-top: 1px;
+  background: rgba(27, 27, 27, 0.18);
+  border-radius: 11px;
+  transition: background-color 0.2s ease;
+}
+
+.ad-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: var(--arch-white);
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.ad-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ad-toggle input:checked + .ad-toggle__track { background: var(--bronze); }
+.ad-toggle input:checked + .ad-toggle__track .ad-toggle__thumb { transform: translateX(16px); }
+
+.ad-toggle input:focus-visible + .ad-toggle__track {
+  outline: 2px solid var(--bronze);
+  outline-offset: 2px;
+}
+
+.ad-toggle__text { font-size: 13.5px; }
+.ad-toggle__hint { margin-top: 2px; font-size: 12px; color: var(--ad-muted); }
+
+/* Upload drop zone */
+.ad-upload {
+  display: grid;
+  place-items: center;
+  gap: var(--ad-2);
+  padding: var(--ad-6);
+  text-align: center;
+  border: 1px dashed var(--ad-line-strong);
+  border-radius: 4px;
+  background: rgba(27, 27, 27, 0.015);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.ad-upload:hover,
+.ad-upload.is-over {
+  border-color: var(--bronze);
+  background: rgba(114, 102, 85, 0.04);
+}
+
+.ad-upload__hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ad-faint);
+}
+
+.ad-upload__preview {
+  max-height: 190px;
+  border-radius: 3px;
+  object-fit: contain;
+}
+
+/* Editor two-column layout */
+.ad-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--ad-5);
+  align-items: start;
+}
+
+.ad-editor__side {
+  position: sticky;
+  top: var(--ad-5);
+  display: grid;
+  gap: var(--ad-4);
+}
+
+/* Tabs */
+.ad-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ad-1);
+  margin-bottom: var(--ad-5);
+  border-bottom: 1px solid var(--ad-line);
+}
+
+.ad-tab {
+  padding: var(--ad-3) var(--ad-4);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ad-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.ad-tab:hover { color: var(--ad-ink); }
+
+.ad-tab.is-active {
+  color: var(--bronze);
+  border-bottom-color: var(--bronze);
+}
+
+/* ───────────────────────────────────────────
+   Toast — bottom-right, above everything
+─────────────────────────────────────────── */
+.ad-toasts {
+  position: fixed;
+  right: var(--ad-5);
+  bottom: var(--ad-5);
+  z-index: 200;
+  display: grid;
+  gap: var(--ad-2);
+  max-width: min(380px, calc(100vw - 48px));
+}
+
+.ad-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ad-3);
+  padding: var(--ad-3) var(--ad-4);
+  font-size: 13px;
+  color: var(--arch-white);
+  background: var(--ad-ink);
+  border-left: 3px solid var(--bronze);
+  border-radius: 3px;
+  box-shadow: 0 6px 24px rgba(27, 27, 27, 0.22);
+  animation: ad-toast-in 0.24s var(--ease-snap);
+}
+
+.ad-toast--ok { border-left-color: #6E9A6E; }
+.ad-toast--error { border-left-color: #C2604F; }
+
+.ad-toast__close {
+  margin-left: auto;
+  padding: 0 2px;
+  color: rgba(255, 255, 255, 0.6);
+  background: none;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ad-toast__close:hover { color: var(--arch-white); }
+
+@keyframes ad-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ───────────────────────────────────────────
+   Empty / loading
+─────────────────────────────────────────── */
+.ad-empty {
+  padding: var(--ad-7) var(--ad-5);
+  text-align: center;
+  color: var(--ad-muted);
+  background: var(--ad-surface);
+  border: 1px solid var(--ad-line);
+  border-radius: 4px;
+}
+
+.ad-empty__title {
+  margin-bottom: var(--ad-2);
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--ad-ink);
+}
+
+.ad-skeleton {
+  height: 12px;
+  background: rgba(27, 27, 27, 0.06);
+  border-radius: 2px;
+  animation: ad-pulse 1.4s ease-in-out infinite;
+}
+
+.ad-skeleton--tile { height: 92px; }
+.ad-skeleton--chart { height: 220px; }
+
+@keyframes ad-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ───────────────────────────────────────────
+   Login
+─────────────────────────────────────────── */
+.ad-login {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: var(--ad-5);
+  color: var(--ad-ink);
+  background: var(--ad-ink);
+  /* A single bronze wash off the top-left, so the dark ground reads as the
+     brand's black rather than a default near-black. Fixed attachment is
+     avoided deliberately — it forces repaints on scroll in Safari. */
+  background-image: radial-gradient(
+    ellipse 80% 60% at 15% 0%,
+    rgba(114, 102, 85, 0.28),
+    transparent 70%
+  );
+}
+
+.ad-login__card {
+  width: 100%;
+  max-width: 430px;
+  padding: var(--ad-7) var(--ad-6);
+  background: var(--arch-white);
+  border-radius: 4px;
+  /* The champagne hairline is what stops the card reading as a plain white
+     rectangle dropped on black. */
+  border-top: 2px solid var(--bronze);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.ad-login__brand {
+  text-align: center;
+  margin-bottom: var(--ad-6);
+  padding-bottom: var(--ad-5);
+  border-bottom: 1px solid var(--ad-line);
+}
+
+.ad-login__mark {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 9px;
+  /* letter-spacing adds trailing space after the last glyph, which throws
+     a centred word off by half the tracking. */
+  text-indent: 9px;
+  text-transform: uppercase;
+}
+
+.ad-login__sub {
+  margin-top: var(--ad-3);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+/* Password field with a reveal control sharing the box. */
+.ad-input-wrap {
+  position: relative;
+  display: flex;
+}
+
+.ad-input-wrap .ad-input {
+  /* Room for the reveal button so a long password never runs under it. */
+  padding-right: 68px;
+}
+
+.ad-input-wrap__toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  padding: 0 var(--ad-3);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ad-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.ad-input-wrap__toggle:hover { color: var(--bronze); }
+
+.ad-captcha {
+  display: flex;
+  align-items: stretch;
+  gap: var(--ad-3);
+}
+
+.ad-captcha__image {
+  /* Grows to fill the row rather than sitting at a fixed 200px with dead
+     space beside it. The SVG scales with preserveAspectRatio. */
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 64px;
+  border: 1px solid var(--ad-line-strong);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--ad-canvas);
+}
+
+.ad-captcha__image svg { display: block; width: 100%; height: 100%; }
+
+.ad-captcha__reload {
+  flex: none;
+  display: grid;
+  place-items: center;
+  /* 44px minimum. This was 38px, which failed the touch-target floor on
+     the one control a person is most likely to tap more than once. */
+  width: 44px;
+  min-height: 44px;
+  color: var(--ad-muted);
+  background: none;
+  border: 1px solid var(--ad-line-strong);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.ad-captcha__reload:hover { color: var(--bronze); border-color: var(--bronze); }
+.ad-captcha__reload svg { width: 16px; height: 16px; }
+
+.ad-login__error {
+  margin-bottom: var(--ad-4);
+  padding: var(--ad-3) var(--ad-4);
+  font-size: 13px;
+  color: var(--ad-danger);
+  background: rgba(155, 58, 46, 0.07);
+  border-left: 2px solid var(--ad-danger);
+  border-radius: 0 3px 3px 0;
+}
+
+.ad-login__submit {
+  width: 100%;
+  min-height: 44px;
+  margin-top: var(--ad-2);
+}
+
+.ad-login__foot {
+  margin-top: var(--ad-5);
+  text-align: center;
+  font-size: 12px;
+  color: var(--ad-faint);
+}
+
+/* ───────────────────────────────────────────
+   Responsive — the rail collapses to a top bar under 1024px.
+─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .ad__layout { grid-template-columns: 1fr; }
+
+  .ad__rail {
+    position: static;
+    height: auto;
+  }
+
+  .ad__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ad-1);
+    padding: var(--ad-3);
+  }
+
+  .ad__nav-group { display: contents; }
+  .ad__nav-label { display: none; }
+  .ad__nav-link { margin-bottom: 0; }
+
+  .ad__main { padding: var(--ad-5) var(--ad-4) var(--ad-6); }
+
+  .ad-editor { grid-template-columns: 1fr; }
+  .ad-editor__side { position: static; }
+}
+
+@media (max-width: 560px) {
+  .ad__head { flex-direction: column; align-items: stretch; }
+  .ad__actions { justify-content: stretch; }
+  .ad-btn { flex: 1; }
+  .ad-captcha { flex-wrap: wrap; }
+  .ad-captcha__image { width: 100%; }
+}
+
+/* ───────────────────────────────────────────
+   Repeatable fields — the catalogue editor
+
+   Lists of strings (chips, paragraphs), lists of rows (stats,
+   strengths, spec pairs) and the media slots. See
+   components/admin/repeatable.jsx.
+
+   The controls sit to the RIGHT of the row rather than under
+   it: these lists are edited by reordering as much as by
+   typing, and a move-up button that moves with the row it
+   belongs to is a lot easier to hit twice in a row than one
+   that reflows the list under the pointer.
+─────────────────────────────────────────── */
+.ad-rep {
+  display: grid;
+  gap: var(--ad-2);
+}
+
+.ad-rep__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ad-2);
+}
+
+.ad-rep__row .ad-input,
+.ad-rep__row .ad-textarea { flex: 1; }
+
+.ad-rep__row--cols { align-items: flex-end; }
+
+.ad-rep__cols {
+  display: flex;
+  flex: 1;
+  gap: var(--ad-2);
+  flex-wrap: wrap;
+}
+
+.ad-rep__col {
+  display: grid;
+  gap: var(--ad-1);
+  min-width: 110px;
+}
+
+.ad-rep__col-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--ad-faint);
+}
+
+.ad-rep__controls {
+  display: flex;
+  gap: var(--ad-1);
+  flex: none;
+  padding-top: 2px;
+}
+
+/* ── Media slot: a path, an upload, and a preview of whichever
+      one is going to win ───────────────────────────────────── */
+.ad-media {
+  display: grid;
+  gap: var(--ad-2);
+  padding: var(--ad-3);
+  border: 1px solid var(--ad-line);
+  border-radius: 4px;
+  background: rgba(27, 27, 27, 0.012);
+}
+
+.ad-media .ad-field { margin: 0; }
+
+.ad-upload--slim {
+  grid-auto-flow: column;
+  justify-content: center;
+  place-items: center;
+  padding: var(--ad-3);
+}
+
+.ad-media__preview {
+  display: grid;
+  place-items: center;
+  max-height: 180px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #1B1B1B;
+}
+
+.ad-media__preview video,
+.ad-media__preview img {
+  max-height: 180px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 560px) {
+  .ad-rep__row { flex-wrap: wrap; }
+  .ad-rep__controls { padding-top: 0; }
+}
+
+/* ───────────────────────────────────────────
+   Reduced motion
+─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ad-toast { animation: none; }
+  .ad-skeleton { animation: none; }
+  .ad-toggle__track,
+  .ad-toggle__thumb { transition: none; }
+}

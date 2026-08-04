@@ -1,0 +1,23 @@
+# ⚠ public/ is NOT excluded, and must not be. It is 311 MB of videos, frame
+# sequences and product imagery that Vite copies into dist verbatim, and the
+# site renders blank hero sections without it. That is why this build context
+# is large; it is the site, not waste.
+#
+# ⚠ Patterns match from the context root, not at every level — `**/` is what
+# makes them apply at depth.
+
+**/node_modules/
+**/dist/
+dist-ssr/
+
+# The developer's local overrides. Left in, they would be inlined by Vite and
+# silently beat the build args in docker-compose.yml — a production bundle
+# pointing at http://localhost:8000.
+**/.env
+**/.env.*
+!**/.env.example
+*.local
+
+**/*.log
+.vite/
+**/.DS_Store

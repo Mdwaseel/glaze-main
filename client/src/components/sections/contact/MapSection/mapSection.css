@@ -1,0 +1,53 @@
+/* Contact §05 Map — extracted verbatim from the self-contained <style>
+   block in contact.html (lines 2185-2225). Rule order preserved; the
+   block has no media queries.
+
+   NO SCOPING. All four selectors are `.cmap*`-prefixed and the file
+   declares no keyframes; a full `cmap` search across src/ returns nothing
+   outside this folder. Checked against the Phase 13 / Phase 27 collision
+   lists.
+
+   `--champagne`, `--arch-bone` and `--font-mono` are the shared tokens
+   from styles/global.css — not redefined here, exactly as in the
+   original. The `#141413` ground is the literal the original uses; §04
+   Visit declares its own copy of the same value. */
+
+.cmap {
+  position: relative;
+  background: #141413;
+  border-top: 1px solid rgba(167, 154, 135, 0.14);
+}
+
+.cmap__frame {
+  height: clamp(320px, 48vh, 440px);
+}
+
+.cmap__frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  /* pull the default map into the dark house palette */
+  filter: grayscale(1) invert(0.92) hue-rotate(180deg)
+    contrast(0.88) brightness(0.92);
+}
+
+.cmap__open {
+  position: absolute;
+  right: clamp(1.5rem, 5vw, 3rem);
+  bottom: 1.5rem;
+  padding: 0.6rem 1.2rem;
+  background: rgba(27, 27, 27, 0.9);
+  border: 1px solid rgba(167, 154, 135, 0.35);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+.cmap__open:hover {
+  color: var(--arch-bone);
+  border-color: var(--arch-bone);
+}

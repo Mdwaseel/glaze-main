@@ -1,0 +1,729 @@
+/* ═══════════════════════════════════════════════════════════════
+   Site assistant — dark surface.
+
+   Restyled to the reference layout: a self-contained chat card on a dark
+   ground, ~max-w-md wide and ~560px tall. The reference used zinc-950 and
+   shadcn primitives; the palette here is the house one instead, as asked.
+
+   ⚠ WHY NOT THE ACTUAL shadcn ChatMessages COMPONENT. It is not in this
+   project (no src/components/ui, no components.json, no radix/cva/clsx),
+   and it cannot simply be added: shadcn assumes Tailwind Preflight, which
+   styles/index.css deliberately does NOT load — Preflight restyles base
+   elements and would break pixel parity across every migrated page. So
+   this is the same layout and feel, built from the house vocabulary.
+
+   ── COLOUR DISCIPLINE ON DARK. Read before editing. ──
+   Measured against --arch-black #1B1B1B:
+
+       bone      #F5F5F3   15.78:1   body text
+       champagne #A79A87    6.25:1   eyebrows, meta, muted labels
+       bronze    #726655     3.07:1  ✗ FAILS for text
+
+   Bronze is the LIGHT-ground accent (5.6:1 on white). On this dark panel it
+   is used only for FILLS, BORDERS and the user bubble — never for small
+   text. Bone on bronze is 5.13:1, which is what makes the user bubble
+   legible. This is the exact inverse of the rule on the rest of the site,
+   so a colour copied from another stylesheet into this one will usually be
+   wrong.
+
+   NO SCOPING NEEDED. Every selector is `.glz-chat`-prefixed and collides
+   with nothing in the bundle.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ⚠ ON :root, NOT ON A `.glz-chat` WRAPPER — there is no such element.
+   The launcher and the panel are SIBLINGS under a fragment, so a wrapper
+   class would leave both subtrees without these tokens and every
+   var(--glz-*) would resolve to nothing. This is the same failure that hit
+   the admin login screen, where 17 of 19 classes referenced tokens declared
+   on a selector the page never rendered inside. Names are prefixed, so
+   :root costs nothing. */
+:root {
+  /* Elevated surfaces for the dark panel. */
+  --glz-surface: #232321;
+  --glz-surface-2: #2C2A27;
+  --glz-line: rgba(245, 245, 243, 0.1);
+  --glz-line-strong: rgba(245, 245, 243, 0.18);
+  /* 4.71:1 on --arch-black — the dimmest tone still safe for small text. */
+  --glz-muted: #8A8580;
+}
+
+.glz-chat__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ───────────────────────────────────────────
+   Launcher
+─────────────────────────────────────────── */
+.glz-chat__launcher {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  /* Under the nav (60) so a scrolled nav still wins, above the page. */
+  z-index: 58;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 52px;
+  padding: 0 1.35rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--arch-black);
+  background: var(--arch-bone);
+  border: 1px solid var(--arch-bone);
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+  transition: background-color 0.25s var(--ease-snap),
+    border-color 0.25s var(--ease-snap), color 0.25s var(--ease-snap),
+    transform 0.25s var(--ease-snap);
+}
+
+.glz-chat__launcher:hover {
+  color: var(--arch-bone);
+  background: var(--bronze);
+  border-color: var(--bronze);
+  transform: translateY(-2px);
+}
+
+.glz-chat__launcher-icon {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+}
+
+.glz-chat__launcher-icon svg { width: 100%; height: 100%; }
+
+/* ───────────────────────────────────────────
+   Panel
+─────────────────────────────────────────── */
+.glz-chat__panel {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  /* Clears the launcher rather than sitting on it. */
+  bottom: calc(clamp(1rem, 3vw, 2rem) + 52px + 0.75rem);
+  z-index: 59;
+  display: flex;
+  flex-direction: column;
+  /* 448px = the reference's max-w-md. */
+  width: min(448px, calc(100vw - 2rem));
+  /* 560px from the reference, but capped against the viewport. dvh, not vh:
+     on mobile Safari the URL bar makes vh taller than the visible viewport,
+     which pushes the composer off-screen. */
+  height: min(560px, calc(100dvh - 10rem));
+  color: var(--arch-bone);
+  background: var(--arch-black);
+  border: 1px solid var(--glz-line-strong);
+  border-radius: 6px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  animation: glz-chat-in 0.32s var(--ease-snap);
+}
+
+@keyframes glz-chat-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Header ─────────────────────────────── */
+.glz-chat__head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 0.75rem 1rem 1.25rem;
+  background: var(--arch-black);
+  /* Hairline, not the 2px bronze bar the light version used — on a fully
+     dark card a heavy rule reads as a seam between two panels. */
+  border-bottom: 1px solid var(--glz-line);
+}
+
+.glz-chat__head-text { min-width: 0; }
+
+.glz-chat__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+
+.glz-chat__eyebrow svg { width: 12px; height: 12px; }
+
+.glz-chat__title {
+  margin-top: 0.4rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.3rem;
+  line-height: 1.1;
+  color: var(--arch-bone);
+}
+
+.glz-chat__head-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  /* Pulls the 44px hit areas back so they do not visually over-pad the bar. */
+  margin-top: -0.5rem;
+}
+
+.glz-chat__icon-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--glz-muted);
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.glz-chat__icon-btn:hover {
+  color: var(--arch-bone);
+  background: rgba(245, 245, 243, 0.07);
+}
+
+.glz-chat__icon-btn svg { width: 17px; height: 17px; }
+
+/* ── Transcript ─────────────────────────── */
+/* The body is the positioning context for the jump button, which floats over
+   the scroller rather than scrolling with it. */
+.glz-chat__body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* Scroll fades. A hard edge at the top of the scroller makes a mid-scroll
+   transcript look like it starts there; the gradient says "there is more
+   above". Painted over the log rather than as a mask on it, because a mask
+   would also fade the jump button that floats in the same corner.
+   pointer-events:none — they must not eat a wheel or a click. */
+.glz-chat__body::before,
+.glz-chat__body::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 28px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.glz-chat__body::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--arch-black), transparent);
+}
+
+.glz-chat__body::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--arch-black), transparent);
+}
+
+.glz-chat__log {
+  flex: 1;
+  min-height: 0;             /* lets the flex child actually scroll */
+  overflow-y: auto;
+  /* Vertical padding exceeds the 28px scroll fades, so a message parked at
+     either end is never sitting under a gradient. */
+  padding: 1.9rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  background: var(--arch-black);
+  overscroll-behavior: contain;   /* no scroll-chaining to the page behind */
+  /* NOT scroll-behavior: smooth. It would also apply to the `scrollTop = …`
+     auto-follow, so opening a restored thread would visibly animate a long
+     scroll from the top before settling. The jump button passes
+     behavior:'smooth' to scrollTo explicitly instead. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--glz-line-strong) transparent;
+}
+
+.glz-chat__log::-webkit-scrollbar { width: 8px; }
+.glz-chat__log::-webkit-scrollbar-thumb {
+  background: var(--glz-line-strong);
+  border-radius: 4px;
+}
+
+.glz-chat__msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  animation: glz-chat-msg-in 0.28s var(--ease-snap) both;
+}
+
+/* Short and small: a long or tall entrance on a message that arrives while
+   you are already reading is a distraction, not a flourish. */
+@keyframes glz-chat-msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.glz-chat__msg--user { justify-content: flex-end; }
+
+/* Monogram — anchors the eye when scanning back through a long thread.
+   Bone on bronze is 5.13:1. */
+.glz-chat__mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--arch-bone);
+  background: var(--bronze);
+  border-radius: 50%;
+  user-select: none;
+}
+
+.glz-chat__bubble {
+  max-width: 100%;
+  padding: 0.75rem 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--arch-bone);
+  background: var(--glz-surface);
+  border: 1px solid var(--glz-line);
+  /* Softer than the 2px the light panel used — the reference is a rounded
+     card, and on a dark contained surface 10px reads as the same family
+     rather than as a foreign shape. */
+  border-radius: 10px;
+  border-top-left-radius: 3px;
+  white-space: pre-wrap;      /* keeps model line breaks */
+  overflow-wrap: anywhere;    /* long URLs and part numbers cannot overflow */
+}
+
+.glz-chat__msg--assistant .glz-chat__bubble { max-width: calc(100% - 34px); }
+
+/* Bone on bronze, 5.13:1. */
+.glz-chat__msg--user .glz-chat__bubble {
+  max-width: 86%;
+  color: var(--arch-bone);
+  background: var(--bronze);
+  border-color: var(--bronze);
+  border-radius: 10px;
+  border-top-left-radius: 10px;
+  border-bottom-right-radius: 3px;
+}
+
+.glz-chat__bubble.is-failed {
+  border-color: rgba(200, 96, 78, 0.55);
+}
+
+.glz-chat__retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  margin-top: 0.25rem;
+  padding: 0 0.9rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.glz-chat__retry:hover { color: var(--arch-bone); }
+.glz-chat__retry svg { width: 13px; height: 13px; }
+
+/* Thinking indicator */
+.glz-chat__bubble--thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+}
+
+.glz-chat__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--champagne);
+  animation: glz-chat-pulse 1.25s ease-in-out infinite;
+}
+
+.glz-chat__dot:nth-child(2) { animation-delay: 0.16s; }
+.glz-chat__dot:nth-child(3) { animation-delay: 0.32s; }
+
+@keyframes glz-chat-pulse {
+  0%, 60%, 100% { opacity: 0.28; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Jump-to-latest */
+.glz-chat__jump {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.85rem;
+  /* Above the bottom scroll fade, which is z-index 1. */
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--arch-black);
+  background: var(--arch-bone);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+  animation: glz-chat-in 0.2s var(--ease-snap);
+}
+
+.glz-chat__jump:hover { color: var(--arch-bone); background: var(--bronze); }
+.glz-chat__jump svg { width: 17px; height: 17px; }
+
+/* ── Deflection card — the route out ────── */
+.glz-chat__contact {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--glz-line);
+}
+
+/* Bone fill, black text: 15.78:1, and the brightest thing in the panel —
+   which is right, because it is the action we most want taken. */
+.glz-chat__contact-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1.15rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--arch-black);
+  background: var(--arch-bone);
+  border-radius: 4px;
+  transition: background-color 0.22s ease, color 0.22s ease;
+}
+
+.glz-chat__contact-cta:hover {
+  color: var(--arch-bone);
+  background: var(--bronze);
+}
+
+.glz-chat__contact-direct {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.65rem;
+  font-size: 0.8rem;
+}
+
+.glz-chat__contact-direct a {
+  color: var(--champagne);
+  border-bottom: 1px solid rgba(167, 154, 135, 0.35);
+}
+
+.glz-chat__contact-direct a:hover { color: var(--arch-bone); }
+
+/* ── Sources ────────────────────────────── */
+.glz-chat__sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--glz-line);
+}
+
+.glz-chat__sources-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--glz-muted);
+}
+
+.glz-chat__source {
+  padding: 0.3rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  border: 1px solid var(--glz-line-strong);
+  border-radius: 999px;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.glz-chat__source:hover {
+  color: var(--arch-black);
+  background: var(--champagne);
+  border-color: var(--champagne);
+}
+
+/* ── Suggestions ────────────────────────── */
+.glz-chat__suggestions { margin-top: 0.35rem; }
+
+.glz-chat__suggestions-label {
+  margin-bottom: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--glz-muted);
+}
+
+.glz-chat__suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 0.45rem;
+  padding: 0.6rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  text-align: left;
+  color: var(--arch-bone);
+  background: var(--glz-surface);
+  border: 1px solid var(--glz-line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.22s ease, background-color 0.22s ease;
+}
+
+.glz-chat__suggestion svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  color: var(--champagne);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.glz-chat__suggestion:hover {
+  background: var(--glz-surface-2);
+  border-color: var(--glz-line-strong);
+}
+
+.glz-chat__suggestion:hover svg,
+.glz-chat__suggestion:focus-visible svg {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Composer ───────────────────────────────
+   The keyboard hint row (`Enter to send · Shift+Enter…`) and the standing
+   footer line (`Answers come from this website…`) were both removed at the
+   client's request. Two consequences worth knowing:
+
+   • Enter/Shift+Enter still work exactly as before — the behaviour lives in
+     the keydown handler, not in the label. It is now undiscoverable, which
+     is the accepted trade: it is also the convention every chat UI uses.
+   • The footer was the only ALWAYS-visible route to the contact page. That
+     job now rests on the opening greeting ("I'll point you to the team for
+     anything I can't cover") and on the deflection card, which appears at
+     the exact moment it is needed.
+─────────────────────────────────────────── */
+.glz-chat__form {
+  flex: none;
+  padding: 0.85rem 1rem 1rem;
+  background: var(--arch-black);
+  border-top: 1px solid var(--glz-line);
+}
+
+/* ONE field, not an input beside a button. The border, background and focus
+   state live here; the textarea inside is transparent and borderless. */
+.glz-chat__composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.25rem;
+  background: var(--glz-surface);
+  border: 1px solid var(--glz-line);
+  border-radius: 12px;
+  transition: border-color 0.22s ease, background-color 0.22s ease;
+}
+
+.glz-chat__composer:hover { border-color: var(--glz-line-strong); }
+
+/* :focus-within, so the whole field responds when the textarea is focused. */
+.glz-chat__composer:focus-within {
+  background: var(--glz-surface-2);
+  border-color: var(--champagne);
+}
+
+.glz-chat__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  max-height: 132px;
+  padding: 0.55rem 0.65rem;
+  font-family: var(--font-sans);
+  /* 16px exactly. Anything smaller and iOS Safari zooms the page on focus,
+     leaving the visitor scrolled sideways in a panel they cannot see. */
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--arch-bone);
+  background: none;
+  border: none;
+  resize: none;              /* height is driven by content, not a drag handle */
+  /* ⚠ The scrollbar is switched between hidden and auto from JS, because the
+     condition ("is the content taller than the ceiling") is a measurement,
+     not something CSS can express. See the auto-grow effect in the JSX.
+     `overflow-y: hidden` here is the initial state for the first paint, so
+     no bar flashes before the effect runs. */
+  overflow-y: hidden;
+  /* Firefox paints a gutter even with overflow hidden. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--glz-line-strong) transparent;
+}
+
+.glz-chat__input::placeholder { color: var(--glz-muted); }
+
+/* The ring is on .glz-chat__composer — a second one here would draw a box
+   inside a box. */
+.glz-chat__input:focus,
+.glz-chat__input:focus-visible {
+  outline: none;
+}
+
+.glz-chat__input:disabled { opacity: 0.55; }
+
+.glz-chat__input::-webkit-scrollbar { width: 6px; }
+.glz-chat__input::-webkit-scrollbar-thumb {
+  background: var(--glz-line-strong);
+  border-radius: 3px;
+}
+
+/* Sits inside the field, so it costs no extra row. Bare number, no "left" —
+   it only appears in the last 80 characters, where the meaning is obvious. */
+.glz-chat__count {
+  flex: none;
+  align-self: center;
+  padding-bottom: 0.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  color: var(--champagne);
+}
+
+.glz-chat__send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  /* 38px painted, but the tap target is padded back to 44px below so the
+     button still meets the touch minimum inside a compact field. */
+  width: 38px;
+  height: 38px;
+  color: var(--arch-black);
+  background: var(--arch-bone);
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background-color 0.22s ease, color 0.22s ease,
+    opacity 0.22s ease, transform 0.22s var(--ease-snap);
+}
+
+/* Extends the hit area to 44×44 without growing the painted button — the
+   pseudo-element is invisible and captures the pointer. */
+.glz-chat__send::after {
+  content: '';
+  position: absolute;
+  width: 44px;
+  height: 44px;
+}
+
+.glz-chat__send { position: relative; }
+
+.glz-chat__send:hover:not(:disabled) {
+  color: var(--arch-bone);
+  background: var(--bronze);
+  transform: translateY(-1px);
+}
+
+.glz-chat__send:disabled { opacity: 0.22; cursor: not-allowed; }
+.glz-chat__send svg { width: 16px; height: 16px; }
+
+/* Focus ring — the global one is champagne on light grounds; on this panel
+   it needs to read against black, and bone is the only tone bright enough. */
+.glz-chat__panel :where(a, button, textarea, input):focus-visible {
+  outline: 2px solid var(--arch-bone);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ───────────────────────────────────────────
+   Mobile — full-height sheet
+─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .glz-chat__panel {
+    /* Edge to edge. A 448px floating card on a 360px screen is a card with
+       nowhere to go. */
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 90dvh;
+    border-radius: 12px 12px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .glz-chat__msg--user .glz-chat__bubble { max-width: 92%; }
+
+  /* Clears the home indicator on gesture-nav phones — without it the send
+     button sits underneath the swipe-up bar. */
+  .glz-chat__form { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+  /* Collapse to a circle — the label costs width the thumb needs more. */
+  .glz-chat__launcher {
+    gap: 0;
+    width: 52px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .glz-chat__launcher-text { display: none; }
+
+  /* Hidden rather than unmounted: it stays the focus-return target when the
+     panel closes. */
+  .glz-chat__launcher.is-open { opacity: 0; pointer-events: none; }
+}
+
+/* Landscape phones — 90dvh of a 380px-tall viewport leaves no room. */
+@media (max-height: 460px) and (max-width: 900px) {
+  .glz-chat__panel { height: 100dvh; border-radius: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glz-chat__panel,
+  .glz-chat__jump,
+  .glz-chat__msg { animation: none; }
+  .glz-chat__launcher:hover,
+  .glz-chat__send:hover:not(:disabled) { transform: none; }
+  .glz-chat__dot { animation: none; opacity: 0.6; }
+  .glz-chat__suggestion svg { transition: none; }
+}

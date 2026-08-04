@@ -1,0 +1,208 @@
+/* About §04 The Facility — extracted verbatim from the self-contained
+   <style> block in about.html (lines 2791-2980). Rule and media-query
+   order preserved.
+
+   NO SCOPING. All 26 selectors are `.fac*`-prefixed and the file declares
+   no keyframes; a full `fac` search across src/ returns nothing outside
+   this folder. Checked against the Phase 13 collision list.
+
+   `.is-live` IS shared with Home — PerformanceSection uses
+   `.eng__plate.is-live .eng__still` — but every rule here compounds it
+   with `.fac__frame`, and Home's compounds it with `.eng__plate`, so
+   neither can ever match the other page's DOM. No scope required in
+   either direction. (§02b Process remains the only section that needed
+   one.)
+
+   `--nav-height` (used by the pinned stage's top padding) is the shared
+   70px token from styles/global.css, not redefined here — as in the
+   original. */
+
+.fac {
+  position: relative;
+  background: #0A0A0A;
+  color: var(--arch-bone);
+  padding: clamp(5rem, 13vh, 9rem) 0 clamp(5rem, 12vh, 8rem);
+  overflow: hidden;
+}
+
+/* Whisper-soft bronze depth, matching the homepage lab */
+.fac::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(114, 102, 85, 0.09), transparent 55%);
+}
+
+/* ── Animated mode: the tall track + sticky stage (the shared
+     pin pattern). The strip only moves while the stage owns the
+     screen. Track height is injected by the script; the section
+     padding moves onto the stage so the pin is exactly 100vh. ── */
+.fac__scroll { position: relative; }
+
+/* overflow must be visible here or the sticky stage would try to
+   stick inside the section's own (never-scrolling) clip box and
+   the pin would silently fail; the stage clips itself instead. */
+.fac--anim {
+  padding: 0;
+  overflow: visible;
+}
+
+.fac--anim .fac__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(var(--nav-height) + 1rem) 0 1.5rem;
+}
+
+@media (max-height: 720px) {
+  .fac--anim .fac__frame { width: clamp(14rem, 30vw, 24rem); }
+}
+
+.fac__head {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  max-width: 1280px;
+  margin: 0 auto clamp(2.5rem, 7vh, 4.5rem);
+  padding: 0 clamp(1.5rem, 5vw, 3rem);
+}
+
+.fac__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+.fac__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+  font-variant-numeric: tabular-nums;
+}
+
+.fac__intro {
+  margin-top: 1.25rem;
+  max-width: 30rem;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.75;
+  color: rgba(245, 245, 243, 0.55);
+}
+
+/* ── The strip ──
+   Static default: a native swipeable, snap-aligned row in full
+   colour. Animated: overflow clips and the track translates. */
+.fac__viewport {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.fac__viewport::-webkit-scrollbar { display: none; }
+
+.fac--anim .fac__viewport { overflow: hidden; }
+
+.fac__track {
+  display: flex;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  padding: 0 clamp(1.5rem, 5vw, 3rem);
+  width: max-content;
+  will-change: transform;
+}
+
+.fac__frame {
+  position: relative;
+  width: clamp(17rem, 36vw, 32rem);
+  flex: none;
+  scroll-snap-align: center;
+}
+
+.fac__frame img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  transition: filter 0.7s ease, transform 0.7s var(--ease-snap);
+}
+
+/* Animated mode rests every frame in greyscale; the live one
+   (nearest viewport centre) is lifted back to colour by the
+   script. */
+.fac--anim .fac__frame img {
+  filter: grayscale(1) brightness(0.62);
+}
+
+.fac--anim .fac__frame.is-live img {
+  filter: grayscale(0) brightness(1);
+  transform: scale(1.02);
+}
+
+/* ── Zone motion clips: a short looped clip sits over each still,
+     playing ONLY while its frame owns the centre (the script
+     starts/stops them as .is-live moves). Static / reduced-motion
+     pages never load or see them — display is gated on .fac--anim
+     and playback on the script. ── */
+.fac__motion {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  pointer-events: none;
+}
+
+.fac--anim .fac__motion { display: block; }
+
+.fac--anim .fac__frame.is-live .fac__motion { opacity: 1; }
+
+.fac__zone {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+.fac__zone-index {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--bronze);
+}
+
+.fac__zone-name {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: rgba(245, 245, 243, 0.6);
+  transition: color 0.5s ease;
+}
+
+.fac--anim .fac__frame.is-live .fac__zone-name {
+  color: var(--arch-bone);
+}
+
+@media (max-width: 768px) {
+  .fac__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .fac__frame { width: min(78vw, 22rem); }
+}

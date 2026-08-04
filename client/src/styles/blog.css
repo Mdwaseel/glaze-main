@@ -1,0 +1,1049 @@
+/* ═══════════════════════════════════════════════════════════════
+   Blog — listing and article.
+
+   NEW CSS, not migrated. There is no blog in the static site, so unlike
+   every other stylesheet in this project there is nothing to be verbatim
+   against. It is built from the house vocabulary instead: the same
+   tokens (--bronze, --champagne, --arch-bone, --font-display,
+   --font-mono, --ease-snap), the same eyebrow/rule/curtain primitives,
+   and the same restraint. It should read as though it shipped with the
+   original site.
+
+   NO SCOPING NEEDED. Every selector is `.bl-`-prefixed. Checked against
+   the bundle: `.bl-` collides with nothing — the existing prefixes are
+   .ptn/.ptr (partners), .enq (enquiry), .wc__/.sec-/.rule (editorial
+   primitives), .nav/.footer, and the per-section names.
+
+   The `.bl-tip / bl-expert / bl-insight / bl-note / bl-warning` callouts
+   are the component vocabulary the brief specified for article bodies.
+   They are the ONLY class names an author may use inside post content —
+   blog/sanitize.py strips everything else, so this file and that
+   allowlist have to stay in step.
+
+   Colour discipline worth knowing before editing: --champagne (#A79A87)
+   reaches only 2.6:1 on white and must never carry text on a light
+   ground. It is used here exclusively on --arch-black, where it is
+   7.4:1. --bronze (#726655) is the light-ground accent at 5.6:1.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────
+   Shared shell
+─────────────────────────────────────────── */
+.bl-page {
+  background: var(--arch-white);
+  /* Clears the fixed nav. The nav is 46px of logo plus 1.5rem padding
+     top and bottom; this is that, rounded up, plus breathing room. */
+  padding-top: clamp(7rem, 12vh, 9.5rem);
+  /* ⚠ THERE WAS NO padding-bottom AT ALL. Measured 0px between the last
+     element and the footer on BOTH blog routes, at 1280px and 390px: the
+     Post Comment button on an article, and the pager on the index, each sat
+     flush against the black footer with the two grounds touching.
+     Every other section on the site ends with its own bottom padding, so
+     nothing downstream was ever going to supply it.
+
+     Smaller than the top value on purpose — that one is mostly nav
+     clearance, not breathing room. 9vh resolves to ~81px at a 900px
+     viewport, matching the 404's end-of-page gap so the two read as the
+     same page rhythm. */
+  padding-bottom: clamp(4rem, 9vh, 6.5rem);
+}
+
+.bl-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 4rem);
+}
+
+.bl-shell--narrow {
+  /* 68ch is the readable-measure target for the article column. */
+  max-width: 760px;
+}
+
+.bl-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.bl-eyebrow::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* The masthead carries the page on its own — there is no hero image here,
+   unlike every other page on the site. So the type has to do the work the
+   photography does elsewhere: larger than a section title, with real
+   whitespace around it. Sizes step up from the shared .sec-title scale
+   deliberately. */
+.bl-masthead {
+  padding-bottom: clamp(2.5rem, 6vh, 3.5rem);
+  border-bottom: 1px solid rgba(27, 27, 27, 0.09);
+}
+
+.bl-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  line-height: 1.04;
+  letter-spacing: -0.022em;
+  margin-top: 1.6rem;
+  max-width: 18ch;
+}
+
+/* Issue line — the small mono datum under the masthead. Gives the page a
+   fact to sit on rather than ending on a paragraph of prose. */
+.bl-masthead__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: clamp(1.75rem, 4vh, 2.5rem);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.42);
+}
+
+.bl-masthead__meta span:not(:last-child)::after {
+  content: '/';
+  margin-left: 0.6rem;
+  opacity: 0.55;
+}
+
+.bl-title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--bronze);
+}
+
+.bl-note {
+  margin-top: 1.1rem;
+  max-width: 56ch;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.58);
+}
+
+.bl-rule {
+  height: 1px;
+  background: linear-gradient(to right, var(--bronze), rgba(114, 102, 85, 0.08));
+  margin: clamp(2.5rem, 6vh, 3.5rem) 0;
+}
+
+/* ───────────────────────────────────────────
+   Filter bar
+─────────────────────────────────────────── */
+.bl-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: clamp(2rem, 5vh, 3rem);
+}
+
+/* Pushes the search away from the category chips so the two read as two
+   controls rather than one run-on row. */
+.bl-filters__search {
+  margin-left: auto;
+}
+
+.bl-filter {
+  /* 44px, not the ~33px this used to be. These are the primary control on
+     the listing and the page is read on a phone as often as a desktop —
+     the touch-target minimum applies to them more than to anything else
+     here. Horizontal padding was widened to match so the taller chip
+     reads as deliberate rather than stretched. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.62);
+  background: transparent;
+  border: 1px solid rgba(27, 27, 27, 0.14);
+  border-radius: 2px;
+  cursor: pointer;
+  /* 150–300ms per the interaction guidance; anything longer on a filter
+     chip reads as lag rather than polish. */
+  transition: color 0.22s ease, border-color 0.22s ease, background-color 0.22s ease;
+}
+
+.bl-filter:hover {
+  color: var(--arch-black);
+  border-color: var(--bronze);
+}
+
+.bl-filter[aria-pressed='true'] {
+  color: var(--arch-white);
+  background: var(--arch-black);
+  border-color: var(--arch-black);
+}
+
+.bl-search {
+  /* Capped rather than `flex: 1`. Left to grow, the search box stretched
+     across the whole remaining row on a wide screen and read as the
+     dominant control on a page whose job is to show articles. */
+  flex: 0 1 260px;
+  min-width: 180px;
+  /* 44px, matching the chips beside it so the row has one baseline. */
+  min-height: 44px;
+  padding: 0 0.95rem;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: var(--arch-black);
+  background: var(--arch-bone);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  transition: border-color 0.22s ease;
+}
+
+.bl-search::placeholder {
+  color: rgba(27, 27, 27, 0.4);
+}
+
+.bl-search:focus {
+  outline: none;
+  border-color: var(--bronze);
+}
+
+/* ───────────────────────────────────────────
+   Featured article
+─────────────────────────────────────────── */
+.bl-feature {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  margin-top: clamp(2.5rem, 6vh, 3.5rem);
+  padding-bottom: clamp(2.5rem, 6vh, 3.5rem);
+  border-bottom: 1px solid rgba(27, 27, 27, 0.09);
+}
+
+.bl-feature__media {
+  position: relative;
+  /* Reserving the box before the image loads is what keeps CLS at zero
+     on the largest element on the page. */
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--arch-bone);
+}
+
+.bl-feature__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s var(--ease-snap);
+}
+
+.bl-feature:hover .bl-feature__media img {
+  transform: scale(1.03);
+}
+
+.bl-feature__flag {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.4rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--arch-black);
+  background: var(--arch-white);
+}
+
+.bl-feature__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  margin-top: 1rem;
+}
+
+.bl-feature__excerpt {
+  margin-top: 1rem;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(27, 27, 27, 0.64);
+}
+
+/* ───────────────────────────────────────────
+   Card grid
+─────────────────────────────────────────── */
+.bl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: clamp(1.75rem, 4vw, 2.75rem);
+  margin-top: clamp(2.5rem, 6vh, 3.5rem);
+}
+
+.bl-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.bl-card__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--arch-bone);
+}
+
+.bl-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s var(--ease-snap);
+}
+
+.bl-card:hover .bl-card__media img {
+  transform: scale(1.04);
+}
+
+/* Placeholder for a post with no featured image — a bronze monogram on
+   bone rather than a broken-image icon or a grey rectangle. */
+.bl-card__placeholder,
+.bl-feature__placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  color: rgba(114, 102, 85, 0.28);
+  background: var(--arch-bone);
+}
+
+.bl-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.45);
+}
+
+.bl-card__cat {
+  color: var(--bronze);
+}
+
+.bl-card__title {
+  margin-top: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.32rem;
+  line-height: 1.28;
+  letter-spacing: -0.005em;
+  transition: color 0.22s ease;
+}
+
+.bl-card:hover .bl-card__title {
+  color: var(--bronze);
+}
+
+.bl-card__excerpt {
+  margin-top: 0.7rem;
+  font-size: 0.92rem;
+  line-height: 1.72;
+  color: rgba(27, 27, 27, 0.58);
+}
+
+.bl-card__more {
+  margin-top: auto;
+  padding-top: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+/* ───────────────────────────────────────────
+   Pagination / empty / loading
+─────────────────────────────────────────── */
+.bl-pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: clamp(3rem, 7vh, 4.5rem) 0 0;
+}
+
+.bl-pager button {
+  padding: 0.7rem 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--arch-black);
+  background: transparent;
+  border: 1px solid rgba(27, 27, 27, 0.18);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.22s ease, color 0.22s ease;
+}
+
+.bl-pager button:hover:not(:disabled) {
+  border-color: var(--bronze);
+  color: var(--bronze);
+}
+
+.bl-pager button:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+.bl-pager__count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: rgba(27, 27, 27, 0.5);
+}
+
+.bl-empty {
+  padding: clamp(3rem, 8vh, 5rem) 0;
+  text-align: center;
+  color: rgba(27, 27, 27, 0.5);
+}
+
+.bl-empty__title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--arch-black);
+  margin-bottom: 0.6rem;
+}
+
+/* Skeletons reserve exactly the space the real card will take, so the
+   grid does not jump when content arrives. */
+.bl-skeleton {
+  background: var(--arch-bone);
+  border-radius: 2px;
+  animation: bl-pulse 1.4s ease-in-out infinite;
+}
+
+.bl-skeleton--media { aspect-ratio: 16 / 10; }
+.bl-skeleton--line { height: 12px; margin-top: 0.85rem; }
+.bl-skeleton--line.is-short { width: 45%; }
+
+@keyframes bl-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* ───────────────────────────────────────────
+   Article
+─────────────────────────────────────────── */
+/* Reading progress — a hairline under the fixed nav.
+
+   Earns its place on this page specifically: articles here run 5–10
+   minutes, and the bar answers "how much is left" without the reader
+   having to scrub the scrollbar. It is decoration-free — width IS the
+   datum — and it sits at the nav's own z-index minus one so it can never
+   cover the navigation.
+
+   Driven by a CSS custom property the component writes, so the scroll
+   handler touches one style value and never triggers layout. */
+.bl-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* ABOVE the nav (z-index 60), not below it. The nav is also pinned to
+     top: 0 and paints a solid background once scrolled, so at any lower
+     z-index this bar is drawn and then completely covered — visible only
+     in the first few pixels of scroll, which is exactly when it reads
+     zero. It rides the nav's top edge instead. pointer-events: none keeps
+     it from stealing clicks from the nav underneath. */
+  z-index: 61;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(var(--bl-progress, 0));
+  transform-origin: left center;
+  background: var(--bronze);
+  pointer-events: none;
+}
+
+.bl-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.5);
+  transition: color 0.22s ease;
+}
+
+.bl-back:hover {
+  color: var(--bronze);
+}
+
+.bl-article__head {
+  max-width: 820px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.bl-article__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4.4vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin-top: 1.2rem;
+}
+
+.bl-article__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.48);
+}
+
+.bl-article__meta span:not(:last-child)::after {
+  content: '·';
+  margin-left: 0.75rem;
+  opacity: 0.5;
+}
+
+.bl-article__hero {
+  margin: clamp(2.5rem, 6vh, 3.5rem) auto 0;
+  max-width: 1080px;
+  aspect-ratio: 21 / 9;
+  overflow: hidden;
+  background: var(--arch-bone);
+}
+
+.bl-article__hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Key takeaways — the summary box that sits above the body. */
+.bl-takeaways {
+  margin: clamp(2.5rem, 6vh, 3.25rem) 0;
+  padding: clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2.25rem);
+  background: var(--arch-bone);
+  border-left: 2px solid var(--bronze);
+}
+
+.bl-takeaways__title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-bottom: 1rem;
+}
+
+.bl-takeaways ul {
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bl-takeaways li {
+  position: relative;
+  padding-left: 1.4rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(27, 27, 27, 0.78);
+}
+
+.bl-takeaways li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 8px;
+  height: 1px;
+  background: var(--bronze);
+}
+
+/* ── Article body ──────────────────────────
+   These selectors style server-sanitised HTML, so they are the one place
+   in this file that targets bare elements. They are all descendants of
+   .bl-body, which keeps them off the rest of the site. */
+.bl-body {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: rgba(27, 27, 27, 0.82);
+}
+
+.bl-body > * + * { margin-top: 1.4rem; }
+
+.bl-body h2 {
+  margin-top: 2.75rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 2.6vw, 1.95rem);
+  line-height: 1.24;
+  letter-spacing: -0.01em;
+  color: var(--arch-black);
+}
+
+.bl-body h3 {
+  margin-top: 2.25rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.28rem;
+  line-height: 1.3;
+  color: var(--arch-black);
+}
+
+.bl-body p.bl-lead {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  color: rgba(27, 27, 27, 0.68);
+}
+
+.bl-body a {
+  color: var(--bronze);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 0.2s ease;
+}
+
+.bl-body a:hover { color: var(--arch-black); }
+
+.bl-body strong { font-weight: 600; color: var(--arch-black); }
+
+.bl-body ul,
+.bl-body ol { padding-left: 1.3rem; }
+
+.bl-body li + li { margin-top: 0.55rem; }
+
+.bl-body ul { list-style: none; }
+
+.bl-body ul > li {
+  position: relative;
+  padding-left: 1.1rem;
+}
+
+.bl-body ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.75em;
+  width: 6px;
+  height: 1px;
+  background: var(--bronze);
+}
+
+.bl-body blockquote {
+  margin: 2.25rem 0;
+  padding-left: 1.5rem;
+  border-left: 2px solid var(--bronze);
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-size: 1.3rem;
+  line-height: 1.6;
+  color: var(--arch-black);
+}
+
+.bl-body figure { margin: 2rem 0; }
+.bl-body img { width: 100%; height: auto; }
+
+.bl-body figcaption {
+  margin-top: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.45);
+}
+
+.bl-body code {
+  padding: 0.15em 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--arch-bone);
+  border-radius: 2px;
+}
+
+.bl-body pre {
+  padding: 1.25rem;
+  overflow-x: auto;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  border-radius: 2px;
+}
+
+.bl-body pre code { background: none; color: inherit; }
+
+/* A wide table must scroll inside its own box rather than pushing the
+   page sideways — a horizontally scrolling document is the fastest way
+   to break a phone layout. */
+.bl-table-wrap {
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+
+.bl-body table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 0.94rem;
+}
+
+.bl-body th,
+.bl-body td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(27, 27, 27, 0.1);
+}
+
+.bl-body th {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  border-bottom-color: var(--bronze);
+}
+
+/* ── Callout components ────────────────────
+   The five names the brief specified. Each carries a mono label rendered
+   from ::before, so an author writes only the wrapper and the text.
+
+   Colour is never the only signal — every callout is distinguished by
+   its label text as well as its border, so the distinction survives
+   greyscale printing and colour-blindness. */
+.bl-body .bl-tip,
+.bl-body .bl-expert,
+.bl-body .bl-insight,
+.bl-body .bl-note,
+.bl-body .bl-warning {
+  margin: 2rem 0;
+  padding: 1.35rem 1.5rem 1.35rem 1.6rem;
+  border-left: 2px solid;
+  background: var(--arch-bone);
+  font-size: 0.98rem;
+  line-height: 1.75;
+}
+
+.bl-body .bl-tip::before,
+.bl-body .bl-expert::before,
+.bl-body .bl-insight::before,
+.bl-body .bl-note::before,
+.bl-body .bl-warning::before {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.bl-body .bl-tip { border-left-color: #5F7A5F; }
+.bl-body .bl-tip::before { content: 'Tip'; color: #4C664C; }
+
+.bl-body .bl-expert { border-left-color: var(--bronze); }
+.bl-body .bl-expert::before { content: 'From our engineers'; color: var(--bronze); }
+
+.bl-body .bl-insight { border-left-color: #4A5A75; }
+.bl-body .bl-insight::before { content: 'Insight'; color: #3D4B63; }
+
+.bl-body .bl-note { border-left-color: rgba(27, 27, 27, 0.35); }
+.bl-body .bl-note::before { content: 'Note'; color: rgba(27, 27, 27, 0.55); }
+
+.bl-body .bl-warning { border-left-color: #96603C; }
+.bl-body .bl-warning::before { content: 'Watch out'; color: #7D4E2F; }
+
+.bl-body .bl-tip > *:first-child,
+.bl-body .bl-expert > *:first-child,
+.bl-body .bl-insight > *:first-child,
+.bl-body .bl-note > *:first-child,
+.bl-body .bl-warning > *:first-child { margin-top: 0; }
+
+/* ───────────────────────────────────────────
+   Tags, byline, related
+─────────────────────────────────────────── */
+.bl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: clamp(2.5rem, 5vh, 3rem);
+}
+
+.bl-tag {
+  padding: 0.4rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.6);
+  background: var(--arch-bone);
+  border-radius: 2px;
+  transition: color 0.22s ease, background-color 0.22s ease;
+}
+
+.bl-tag:hover {
+  color: var(--arch-white);
+  background: var(--bronze);
+}
+
+.bl-byline {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-top: clamp(2.5rem, 5vh, 3rem);
+  padding: clamp(1.5rem, 3vw, 2rem);
+  background: var(--arch-bone);
+}
+
+.bl-byline__avatar {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(114, 102, 85, 0.14);
+}
+
+.bl-byline__initials {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--bronze);
+}
+
+.bl-byline__name {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--arch-black);
+}
+
+.bl-byline__role {
+  margin-top: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.bl-byline__bio {
+  margin-top: 0.8rem;
+  font-size: 0.92rem;
+  line-height: 1.72;
+  color: rgba(27, 27, 27, 0.62);
+}
+
+.bl-related {
+  margin-top: clamp(3.5rem, 8vh, 5rem);
+  padding-top: clamp(2.5rem, 6vh, 3.5rem);
+  border-top: 1px solid rgba(27, 27, 27, 0.09);
+}
+
+/* ───────────────────────────────────────────
+   Comments
+─────────────────────────────────────────── */
+.bl-comments {
+  margin-top: clamp(3rem, 7vh, 4rem);
+  padding-top: clamp(2.5rem, 6vh, 3.5rem);
+  border-top: 1px solid rgba(27, 27, 27, 0.09);
+}
+
+.bl-comment {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid rgba(27, 27, 27, 0.07);
+}
+
+.bl-comment__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.bl-comment__name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--arch-black);
+}
+
+.bl-comment__date {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.42);
+}
+
+.bl-comment__body {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.75);
+  /* Server-side the body is plain text and React escapes it, but a
+     pasted URL can still be one unbroken 300-character token. */
+  overflow-wrap: anywhere;
+}
+
+.bl-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.bl-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.bl-field label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.55);
+}
+
+.bl-field input,
+.bl-field textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.94rem;
+  color: var(--arch-black);
+  background: var(--arch-white);
+  border: 1px solid rgba(27, 27, 27, 0.16);
+  border-radius: 2px;
+  transition: border-color 0.22s ease;
+}
+
+.bl-field textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+
+.bl-field input:focus,
+.bl-field textarea:focus {
+  outline: none;
+  border-color: var(--bronze);
+}
+
+/* The honeypot. Hidden from people without display:none, which some bots
+   check for; kept out of the tab order and off the accessibility tree so
+   a keyboard or screen-reader user never lands in it. */
+.bl-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.bl-submit {
+  justify-self: start;
+  padding: 0.85rem 2rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--arch-white);
+  background: var(--arch-black);
+  border: 1px solid var(--arch-black);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 0.22s ease, color 0.22s ease;
+}
+
+.bl-submit:hover:not(:disabled) {
+  background: var(--bronze);
+  border-color: var(--bronze);
+}
+
+.bl-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.bl-formnote {
+  font-size: 0.86rem;
+  line-height: 1.7;
+  color: rgba(27, 27, 27, 0.52);
+}
+
+.bl-formnote--error { color: #9B3A2E; }
+.bl-formnote--ok { color: #4C664C; }
+
+/* ───────────────────────────────────────────
+   Responsive
+─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .bl-feature {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .bl-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bl-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .bl-article__meta {
+    gap: 0.5rem;
+  }
+}
+
+/* ───────────────────────────────────────────
+   Reduced motion — kill the decorative transforms and the skeleton
+   pulse. Colour transitions stay: they carry state, not decoration.
+─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .bl-feature__media img,
+  .bl-card__media img {
+    transition: none;
+  }
+
+  .bl-feature:hover .bl-feature__media img,
+  .bl-card:hover .bl-card__media img {
+    transform: none;
+  }
+
+  .bl-skeleton {
+    animation: none;
+  }
+
+  /* The progress bar stays. It is not an animation — it is a readout of
+     where you are, and hiding it would remove information rather than
+     motion. It has no transition, so it never animates on its own. */
+}

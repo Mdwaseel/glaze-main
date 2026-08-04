@@ -1,0 +1,352 @@
+/* Process — extracted verbatim from the self-contained <style> block
+   in hero.html (lines 3278-3598). Rule and media-query order preserved.
+
+   ⚠ SCOPED SELECTORS (added in Phase 16, no declaration changed). About's
+   §02b Process section uses four of the same class names for a completely
+   different system:
+
+       .proc  ·  .proc__intro  ·  .proc__step  ·  .proc__title
+
+   Both sheets ship in one bundle, so these five rules (seven counting the
+   two inside the ≤899px query) would otherwise style About's DOM —
+   leaking this section's page padding, its ::before gradient, the intro's
+   max-width and near-white --proc-muted colour, and the timeline grid.
+   Cascade order cannot fix it: About declares none of those properties.
+
+   The mirror-image scope lives on About's sheet (`:where(.page-about)`),
+   so the two rule sets are mutually exclusive and bundle order is
+   irrelevant. `page-about` is applied to <body> by the About page
+   (Phase 13); Home's <body> never carries it, so `body:not(.page-about)`
+   always matches here.
+
+   `:where()` contributes ZERO specificity — every scoped rule below
+   scores exactly what the original bare selector scored, so Home's
+   cascade is provably unchanged.
+
+   Rules deliberately left bare because their SUBJECT is a Home-only
+   class that About does not have: `.proc__title em`,
+   `.proc__step:nth-child(…) .proc__card`, `… .proc__meta`,
+   `… .proc__card::before`, `.proc--anim .proc__step:not(.is-lit)
+   .proc__node`, `.proc--anim .proc__card`, `.proc--anim .proc__word-pin`. */
+
+:where(body:not(.page-about)) .proc {
+  position: relative;
+  /* Dark luxury ground — the counterweight to the light Engineering
+     canvas directly above. Accent is the house champagne, lifted a
+     few steps so it reads on near-black. */
+  --proc-bg: #0A0A0A;
+  --proc-ink: #F5F5F3;
+  --proc-muted: rgba(245, 245, 243, 0.50);
+  --proc-faint: rgba(245, 245, 243, 0.22);
+  --proc-line: rgba(167, 154, 135, 0.16);
+  --proc-accent: #726655;                      /* house bronze (primary) */
+  --proc-accent-lift: #A79A87;                 /* lifted bronze for fine text */
+  --proc-accent-dim: rgba(114, 102, 85, 0.45);
+  --proc-axis: 50%;                            /* timeline x-position       */
+  background: var(--proc-bg);
+  color: var(--proc-ink);
+  /* clip, not hidden — an overflow:hidden ancestor disables the
+     sticky counter; clip crops without creating a scroll box. */
+  overflow: clip;
+  padding: clamp(5rem, 12vh, 8.5rem) 0 clamp(6rem, 14vh, 10rem);
+}
+
+/* Whisper-soft depth, no texture. */
+:where(body:not(.page-about)) .proc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(114, 102, 85, 0.10), transparent 55%),
+    radial-gradient(110% 100% at 85% 100%, rgba(114, 102, 85, 0.07), transparent 60%);
+}
+
+/* ── Centered header ── */
+.proc__head {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 3rem);
+  text-align: center;
+}
+
+/* Upright display + Bodoni-italic accent — the same title pattern
+   as The Collection, so the sections read as one family. */
+:where(body:not(.page-about)) .proc__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.3rem, 4.4vw, 4.2rem);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+.proc__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+:where(body:not(.page-about)) .proc__intro {
+  margin: 1.5rem auto 0;
+  max-width: 560px;
+  font-size: clamp(0.98rem, 1.1vw, 1.06rem);
+  line-height: 1.75;
+  color: var(--proc-muted);
+}
+
+/* ── Body: centred timeline column ── */
+.proc__body {
+  position: relative;
+  max-width: 1560px;
+  margin: clamp(3.5rem, 9vh, 6rem) auto 0;
+}
+
+.proc__flow {
+  position: relative;
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+}
+
+/* ── Gooey morphing word: a large sticky watermark centred on the
+   spine that liquid-morphs (blur crossfade fused by the SVG alpha-
+   threshold filter) as each step ignites. Faintness lives on the
+   OUTER holder — the threshold filter erases semi-transparent
+   glyphs, so opacity must be applied after it, never inside. ── */
+.proc__gooey-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+.proc__word-pin {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;                 /* behind spine, nodes and cards */
+  pointer-events: none;
+}
+@media (min-width: 900px) {
+  .proc--anim .proc__word-pin { display: block; }
+}
+/* The holder is glided to the active step's node by the controller,
+   so the word scrolls with the timeline and sits behind whichever
+   step is currently lit — it never parks over the header. */
+.proc__word-hold {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  opacity: 0.3;
+  will-change: transform;
+}
+.proc__word {
+  position: relative;
+  height: 1.2em;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(3.4rem, 7vw, 6.8rem);
+  letter-spacing: 0.01em;
+  color: var(--proc-accent-lift);
+  filter: url(#procGooey);
+}
+.proc__word span {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* ── Timeline: SVG line + steps ── */
+.proc__track { position: relative; }
+
+.proc__steps {
+  list-style: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3.5rem, 10vh, 7rem);
+  padding: clamp(2.5rem, 6vh, 4rem) 0;
+}
+
+/* One rail div + one fill div sharing the same x and width, so the
+   progress line can never sit beside the rail. The fill's gradient
+   dissolves at both ends — its tip never cuts off hard mid-rail. */
+.proc__spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--proc-axis);
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--proc-line);
+}
+.proc__spine-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;                   /* default = fully drawn (static) */
+  /* min()/max() keep the feathered ends in order even while the
+     fill is still shorter than the two 90px fade zones combined. */
+  background: linear-gradient(
+    to bottom,
+    rgba(167, 154, 135, 0) 0%,
+    var(--proc-accent-lift) min(90px, 40%),
+    var(--proc-accent-lift) max(60%, calc(100% - 90px)),
+    rgba(167, 154, 135, 0) 100%
+  );
+}
+
+/* ── One step row: [card] [node] [card] — alternating sides ── */
+:where(body:not(.page-about)) .proc__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr clamp(3.5rem, 8vw, 6rem) 1fr;
+  align-items: center;
+}
+
+.proc__node {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  position: relative;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--proc-accent);
+  background: var(--proc-bg);
+  transition: border-color 0.5s ease, box-shadow 0.5s ease;
+}
+.proc__node::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--proc-accent-lift);
+  transform: scale(1);            /* default = lit (static) */
+  transition: transform 0.45s var(--ease-snap), background-color 0.45s ease;
+}
+/* Animated experience: upcoming steps sit dormant until the drawn
+   line reaches them, then brighten. (Filter/color only — the
+   entrance tween owns opacity/transform, so the two never fight.) */
+.proc--anim .proc__step:not(.is-lit) .proc__node { border-color: var(--proc-faint); }
+.proc--anim .proc__step:not(.is-lit) .proc__node::before { transform: scale(0); }
+.proc--anim .proc__card { transition: filter 0.6s ease; }
+.proc--anim .proc__step:not(.is-lit) .proc__card { filter: brightness(0.45); }
+
+/* ── Detail card: boxless, editorial — rule, meta, title, copy ── */
+.proc__card {
+  grid-row: 1;
+  position: relative;
+  z-index: 2;               /* above the watermark word */
+  max-width: 430px;
+  padding: 0.25rem 0;
+}
+.proc__step:nth-child(odd)  .proc__card { grid-column: 1; justify-self: end;   text-align: right; }
+.proc__step:nth-child(even) .proc__card { grid-column: 3; justify-self: start; text-align: left;  }
+
+.proc__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  margin-bottom: 0.85rem;
+}
+.proc__step:nth-child(odd) .proc__meta { justify-content: flex-end; }
+
+.proc__num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--proc-accent-lift);
+}
+
+.proc__step-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 2.3vw, 2.1rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.7rem;
+}
+
+.proc__card p {
+  font-size: clamp(0.9rem, 1vw, 0.98rem);
+  line-height: 1.7;
+  color: var(--proc-muted);
+}
+
+/* Hairline connector from node toward the card. */
+.proc__card::before {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 1px;
+  margin-bottom: 1.1rem;
+  background: var(--proc-accent);
+  opacity: 0.55;
+}
+.proc__step:nth-child(odd) .proc__card::before { margin-left: auto; }
+
+/* ── Closing line under the timeline ── */
+.proc__coda {
+  margin: clamp(2.5rem, 7vh, 4.5rem) auto 0;
+  max-width: 640px;
+  padding: 0 clamp(1.25rem, 5vw, 3rem);
+  text-align: center;
+}
+.proc__coda p {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.15rem, 1.7vw, 1.5rem);
+  line-height: 1.5;
+  color: var(--proc-muted);
+}
+.proc__coda a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--proc-ink);
+  border-bottom: 1px solid var(--proc-accent-dim);
+  padding-bottom: 0.45rem;
+  transition: color 0.35s ease, border-color 0.35s ease;
+}
+.proc__coda a:hover { color: var(--proc-accent-lift); border-color: var(--proc-accent-lift); }
+
+/* ── Mobile: line hugs the left edge, cards stack to its right ── */
+@media (max-width: 899px) {
+  :where(body:not(.page-about)) .proc { --proc-axis: 1.375rem; }   /* half the 2.75rem node column */
+  .proc__steps { gap: clamp(2.75rem, 8vh, 4.5rem); }
+  :where(body:not(.page-about)) .proc__step { grid-template-columns: 2.75rem 1fr; }
+  .proc__node { grid-column: 1; width: 26px; height: 26px; }
+  .proc__node::before { width: 6px; height: 6px; }
+  .proc__step:nth-child(odd)  .proc__card,
+  .proc__step:nth-child(even) .proc__card {
+    grid-column: 2;
+    justify-self: start;
+    text-align: left;
+    max-width: 560px;
+    padding-left: clamp(0.75rem, 3vw, 1.5rem);
+  }
+  .proc__step:nth-child(odd) .proc__meta { justify-content: flex-start; }
+  .proc__step:nth-child(odd) .proc__card::before { margin-left: 0; }
+  .proc__card::before { width: 32px; margin-bottom: 0.9rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proc__node, .proc__node::before, .proc__card { transition: none; }
+}

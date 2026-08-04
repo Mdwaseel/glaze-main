@@ -1,0 +1,441 @@
+/* Products §11 Multi-step Enquiry — extracted verbatim from the
+   self-contained <style> block in products/sliding.html (lines
+   1459-1873). Rule and media-query order preserved.
+
+   ⚠ SCOPED SELECTORS — the two names this section shares with Contact's
+   §02 Enquiry (`contact/EnquirySection/enquirySection.css`):
+
+       .enq  ·  .enq__inner
+
+   Both sheets ship in one bundle, so each name would otherwise match the
+   other page's DOM — and the two `.enq` rules disagree on nearly every
+   declaration (bone ground with bottom padding only, against a black
+   ground with a bronze wash). The three rules whose SUBJECT is one of
+   those names carry a `:where(.page-products)` prefix below; Contact's
+   two matching rules carry the mirror-image `:where(body:not(.page-products))`.
+   The two sets are therefore mutually exclusive and bundle order is
+   irrelevant. Same treatment, same reasoning as About §02b Process.
+
+   `:where()` contributes ZERO specificity, so every scoped rule scores
+   exactly what the original bare selector scored.
+
+   `.enq .eyebrow` needs no scope of its own: `.enq` appears there only as
+   an ANCESTOR, and the subject `.eyebrow` is a products-only class that
+   never renders inside Contact's `.enq`. Every other selector in this
+   file is `.enq__*`-prefixed with a name Contact does not have, and stays
+   verbatim. */
+
+/* ══════════════════════════════════════════════════════════════
+   11 · MULTI-STEP ENQUIRY
+   Two columns on a bronze-washed ground: a standing spec sheet on
+   the left that mirrors whatever the visitor configured, and the
+   form on the right. Every control sits on the same 46px baseline
+   so no row reads as tacked on.
+══════════════════════════════════════════════════════════════ */
+:where(.page-products) .enq {
+  position: relative;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  padding: clamp(5rem, 13vh, 9rem) clamp(1.25rem, 5vw, 4rem);
+  overflow: clip;
+}
+:where(.page-products) .enq::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(80% 60% at 78% 0%, rgba(114, 102, 85, 0.16), transparent 62%);
+}
+:where(.page-products) .enq__inner { position: relative; max-width: 1240px; margin: 0 auto; }
+.enq .eyebrow { color: var(--champagne); }
+.enq__title { margin-top: 1.5rem; max-width: 16ch; }
+.enq__title em { color: var(--champagne); }
+.enq__sub {
+  margin-top: 1.4rem;
+  max-width: 46ch;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(245, 245, 243, 0.55);
+}
+
+.enq__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: clamp(2.5rem, 5vw, 5rem);
+  margin-top: clamp(3rem, 7vh, 4.5rem);
+  align-items: start;
+}
+
+/* ── Standing spec sheet ── */
+.enq__spec {
+  position: sticky;
+  top: calc(var(--sys-nav-h) + 5rem);
+  border-top: 2px solid var(--champagne);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+  padding: 1.75rem 1.6rem 1.9rem;
+}
+.enq__spec-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.4);
+}
+.enq__spec-list { margin-top: 1.4rem; }
+.enq__spec-row + .enq__spec-row { margin-top: 1.15rem; }
+.enq__spec-key {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.34);
+}
+.enq__spec-val {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-size: 1.24rem;
+  line-height: 1.25;
+  color: var(--champagne);
+}
+.enq__spec-val.is-empty {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 0.86rem;
+  color: rgba(245, 245, 243, 0.26);
+}
+.enq__spec-note {
+  margin-top: 1.9rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(245, 245, 243, 0.09);
+  font-size: 0.8rem;
+  line-height: 1.75;
+  color: rgba(245, 245, 243, 0.42);
+}
+
+/* ── Step rail ── */
+.enq__rail {
+  display: flex;
+  align-items: center;
+  margin-bottom: clamp(2.2rem, 5vh, 3rem);
+}
+.enq__step {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex: none;
+}
+.enq__step-dot {
+  display: grid;
+  place-items: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 245, 243, 0.22);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(245, 245, 243, 0.42);
+  transition: background-color 0.4s var(--ease-snap),
+              border-color 0.4s ease, color 0.4s ease;
+}
+.enq__step-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.34);
+  transition: color 0.4s ease;
+  white-space: nowrap;
+}
+.enq__step.is-current .enq__step-dot {
+  background: var(--champagne);
+  border-color: var(--champagne);
+  color: var(--arch-black);
+}
+.enq__step.is-current .enq__step-name { color: var(--arch-bone); }
+.enq__step.is-done .enq__step-dot {
+  border-color: var(--champagne);
+  color: var(--champagne);
+}
+.enq__step.is-done .enq__step-name { color: rgba(245, 245, 243, 0.6); }
+
+.enq__link {
+  position: relative;
+  flex: 1 1 auto;
+  height: 1px;
+  margin: 0 clamp(0.6rem, 1.6vw, 1.3rem);
+  background: rgba(245, 245, 243, 0.14);
+}
+.enq__link::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--champagne);
+  transition: width 0.6s var(--ease-snap);
+}
+.enq__link.is-filled::after { width: 100%; }
+
+/* ── Panes ── */
+.enq__panes { position: relative; }
+.enq__pane { display: none; border: 0; min-width: 0; padding: 0; }
+.enq__pane.is-live { display: block; }
+.enq__legend {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  margin-bottom: 0.55rem;
+  padding: 0;
+}
+.enq__pane-note {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: rgba(245, 245, 243, 0.45);
+  margin-bottom: 2.2rem;
+  max-width: 48ch;
+}
+
+.enq__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.9rem 2.4rem;
+}
+.enq__field { position: relative; min-width: 0; }
+.enq__field--full { grid-column: 1 / -1; }
+
+.enq__label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.42);
+  margin-bottom: 0.7rem;
+  transition: color 0.3s ease;
+}
+.enq__label span { color: var(--champagne); }
+.enq__field:focus-within .enq__label { color: var(--champagne); }
+
+.enq__input, .enq__select, .enq__area {
+  width: 100%;
+  height: 46px;
+  padding: 0 0 0.5rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(245, 245, 243, 0.2);
+  color: var(--arch-bone);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.4;
+  border-radius: 0;
+}
+
+/* A champagne rule wipes in from the left directly over the
+   hairline — 20px is the error slot's height plus its margin, which
+   is exactly where the control's own border sits. */
+.enq__field::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 20px;
+  height: 1px;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-snap);
+  pointer-events: none;
+}
+.enq__field:focus-within::after { transform: scaleX(1); }
+
+.enq__select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 1.6rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(167,154,135,0.9) 50%),
+    linear-gradient(135deg, rgba(167,154,135,0.9) 50%, transparent 50%);
+  background-position: right 6px top 18px, right 1px top 18px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+.enq__select option { background: #141414; color: var(--arch-bone); }
+
+.enq__area {
+  height: auto;
+  min-height: 116px;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(245, 245, 243, 0.16);
+  resize: vertical;
+  line-height: 1.65;
+  transition: border-color 0.35s ease;
+}
+.enq__field--area::after { display: none; }
+.enq__area:focus { border-color: var(--champagne); }
+
+.enq__input:focus, .enq__select:focus, .enq__area:focus { outline: none; }
+
+.enq__input, .enq__select, .enq__area { caret-color: var(--champagne); }
+
+.enq__input:-webkit-autofill,
+.enq__input:-webkit-autofill:hover,
+.enq__input:-webkit-autofill:focus,
+.enq__input:-webkit-autofill:active,
+.enq__select:-webkit-autofill,
+.enq__area:-webkit-autofill {
+  -webkit-text-fill-color: var(--arch-bone);
+  -webkit-box-shadow: 0 0 0 60px var(--arch-black) inset;
+  box-shadow: 0 0 0 60px var(--arch-black) inset;
+  caret-color: var(--champagne);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  /* Chrome re-applies its own background on an animation frame;
+     parking the transition indefinitely keeps ours on top. */
+  transition: background-color 100000s ease-in-out 0s;
+}
+.enq__area:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 60px var(--arch-black) inset,
+                      inset 0 0 0 1px rgba(245, 245, 243, 0.16);
+}
+.enq__input::placeholder, .enq__area::placeholder { color: rgba(245, 245, 243, 0.22); }
+
+/* Fixed pixel box: the focus rule below is positioned off these
+   exact numbers, so the slot must not resize with its font. */
+.enq__err {
+  display: block;
+  height: 14px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #D98C7A;
+  overflow: hidden;
+}
+.enq__field.has-error .enq__input,
+.enq__field.has-error .enq__select,
+.enq__field.has-error .enq__area { border-color: #D98C7A; }
+
+/* ── Actions ── */
+.enq__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: clamp(2.4rem, 5vh, 3.2rem);
+  padding-top: 1.8rem;
+  border-top: 1px solid rgba(245, 245, 243, 0.08);
+}
+.enq__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  height: 52px;
+  padding: 0 2rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  border: 1px solid var(--champagne);
+  color: var(--arch-black);
+  background: var(--champagne);
+  overflow: hidden;
+  transition: color 0.4s ease;
+}
+.enq__btn[hidden] { display: none; }
+
+/* Dark fill wipes up from the foot on hover; the label rides above it. */
+.enq__btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--arch-black);
+  transform: translateY(101%);
+  transition: transform 0.55s var(--ease-snap);
+}
+.enq__btn > * { position: relative; z-index: 1; }
+.enq__btn:hover::before { transform: translateY(0); }
+.enq__btn:hover { color: var(--champagne); }
+.enq__btn i { font-style: normal; transition: transform 0.45s var(--ease-snap); }
+.enq__btn:hover i { transform: translateX(5px); }
+
+.enq__btn--ghost {
+  background: transparent;
+  color: rgba(245, 245, 243, 0.6);
+  border-color: rgba(245, 245, 243, 0.18);
+  margin-right: auto;
+}
+.enq__btn--ghost::before { background: rgba(245, 245, 243, 0.08); }
+.enq__btn--ghost:hover { color: var(--arch-bone); }
+.enq__btn--ghost:hover i { transform: translateX(-5px); }
+
+.enq__legal {
+  margin-top: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.24);
+}
+
+/* ── Sent ── */
+.enq__done { display: none; }
+.enq__done.is-live { display: block; }
+.enq__done-mark {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--champagne);
+  display: grid;
+  place-items: center;
+  color: var(--champagne);
+  font-size: 1.05rem;
+}
+.enq__done h3 {
+  margin-top: 1.6rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  line-height: 1.15;
+}
+.enq__done h3 em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  color: var(--champagne);
+}
+.enq__done p {
+  margin-top: 1.1rem;
+  max-width: 46ch;
+  font-size: 0.98rem;
+  line-height: 1.8;
+  color: rgba(245, 245, 243, 0.55);
+}
+.enq__done-recap {
+  margin-top: 2rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(245, 245, 243, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 2.4rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.4);
+}
+.enq__done-recap b { color: var(--champagne); font-weight: 400; }
+
+@media (max-width: 1000px) {
+  .enq__grid { grid-template-columns: 1fr; }
+  .enq__spec { position: static; }
+}
+@media (max-width: 640px) {
+  .enq__fields { grid-template-columns: 1fr; gap: 1.6rem; }
+  .enq__step-name { display: none; }
+  .enq__actions { flex-wrap: wrap; }
+  .enq__btn { width: 100%; }
+  .enq__btn--ghost { margin-right: 0; order: 2; }
+}

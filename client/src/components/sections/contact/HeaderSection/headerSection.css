@@ -1,0 +1,99 @@
+/* Contact §01 Header Block — extracted verbatim from the self-contained
+   <style> block in contact.html (lines 637-722). Rule and media-query
+   order preserved.
+
+   NO SCOPING. All 8 selectors are `.chead*`-prefixed and the file
+   declares no keyframes; a full `chead` search across src/ returns
+   nothing outside this folder. Checked against the Phase 13 / Phase 27
+   collision lists. §02b Process (About) remains the only section in the
+   project that has ever needed a scope.
+
+   `--nav-height` (used by the section's top padding) and `--arch-bone` /
+   `--arch-black` / `--bronze` / `--font-display` / `--font-bodoni` /
+   `--font-mono` are the shared tokens from styles/global.css — not
+   redefined here, exactly as in the original. */
+
+.chead {
+  background: var(--arch-bone);
+  color: var(--arch-black);
+  padding: calc(var(--nav-height) + clamp(4.5rem, 12vh, 8.5rem))
+           clamp(1.5rem, 5vw, 3rem)
+           clamp(3rem, 8vh, 5.5rem);
+}
+
+.chead__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* Mono eyebrow pill — the light-ground sibling of the hero's
+   glass pill: hairline border, bronze dot, no glow. */
+.chead__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.95rem 0.4rem 0.85rem;
+  border: 1px solid rgba(27, 27, 27, 0.16);
+  border-radius: 999px;
+  background: rgba(27, 27, 27, 0.03);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.7);
+}
+
+.chead__eyebrow::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--bronze);
+}
+
+.chead__row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2.5rem;
+  margin-top: clamp(2rem, 4vh, 3rem);
+}
+
+/* Recurring title pattern: upright Playfair line, then a
+   Bodoni-italic accent line — bronze on light ground. */
+.chead__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.7rem, 6.8vw, 5.8rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  max-width: 12em;
+}
+
+.chead__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--bronze);
+}
+
+/* Helper copy seated against the headline's baseline, top-right */
+.chead__aside {
+  max-width: 17rem;
+  padding-bottom: 0.6em;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(27, 27, 27, 0.6);
+}
+
+@media (max-width: 860px) {
+  .chead__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.6rem;
+  }
+  .chead__aside {
+    max-width: 26rem;
+    padding-bottom: 0;
+  }
+}

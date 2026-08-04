@@ -1,0 +1,132 @@
+/* Products §09 Performance Lab Strip — extracted verbatim from the
+   self-contained <style> block in products/sliding.html (lines 1267-1391).
+   Rule and media-query order preserved.
+
+   NO SCOPING. Every selector is `.plab*`-prefixed and the file declares
+   no keyframes; a full `plab` search across src/ returns nothing outside
+   this folder. */
+
+/* ═══════════════════════════════════════════════════════════════
+   09 · PERFORMANCE LAB STRIP — five films, one row
+═══════════════════════════════════════════════════════════════ */
+.plab {
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  padding: clamp(4.5rem, 12vh, 7rem) clamp(1.25rem, 5vw, 4rem);
+  border-top: 1px solid rgba(245, 245, 243, 0.06);
+}
+.plab__inner { max-width: 1440px; margin: 0 auto; }
+.plab .eyebrow { color: var(--champagne); }
+.plab__title { margin-top: 1.4rem; }
+.plab__title em { color: var(--champagne); }
+
+.plab__strip {
+  display: flex;
+  gap: 2px;
+  margin-top: clamp(2.5rem, 6vh, 3.5rem);
+  height: clamp(320px, 46vh, 460px);
+}
+
+.plab__film {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  background: #060606;
+  transition: flex-grow 0.7s var(--ease-snap);
+}
+.plab__film video {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: brightness(0.62) saturate(0.85);
+  transition: filter 0.5s ease, transform 0.9s var(--ease-snap);
+}
+.plab__film::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(6,6,6,0.9), rgba(6,6,6,0.1) 55%);
+  pointer-events: none;
+}
+.plab__film:hover { flex-grow: 2.4; }
+.plab__film:hover video { filter: brightness(0.95) saturate(1); transform: scale(1.04); }
+
+.plab__meta {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  padding: 1.2rem;
+}
+.plab__test {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.55);
+}
+.plab__stat {
+  margin-top: 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.3rem, 2vw, 1.9rem);
+  line-height: 1;
+  white-space: nowrap;
+}
+.plab__stat span { font-size: 0.5em; color: var(--champagne); margin-left: 0.3em; }
+.plab__pass {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+.plab__pass::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--champagne);
+}
+.plab__sound {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  z-index: 3;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.7);
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(245, 245, 243, 0.2);
+  border-radius: 999px;
+  background: rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.plab__film:hover .plab__sound { opacity: 1; }
+
+.plab__hint {
+  margin-top: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.3);
+}
+
+@media (max-width: 900px) {
+  .plab__strip {
+    flex-wrap: wrap;
+    height: auto;
+  }
+  .plab__film { flex: 1 1 calc(50% - 2px); aspect-ratio: 4 / 5; }
+  .plab__film:hover { flex-grow: 1; }
+}
+@media (max-width: 520px) {
+  .plab__film { flex: 1 1 100%; }
+}

@@ -1,0 +1,358 @@
+/* Navigation — extracted verbatim from hero.html <style> (lines 165-359).
+   Identical markup/styles on about.html and contact.html. */
+
+/* ───────────────────────────────────────────
+   Navigation
+─────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 3rem;
+  color: white;
+  /* Always-on scrim so links and logo read clearly over the hero
+     image, whatever its brightness. Fades to solid on scroll. */
+  background: linear-gradient(to bottom,
+    rgba(27, 27, 27, 0.66) 0%,
+    rgba(27, 27, 27, 0.35) 60%,
+    rgba(27, 27, 27, 0) 100%);
+  transition: background-color 0.4s ease, padding 0.4s ease;
+}
+
+/* When scrolled past the hero, switch to a solid dark backdrop
+   so the nav stays readable over any section. */
+.nav.nav--scrolled {
+  background: rgba(27, 27, 27, 0.92);
+  backdrop-filter: blur(8px);
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.nav__logo {
+  display: block;
+  line-height: 0;
+}
+
+.nav__logo img {
+  display: block;
+  height: 46px;
+  width: auto;
+  /* renders the transparent logo pure white for the dark bar */
+  filter: brightness(0) invert(1);
+}
+
+.nav__links {
+  display: flex;
+  gap: 3rem;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.nav__link {
+  color: white;
+  transition: color 0.2s;
+}
+
+.nav__link:hover {
+  color: var(--champagne);
+}
+
+/* ── Submenu ─────────────────────────────────────────────────
+   The Systems item carries every system under it, from the
+   catalogue. NOT IN THE STATIC SITE — the original nav was six
+   flat links.
+
+   ⚠ NO JAVASCRIPT. It opens on :hover and on :focus-within, which
+   between them cover pointer, keyboard and (via the parent link
+   being tappable) touch. A JS dropdown would have to reimplement
+   outside-click, Escape and the tab order, and each of those is a
+   way to build a menu a keyboard cannot get out of. Tab in opens
+   it, Tab through walks it, Tab out closes it — for free, and
+   correctly.
+
+   The panel is rendered at all times and hidden with
+   visibility/opacity rather than display:none, because a
+   display:none element is not focusable and Tab would skip
+   straight past the systems. */
+.nav__item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.nav__caret {
+  width: 0;
+  height: 0;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 3px solid currentColor;
+  opacity: 0.55;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.nav__item:hover .nav__caret,
+.nav__item:focus-within .nav__caret {
+  opacity: 1;
+  transform: rotate(180deg);
+}
+
+.nav__menu {
+  position: absolute;
+  top: 100%;
+  left: -1.1rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 13.5rem;
+  /* The gap between the bar and the panel is padding on the panel,
+     not margin — a real gap would break the hover as the pointer
+     travels across it and the menu would close under the cursor. */
+  padding: 1.1rem 1.1rem 0.9rem;
+  background: rgba(27, 27, 27, 0.97);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+}
+
+.nav__item:hover .nav__menu,
+.nav__item:focus-within .nav__menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* The champagne hairline the rest of the site uses to open a panel. */
+.nav__menu-edge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--champagne), transparent);
+}
+
+.nav__menu-link {
+  padding: 0.55rem 0;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.72);
+  transition: color 0.2s, transform 0.2s;
+}
+
+.nav__menu-link:hover,
+.nav__menu-link:focus-visible {
+  color: var(--champagne);
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav__menu,
+  .nav__menu-link,
+  .nav__caret { transition: none; }
+  .nav__menu-link:hover,
+  .nav__menu-link:focus-visible { transform: none; }
+}
+
+.nav__cta {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1.5rem;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: white;
+  transition: all 0.2s;
+}
+
+.nav__cta:hover {
+  background-color: white;
+  color: var(--arch-black);
+}
+
+/* Hamburger toggle — hidden on desktop, shown ≤768px */
+.nav__toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 60;
+}
+
+.nav__toggle-bar {
+  display: block;
+  width: 1.5rem;
+  height: 2px;
+  background-color: white;
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Animate to an X when the drawer is open */
+.nav__toggle[aria-expanded="true"] .nav__toggle-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bar:nth-child(2) {
+  opacity: 0;
+}
+.nav__toggle[aria-expanded="true"] .nav__toggle-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile drawer overlay */
+.nav__drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  background-color: rgba(27, 27, 27, 0.97);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-100%);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.45s ease, visibility 0.45s;
+}
+
+.nav__drawer.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.nav__drawer-link {
+  color: white;
+  font-size: 1rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+
+.nav__drawer-link:hover {
+  color: var(--champagne);
+}
+
+/* The drawer's submenu is inline — see the note in Navbar.jsx. The
+   drawer centres its children, so the sub-list centres too rather
+   than indenting, which would read as a stray column. */
+.nav__drawer-sub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: -1.4rem;
+  padding-top: 0.2rem;
+}
+
+.nav__drawer-sublink {
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.2s;
+}
+
+.nav__drawer-sublink:hover,
+.nav__drawer-sublink:focus-visible {
+  color: var(--champagne);
+}
+
+/* Seven systems under Systems makes the drawer taller than a small
+   phone, so it has to scroll.
+   ⚠ `safe center` rather than `center`: a centred flex column whose
+   content overflows is clipped at BOTH ends, and the top of a
+   scroll container is unreachable — the first two links would
+   simply not exist. `safe` falls back to flex-start exactly when
+   that would happen. */
+.nav__drawer {
+  justify-content: safe center;
+  overflow-y: auto;
+  padding: 5.5rem 1.5rem 3rem;
+}
+
+.nav__drawer-cta {
+  margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.85rem 2rem;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: white;
+}
+
+/* Prevent body scroll while drawer is open */
+body.nav-open {
+  overflow: hidden;
+}
+
+/* ⚠ SCOPED — the responsive block is the ONE part of this component that
+   the products/*.html system pages do not share. hero.html, about.html
+   and contact.html step the nav down at 1024px and collapse it to the
+   hamburger at 768px; the system pages have a single step and collapse at
+   900px, with a 36px logo rather than 38px. Between 769px and 900px the
+   two disagree about whether the desktop links are visible at all, so
+   this cannot be left as one shared block.
+
+   Both sides carry a mutually exclusive `:where()` scope — these three
+   queries match every page EXCEPT a system page, and the matching block
+   in styles/products-global.css matches only a system page. `:where()`
+   contributes zero specificity, so each rule still scores exactly what
+   the bare selector scored, and bundle order is irrelevant. Same
+   treatment, same reasoning as About §02b Process and Contact §02's
+   `.enq`.
+
+   Everything above this comment is shared by all four page types and
+   stays unscoped. */
+
+@media (max-width: 1024px) {
+  :where(body:not(.page-products)) .nav {
+    padding: 1.25rem 2rem;
+  }
+  :where(body:not(.page-products)) .nav__links {
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :where(body:not(.page-products)) .nav {
+    padding: 1.25rem 1.5rem;
+  }
+  :where(body:not(.page-products)) .nav__links,
+  :where(body:not(.page-products)) .nav > .nav__cta {
+    display: none;
+  }
+  :where(body:not(.page-products)) .nav__toggle {
+    display: flex;
+  }
+  :where(body:not(.page-products)) .nav__logo img {
+    height: 38px;
+  }
+}
+
+@media (min-width: 769px) {
+  :where(body:not(.page-products)) .nav__drawer {
+    display: none;
+  }
+}

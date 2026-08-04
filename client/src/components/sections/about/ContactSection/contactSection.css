@@ -1,0 +1,95 @@
+/* About §11 Contact — extracted verbatim from the self-contained <style>
+   block in about.html (lines 4239-4316). Rule and media-query order
+   preserved.
+
+   Scope note: the <style> block in about.html covers §11 Contact AND the
+   footer. Only the `.contact*` half is here — `.footer*` was migrated in
+   Phase 2 (components/common/Footer/footer.css) and RootLayout renders
+   the footer for every route, so duplicating it here would define the
+   same 11 rules twice.
+
+   NO SCOPING. All 9 selectors are `.contact*`-prefixed and the file
+   declares no keyframes; a full `.contact` search across src/ returns
+   nothing outside this folder. Checked against the Phase 13 collision
+   list. `contact.html` — the next page to migrate — defines **zero**
+   `.contact*` selectors of its own, so this cannot collide there either.
+   §02b Process remains the only section that has needed a scope. */
+
+.contact {
+  position: relative;
+  background: #0F0F0E;
+  color: var(--arch-bone);
+  padding: clamp(6rem, 15vh, 10rem) clamp(1.5rem, 5vw, 3rem);
+}
+
+.contact__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.contact__heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 4.4vw, 3.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.contact__heading em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.contact__copy {
+  margin-top: 1.5rem;
+  max-width: 28rem;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.75;
+  color: rgba(245, 245, 243, 0.55);
+}
+
+/* The reach-us card */
+.contact__form-slot {
+  border: 1px solid rgba(167, 154, 135, 0.35);
+  padding: clamp(2rem, 4vw, 3rem);
+}
+
+.contact__slot-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.contact__slot-note {
+  margin-top: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: rgba(245, 245, 243, 0.45);
+}
+
+.contact__direct {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.contact__direct a {
+  color: var(--champagne);
+  width: fit-content;
+}
+
+@media (max-width: 860px) {
+  .contact__inner { grid-template-columns: 1fr; }
+}

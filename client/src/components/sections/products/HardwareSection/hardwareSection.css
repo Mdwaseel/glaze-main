@@ -1,0 +1,69 @@
+/* Products §06 Hardware Showcase — extracted verbatim from the
+   self-contained <style> block in products/sliding.html (lines 832-893).
+   Rule and media-query order preserved.
+
+   NO SCOPING. Every selector is `.hw*`-prefixed and the file declares no
+   keyframes; a full `hw__` search across src/ returns nothing outside
+   this folder. */
+
+/* ═══════════════════════════════════════════════════════════════
+   06 · HARDWARE SHOWCASE — gapless 5 × 2 plate on dark ground
+═══════════════════════════════════════════════════════════════ */
+.hw {
+  background: #0A0A0A;
+  color: var(--arch-bone);
+  padding: clamp(4.5rem, 12vh, 8rem) 0 0;
+  overflow: clip;
+}
+.hw__head {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 4rem);
+}
+.hw .eyebrow { color: var(--champagne); }
+.hw__title { margin-top: 1.5rem; max-width: 18ch; }
+.hw__title em { color: var(--champagne); }
+.hw__marques {
+  margin-top: 1.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.4);
+}
+
+/* No gap, no gutters — the pieces butt straight into each other so
+   the run reads as one continuous plate of hardware. */
+.hw__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  margin-top: clamp(3rem, 7vh, 4.5rem);
+}
+.hw__cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #050505;
+}
+.hw__cell img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: brightness(0.82) contrast(1.02);
+  transition: transform 0.8s var(--ease-snap), filter 0.5s ease;
+}
+.hw__cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 1px rgba(167, 154, 135, 0);
+  transition: box-shadow 0.4s ease;
+  pointer-events: none;
+}
+.hw__cell:hover img { transform: scale(1.06); filter: brightness(1.06) contrast(1.04); }
+.hw__cell:hover::after { box-shadow: inset 0 0 0 1px rgba(167, 154, 135, 0.45); }
+
+@media (max-width: 900px) { .hw__grid { grid-template-columns: repeat(2, 1fr); } }

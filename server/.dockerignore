@@ -1,0 +1,36 @@
+# Everything here is either a secret, a local artefact, or something the
+# image rebuilds itself. Anything not excluded is uploaded to the Docker
+# daemon on every build, so this file is a build-speed setting as well as a
+# security one.
+#
+# ⚠ PATTERNS ARE MATCHED FROM THE CONTEXT ROOT, NOT AT EVERY LEVEL. A bare
+# `.env` here would exclude `server/.env` — a file that does not exist — and
+# happily copy `server/glaze/.env`, which is the one holding the secret key,
+# the database password and the Gmail app password. Hence `**/` on everything
+# that can appear at depth. An image layer is readable by anyone who can pull
+# the image, and a secret in one cannot be deleted afterwards, only rotated.
+
+# ---- Secrets ----
+**/.env
+**/.env.*
+!**/.env.example
+
+# ---- Local artefacts ----
+# The virtualenv: Windows binaries, useless in a Linux container, ~200 MB.
+**/.venv/
+**/venv/
+
+# Local database and uploaded media. Media lives in a named volume in
+# production; copying a local copy in would shadow the volume's mount point.
+**/db.sqlite3
+**/db.sqlite3-journal
+**/media/
+**/staticfiles/
+
+**/__pycache__/
+**/*.py[cod]
+**/*.log
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/.DS_Store

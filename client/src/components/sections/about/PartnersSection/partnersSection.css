@@ -1,0 +1,255 @@
+/* About §03b The Support System — extracted verbatim from the
+   self-contained <style> block in about.html (lines 2377-2618). Rule and
+   media-query order preserved.
+
+   NO SCOPING. All 24 selectors are `.ptr*`-prefixed and the file declares
+   no keyframes, so nothing here can collide with Home or with the shared
+   sheets — verified against the Phase 13 collision list and a full `ptr`
+   search across src/, which returns nothing outside this folder.
+   (Contrast §02b Process, the only section so far that needed scoping.)
+
+   `--nav-height` (used by the sticky band rail) is the shared token from
+   styles/global.css, 70px — not redefined here, exactly as in the
+   original. */
+
+.ptr {
+  position: relative;
+  background: var(--arch-bone);
+  color: var(--arch-black);
+  padding: clamp(5rem, 12vh, 8.5rem) clamp(1.25rem, 5vw, 3rem);
+}
+
+.ptr__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+/* Same eyebrow treatment as "What We Build On" in Values. */
+.ptr__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-bottom: 1.5rem;
+}
+.ptr__label::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin-top: 0.9rem;
+  background: rgba(114, 102, 85, 0.4);
+}
+
+.ptr__heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 4.2vw, 3.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  max-width: 16ch;
+}
+.ptr__heading em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--bronze);
+}
+
+.ptr__intro {
+  margin-top: 1.6rem;
+  max-width: 56ch;
+  font-size: clamp(0.98rem, 1.1vw, 1.06rem);
+  line-height: 1.8;
+  color: rgba(27, 27, 27, 0.62);
+}
+
+/* ── Headline figures ─────────────────────────── */
+.ptr__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(2rem, 6vw, 4.5rem);
+  margin-top: clamp(2.5rem, 5vh, 3.5rem);
+  padding-top: clamp(2rem, 4vh, 2.6rem);
+  border-top: 1px solid rgba(27, 27, 27, 0.1);
+}
+
+.ptr__stat-value {
+  display: block;
+  font-family: var(--font-bodoni);
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.ptr__stat-label {
+  display: block;
+  margin-top: 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.45);
+}
+
+/* ── One discipline: rail + wall ──────────────────────────────
+   Each band is a ledger row — the discipline reads down a narrow
+   left rail while the logos fill the right. The grid's column
+   count is set per band (--cols, inline on the <ul>) to match the
+   brand count, so every band is a fully packed rectangle: no
+   trailing half-empty rows, which is what made the old 6-across
+   wall look ragged. */
+.ptr__band {
+  margin-top: clamp(2.75rem, 6vh, 4rem);
+  padding-top: clamp(1.9rem, 4vh, 2.6rem);
+  border-top: 1px solid rgba(27, 27, 27, 0.12);
+}
+
+@media (min-width: 1080px) {
+  .ptr__band {
+    display: grid;
+    /* minmax(0, …) so the wide intrinsic size of the logo PNGs
+       can never blow the wall past the container edge. */
+    grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
+    column-gap: clamp(2.5rem, 5vw, 5rem);
+    align-items: start;
+  }
+  /* Hardware runs four rows deep; let its label ride along. */
+  .ptr__band-rail {
+    position: sticky;
+    top: calc(var(--nav-height) + 1.75rem);
+  }
+}
+
+.ptr__band-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--bronze);
+}
+
+.ptr__band-name {
+  margin-top: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.2rem, 1.9vw, 1.55rem);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.ptr__band-desc {
+  margin-top: 0.8rem;
+  max-width: 30ch;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: rgba(27, 27, 27, 0.55);
+}
+
+.ptr__band-count {
+  display: block;
+  margin-top: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.38);
+  white-space: nowrap;
+}
+
+/* ── Logo grid ────────────────────────────────── */
+.ptr__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(0.5rem, 1.2vw, 0.9rem);
+  margin-top: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+@media (min-width: 640px) {
+  .ptr__grid { grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); }
+}
+
+@media (min-width: 1080px) {
+  .ptr__grid { margin-top: 0; }
+}
+
+/* On the 2-across phone grid an odd count would strand one tile;
+   let it stretch the full row instead, with a wider aspect so its
+   height still matches its neighbours. */
+@media (max-width: 639.98px) {
+  .ptr__tile:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    aspect-ratio: 3.65;
+  }
+}
+
+.ptr__tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1.8;
+  /* Kept tight on purpose: the PNGs already carry a wide transparent
+     margin, so heavy tile padding would shrink the marks twice. */
+  padding: clamp(0.45rem, 1vw, 0.8rem);
+  background: var(--arch-white);
+  border: 1px solid rgba(27, 27, 27, 0.08);
+  border-radius: 4px;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s var(--ease-snap),
+    transform 0.4s var(--ease-snap);
+}
+
+.ptr__tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: filter 0.5s ease, opacity 0.5s ease;
+}
+
+/* Rest state is only worth having where the pointer can undo it.
+   On touch the wall stays in full colour. */
+@media (hover: hover) {
+  .ptr__tile img {
+    filter: grayscale(1);
+    opacity: 0.58;
+  }
+  .ptr__tile:hover img,
+  .ptr__tile:focus-within img {
+    filter: grayscale(0);
+    opacity: 1;
+  }
+  .ptr__tile:hover,
+  .ptr__tile:focus-within {
+    transform: translateY(-3px);
+    border-color: rgba(114, 102, 85, 0.34);
+    box-shadow: 0 14px 30px rgba(27, 27, 27, 0.08);
+  }
+}
+
+/* Stagger wave across each row. Bands run four or five across,
+   so a 5-step cycle keeps the cascade rolling without ever lining
+   up as a single block, whatever the column count. */
+.ptr__tile:nth-child(5n + 1) { --reveal-delay: 0s; }
+.ptr__tile:nth-child(5n + 2) { --reveal-delay: 0.05s; }
+.ptr__tile:nth-child(5n + 3) { --reveal-delay: 0.1s; }
+.ptr__tile:nth-child(5n + 4) { --reveal-delay: 0.15s; }
+.ptr__tile:nth-child(5n + 5) { --reveal-delay: 0.2s; }
+
+.ptr__foot {
+  margin-top: clamp(3rem, 7vh, 4.5rem);
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(27, 27, 27, 0.1);
+  font-size: 0.82rem;
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.42);
+  max-width: 68ch;
+}
+
+@media (max-width: 700px) {
+  .ptr__stats { gap: 2rem 3rem; }
+}

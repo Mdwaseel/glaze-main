@@ -1,0 +1,101 @@
+/* Products §10 Partners — extracted verbatim from the self-contained
+   <style> block in products/sliding.html (lines 1392-1458). Rule order
+   preserved.
+
+   NO SCOPING. Every selector is `.ptn*`-prefixed, which is distinct from
+   About §03b Partners' `.ptr*`; the one keyframe (`ptn-slide`) is named
+   for this section alone. A full `ptn` search across src/ returns nothing
+   outside this folder.
+
+   ⚠ INTENTIONAL DEVIATION FROM THE ORIGINAL — requested, not an
+   oversight. The partner marques are to read in their own colours, at
+   full strength, all the time. The original instead greys them back and
+   lifts one out of that treatment on hover:
+
+       .ptn__logo img {
+         …
+         filter: grayscale(1) contrast(0.9);
+         opacity: 0.5;
+         mix-blend-mode: multiply;
+         transition: filter 0.4s ease, opacity 0.4s ease;
+       }
+       .ptn__logo:hover img { filter: grayscale(0) contrast(1); opacity: 1; }
+
+   All five declarations are gone; `.ptn__logo img` now carries nothing
+   but sizing. Restoring the original look means putting the block above
+   back verbatim.
+
+   `mix-blend-mode: multiply` went with them deliberately. On a mark with
+   an opaque white background it would be load-bearing — it is what stops
+   a white rectangle sitting on the bone ground — but all 33 logos under
+   public/logos/ were checked and every one has fully transparent edges
+   (RGBA, max edge alpha 0). Here multiply only multiplied each mark
+   against the #F5F5F3 ground, darkening it and thinning out any pale
+   part, which is the opposite of showing its true colour.
+
+   The row-level hover further up is a DIFFERENT effect and is untouched:
+   `.ptn--run .ptn__row:hover .ptn__track` pauses the marquee so a visitor
+   can stop a row and read it. That is motion control, not a logo
+   treatment. */
+
+/* ═══════════════════════════════════════════════════════════════
+   10 · PARTNERS — marquee of the marques we build with
+═══════════════════════════════════════════════════════════════ */
+.ptn {
+  background: var(--arch-bone);
+  padding: clamp(4rem, 10vh, 6.5rem) 0;
+  overflow: clip;
+}
+.ptn__head {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 4rem);
+}
+.ptn__title { margin-top: 1.4rem; max-width: 20ch; }
+.ptn__note {
+  margin-top: 1.1rem;
+  max-width: 48ch;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.58);
+}
+
+.ptn__rows { margin-top: clamp(2.5rem, 6vh, 3.5rem); }
+.ptn__row {
+  display: flex;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+.ptn__row + .ptn__row { margin-top: 1rem; }
+
+.ptn__track {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  padding-right: clamp(2rem, 4vw, 3.5rem);
+}
+.ptn--run .ptn__track { animation: ptn-drift var(--ptn-dur, 52s) linear infinite; }
+.ptn__row--rev .ptn__track { animation-direction: reverse; }
+@keyframes ptn-drift { to { transform: translateX(-50%); } }
+
+.ptn--run .ptn__row:hover .ptn__track,
+.ptn--idle .ptn__track { animation-play-state: paused; }
+
+.ptn__logo {
+  flex: none;
+  width: clamp(84px, 9vw, 124px);
+  height: clamp(48px, 5vw, 66px);
+  display: grid;
+  place-items: center;
+}
+.ptn__logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* No-JS / reduced motion: the tracks simply wrap into a static grid. */
+.ptn:not(.ptn--run) .ptn__row { overflow: visible; -webkit-mask-image: none; mask-image: none; }
+.ptn:not(.ptn--run) .ptn__track { flex-wrap: wrap; justify-content: center; row-gap: 1.5rem; }

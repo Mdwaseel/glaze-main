@@ -1,0 +1,65 @@
+/* About §10 Coda — extracted verbatim from the self-contained <style>
+   block in about.html (lines 4163-4218). Rule order preserved. The
+   original declares no media queries; none are added.
+
+   NO SCOPING. All 7 selectors are `.coda*`-prefixed and the file declares
+   no keyframes; a full `.coda` search across src/ returns nothing outside
+   this folder. Home's ProcessSection has `.proc__coda`, which is a
+   different class and cannot match either way. Checked against the
+   Phase 13 collision list; §02b Process remains the only section that has
+   needed a scope. */
+
+.coda {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(6rem, 18vh, 11rem) clamp(1.5rem, 6vw, 4rem);
+  background: #0A0A0A;
+  text-align: center;
+}
+
+.coda__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Each line in its own overflow mask, worlds-line style, so the
+   script can curtain them up from below. */
+.coda__mask {
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.coda__main,
+.coda__soul {
+  display: inline-block;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.coda__main {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.9rem, 4.6vw, 4rem);
+  color: var(--arch-bone);
+}
+
+.coda__soul {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 4.4rem);
+  color: var(--champagne);
+}
+
+.coda--anim .coda__main,
+.coda--anim .coda__soul {
+  transform: translateY(115%);
+  will-change: transform;
+}

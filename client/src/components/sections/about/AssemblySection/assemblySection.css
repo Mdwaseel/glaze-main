@@ -1,0 +1,364 @@
+/* ═══════════════════════════════════════════════════════════════
+   About — "Assembled, layer by layer" 3D build sequence.
+
+   ⚠ ORIGINAL CONTENT, not a port. about.html has no equivalent
+   section; this is new work mounted before §02b Process. Parity
+   audits will flag the whole block as extra in React by design.
+
+   PREFIX: every selector is `.asm*`. Verified to collide with
+   nothing in hero.html, about.html, contact.html or src/, so this
+   sheet needs no `:where(.page-about)` scope — unlike §02b, whose
+   `.proc*` names clash with Home's.
+
+   DEFAULT STATE IS THE FINISHED BUILDING. Everything below draws
+   the assembled render; the `.asm--anim` class (added by JS only
+   when motion is allowed) is what opens it up for the scroll
+   sequence. No JS, no GSAP, or reduced motion → a still render.
+   ═══════════════════════════════════════════════════════════════ */
+
+.asm {
+  position: relative;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  /* `clip` not `hidden`: hidden on an ancestor would make the sticky
+     stage inside .asm__run stop sticking. */
+  overflow: clip;
+}
+
+/* A slow radial lift behind the model, so the building reads as lit
+   from the scene rather than pasted onto a flat panel. */
+.asm::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      120% 80% at 50% 42%,
+      rgba(167, 154, 135, 0.10) 0%,
+      rgba(167, 154, 135, 0.04) 38%,
+      rgba(27, 27, 27, 0) 72%
+    );
+  pointer-events: none;
+}
+
+/* ── Intro ─────────────────────────────────────────────────────── */
+
+.asm__intro {
+  position: relative;
+  z-index: 2;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: clamp(5rem, 12vh, 8.5rem) 1.5rem clamp(2rem, 5vh, 3.5rem);
+  text-align: center;
+}
+
+.asm__label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-bottom: 1.5rem;
+}
+
+.asm__heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 5.2vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.asm__heading em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  color: var(--champagne);
+}
+
+.asm__lede {
+  max-width: 34rem;
+  margin: 1.5rem auto 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(245, 245, 243, 0.62);
+}
+
+/* ── Track + sticky stage ──────────────────────────────────────── */
+
+/* Height is set inline by the controller (100 + layers × LAYER_VH vh).
+   Without JS it stays `auto` and the stage simply sits in flow at one
+   viewport tall — the still render. */
+.asm__run {
+  position: relative;
+}
+
+.asm__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  /* svh keeps the stage exactly one viewport tall on mobile browsers
+     whose toolbars change the vh basis mid-scroll. */
+  height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* ── 3D scene ──────────────────────────────────────────────────── */
+
+.asm__scene {
+  /* The camera. Everything below is measured against this. */
+  perspective: 1500px;
+  perspective-origin: 50% 46%;
+  width: min(92vw, 60rem);
+  /* One shared box the layers are all absolutely positioned inside, so
+     their percentage offsets resolve against the same reference. */
+  aspect-ratio: 16 / 11;
+}
+
+/* MOUSE ONLY. The scroll sequence never writes to this element. */
+.asm__rig {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+/* SCROLL ONLY. The pointer orbit never writes to this element. */
+.asm__model {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  /* The resting three-quarter view, so the still (no-JS) render is
+     already an architectural angle rather than a flat elevation. The
+     controller animates from a wider angle to exactly this. */
+  transform: rotateY(-14deg) rotateX(8deg);
+}
+
+/* ── Panels ────────────────────────────────────────────────────── */
+
+.asm__layer {
+  position: absolute;
+  /* Each layer is placed by its own custom properties, authored in the
+     markup — see AssemblySection.jsx. */
+  left: var(--l, 0%);
+  top: var(--t, 0%);
+  width: var(--w, 100%);
+  height: var(--h, 20%);
+  transform: translateZ(var(--depth, 0px));
+  transform-style: preserve-3d;
+  border-radius: 3px;
+  /* Architectural glass: a cool tinted pane, a bright top edge where
+     the light catches, and a deep shadow beneath it. */
+  background:
+    linear-gradient(
+      160deg,
+      rgba(199, 214, 226, 0.20) 0%,
+      rgba(140, 163, 182, 0.11) 42%,
+      rgba(27, 27, 27, 0.34) 100%
+    );
+  border: 1px solid rgba(245, 245, 243, 0.16);
+  box-shadow:
+    0 26px 60px rgba(0, 0, 0, 0.52),
+    0 2px 0 rgba(245, 245, 243, 0.20) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.35) inset;
+  -webkit-backdrop-filter: blur(6px) saturate(1.15);
+  backdrop-filter: blur(6px) saturate(1.15);
+}
+
+/* Brushed-metal members — the structural frame rather than the glazing.
+   Same geometry system, different material. */
+.asm__layer--metal {
+  background:
+    linear-gradient(
+      160deg,
+      rgba(167, 154, 135, 0.42) 0%,
+      rgba(114, 102, 85, 0.30) 45%,
+      rgba(27, 27, 27, 0.55) 100%
+    );
+  border-color: rgba(167, 154, 135, 0.34);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* The plinth the building stands on — solid, unlit, no glass. */
+.asm__layer--base {
+  background: linear-gradient(180deg, #2a2a28 0%, #191918 100%);
+  border-color: rgba(245, 245, 243, 0.10);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* A single specular sweep across each pane. Purely decorative. */
+.asm__layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    112deg,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  pointer-events: none;
+}
+
+/* ── Optional photoreal asset ──────────────────────────────────────
+   When a layer is given a `src`, the <img> fills the panel and the
+   glass styling above becomes its frame. Swap placeholders for final
+   renders by adding `src` to the LAYERS array — no CSS change needed. */
+.asm__layer-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  /* Sits under the specular sweep so the render still catches light. */
+  z-index: 0;
+}
+
+/* A layer carrying an image drops the glass tint so the asset shows
+   through unaltered, keeping only the edge and the shadow. */
+.asm__layer:has(> .asm__layer-img) {
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* ── Ground shadow ─────────────────────────────────────────────── */
+
+.asm__ground {
+  position: absolute;
+  left: 50%;
+  bottom: -6%;
+  width: 78%;
+  height: 12%;
+  transform: translateX(-50%) rotateX(84deg);
+  transform-origin: 50% 100%;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(0, 0, 0, 0.62) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/* ── HUD ───────────────────────────────────────────────────────── */
+
+.asm__hud {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.5rem, 5vh, 3rem);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(245, 245, 243, 0.14);
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.78);
+  white-space: nowrap;
+}
+
+.asm__hud-count {
+  color: var(--champagne);
+}
+
+.asm__hud-name {
+  color: rgba(245, 245, 243, 0.62);
+}
+
+/* The orbit hint only means anything once a pointer can actually
+   orbit, so the controller's .asm--orbit class gates it. */
+.asm__hud-hint {
+  display: none;
+  padding-left: 0.9rem;
+  border-left: 1px solid rgba(245, 245, 243, 0.14);
+  color: rgba(167, 154, 135, 0.9);
+}
+
+.asm--orbit .asm__hud-hint {
+  display: inline;
+}
+
+/* ── Animated state ────────────────────────────────────────────────
+   Added by the controller only when motion is allowed. Everything
+   above stays the still render; everything here is the cost of
+   animating, paid only when animating. */
+
+/* Compositor promotion is scoped to `.asm--live`, which the controller
+   toggles from the trigger's onToggle — so the 13 promoted layers exist
+   only while the section is on screen, not for the whole 25,000px page. */
+.asm--live .asm__rig,
+.asm--live .asm__model,
+.asm--live .asm__layer {
+  will-change: transform;
+}
+
+.asm--anim .asm__layer,
+.asm--anim .asm__ground {
+  /* GSAP writes the opening opacity, but declaring it here too means
+     the first painted frame is already the opened-up state rather
+     than the assembled one.
+
+     The ground shadow is included so it arrives WITH the building —
+     otherwise a contact shadow sits alone on an empty stage for the
+     first panel's worth of scroll, anchored to nothing. */
+  opacity: 0;
+}
+
+/* ── Responsive ────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .asm__scene {
+    width: 94vw;
+    aspect-ratio: 4 / 3;
+    perspective: 1100px;
+  }
+  .asm__hud {
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    gap: 0.6rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .asm__scene {
+    aspect-ratio: 1 / 1;
+    perspective: 900px;
+  }
+  /* Backdrop blur is the most expensive thing on this page and the
+     least visible at phone size — drop it, keep the tint. */
+  .asm__layer {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  /* Compositor memory is scarcer here; promoting a dozen panes at
+     once costs more than it saves. */
+  .asm--live .asm__layer {
+    will-change: auto;
+  }
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────
+   The controller already bails out, so the model keeps its authored
+   resting angle and every layer stays put. This block only removes
+   the decorative sweep, which is the one thing that could still read
+   as movement. */
+@media (prefers-reduced-motion: reduce) {
+  .asm__layer::after {
+    display: none;
+  }
+}

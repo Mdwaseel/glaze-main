@@ -1,0 +1,7 @@
+# Database dumps and media archives land here (deploy/backup.sh).
+#
+# They contain every enquiry, every customer email address and every uploaded
+# file. They must never reach the repository — ignore everything, keep the
+# directory so the compose bind mount has somewhere to land.
+*
+!.gitignore

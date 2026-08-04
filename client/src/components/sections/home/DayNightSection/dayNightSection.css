@@ -1,0 +1,151 @@
+/* Day & Night section — extracted verbatim from hero.html <style>
+   (lines 682-828). The .seq-scroll / .seq-pin / .seq-canvas geometry
+   comes from styles/sequence.css, shared with the hero. */
+
+/* ───────────────────────────────────────────
+   Day & Night — image-sequence scroll section
+─────────────────────────────────────────── */
+.daynight {
+  background: #1B1B1B;
+  color: #fff;
+}
+
+.daynight__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.34) 0%,
+    rgba(0, 0, 0, 0.14) 42%,
+    rgba(0, 0, 0, 0.58) 100%
+  );
+}
+
+.daynight__content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: calc(var(--nav-height) + 3rem) 3rem 3rem;
+  pointer-events: none;
+}
+
+.daynight__top { max-width: 42rem; }
+
+.daynight__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.3rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+.daynight__eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--champagne);
+  opacity: 0.7;
+}
+
+.daynight__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+}
+
+.daynight__subtitle {
+  margin-top: 1.5rem;
+  max-width: 33rem;
+  font-size: clamp(1rem, 1.3vw, 1.15rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.5);
+}
+
+.daynight__bottom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.daynight__phase-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.daynight__phase {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  color: #fff;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+}
+
+.daynight__time {
+  position: absolute;
+  top: calc(var(--nav-height) + 3rem);
+  right: 3rem;
+  padding: 0.45rem 0.9rem;
+  font-family: var(--font-mono);
+  font-size: clamp(1.3rem, 2.2vw, 1.9rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+  color: var(--champagne);
+  text-shadow: 0 0 14px rgba(167, 154, 135, 0.55);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.daynight__time-colon {
+  animation: dn-colon-blink 1s steps(1, end) infinite;
+}
+@keyframes dn-colon-blink {
+  50% { opacity: 0.15; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daynight__time-colon { animation: none; }
+}
+
+.daynight__progress {
+  position: relative;
+  height: 1px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.18);
+}
+.daynight__progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  background: var(--champagne);
+}
+
+@media (max-width: 768px) {
+  .daynight__content {
+    padding: calc(var(--nav-height) + 2rem) 1.5rem 2rem;
+  }
+  .daynight__time {
+    top: calc(var(--nav-height) + 2rem);
+    right: 1.5rem;
+  }
+}

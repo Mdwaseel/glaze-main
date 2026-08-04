@@ -1,0 +1,74 @@
+/* About §05 Manifesto — extracted verbatim from the self-contained
+   <style> block in about.html (lines 3098-3164). Rule order preserved.
+   The original declares no media queries; none are added.
+
+   NO SCOPING. All 9 selectors are `.mfs*`-prefixed and the file declares
+   no keyframes; a full `mfs` search across src/ returns nothing outside
+   this folder. Checked against the Phase 13 collision list. (§02b Process
+   remains the only section that has needed a scope.) */
+
+.mfs {
+  position: relative;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  padding: clamp(7rem, 20vh, 13rem) clamp(1.5rem, 6vw, 4rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 90vh;
+  text-align: center;
+}
+
+.mfs::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(85% 60% at 50% 50%, rgba(114, 102, 85, 0.1), transparent 62%);
+}
+
+.mfs__quote {
+  position: relative;
+  max-width: 60rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 5.4vw, 4.8rem);
+  line-height: 1.16;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+
+.mfs__w { display: inline-block; }
+
+.mfs__quote em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+/* Animated mode dims every word; the script scrubs them back
+   to full strength one by one. */
+.mfs--anim .mfs__w { opacity: 0.24; will-change: opacity; }
+
+.mfs__support {
+  position: relative;
+  margin-top: clamp(2.5rem, 7vh, 4.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.mfs__support p {
+  font-size: clamp(0.95rem, 1.15vw, 1.08rem);
+  line-height: 1.75;
+  color: rgba(245, 245, 243, 0.55);
+  max-width: 34rem;
+}
+
+.mfs__support p strong {
+  font-weight: 500;
+  color: rgba(245, 245, 243, 0.8);
+}

@@ -1,0 +1,783 @@
+/* Contact §02 Form + Image Split — extracted verbatim from the
+   self-contained <style> block in contact.html (lines 759-1471). Rule and
+   media-query order preserved.
+
+   ⚠ TWO SCOPED SELECTORS — added when the Products system pages landed.
+   Their §11 Enquiry (`products/SystemEnquirySection/systemEnquirySection.css`)
+   shares exactly two names with this sheet:
+
+       .enq  ·  .enq__inner
+
+   and the two `.enq` rules disagree on nearly every declaration (this
+   one is a bone ground with bottom padding only; theirs is a black
+   ground with a bronze wash and full padding). The two rules below whose
+   SUBJECT is one of those names therefore carry
+   `:where(body:not(.page-products))`, and the products sheet's three
+   matching rules carry the mirror-image `:where(.page-products)`. The two
+   sets are mutually exclusive, so bundle order is irrelevant. Same
+   treatment, same reasoning as About §02b Process.
+
+   `:where()` contributes ZERO specificity, so both rules score exactly
+   what the original bare selector scored.
+
+   Every OTHER selector in this file is `.enq__card` / `.enq__media*` /
+   `.msf*` / `.chip*` / `.sr-only` — names the products sheet does not
+   have — and stays verbatim. Checked against the Phase 13 and Phase 27
+   collision lists.
+
+   `--line`, `--arch-bone`, `--arch-white`, `--arch-black`, `--bronze`,
+   `--champagne`, `--ease-snap` and the font tokens are the shared
+   variables from styles/global.css + styles/contact-global.css — not
+   redefined here, exactly as in the original. */
+
+:where(body:not(.page-products)) .enq {
+  background: var(--arch-bone);
+  padding: 0 clamp(1.5rem, 5vw, 3rem) clamp(4.5rem, 10vh, 7rem);
+}
+
+:where(body:not(.page-products)) .enq__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: start;
+}
+
+/* ── The card ─────────────────────────────── */
+.enq__card {
+  background: var(--arch-white);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: clamp(1.6rem, 3.5vw, 2.9rem);
+}
+
+.msf__title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  margin-bottom: 1.4rem;
+}
+
+/* Progress rail — hidden in the static stacked form, shown only
+   in stepped mode. Thin champagne bar that fills per step. */
+.msf__progress {
+  display: none;
+  align-items: center;
+  gap: 1.1rem;
+  margin-bottom: 2.2rem;
+}
+
+.msf--stepped .msf__progress { display: flex; }
+
+.msf__count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: rgba(27, 27, 27, 0.55);
+  white-space: nowrap;
+}
+
+.msf__track {
+  flex: 1;
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(27, 27, 27, 0.08);
+  overflow: hidden;
+}
+
+.msf__fill {
+  /* spans are inline by default and ignore width/height — without
+     this the fill never painted at all */
+  display: block;
+  height: 100%;
+  width: 25%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--champagne), var(--bronze));
+  transition: width 0.6s var(--ease-snap);
+}
+
+.msf__pct {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--bronze);
+  min-width: 4ch;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Steps ────────────────────────────────── */
+.msf__step {
+  border: 0;
+  padding: 0;
+  margin: 0 0 2.6rem;
+  min-width: 0;
+}
+
+.msf__step:last-of-type { margin-bottom: 0; }
+
+.msf--stepped .msf__step { display: none; margin-bottom: 0; }
+.msf--stepped .msf__step.is-active { display: block; }
+
+/* Directional step choreography, motion-gated: the leaving step
+   slides out (180ms), then the next slides in from the travel
+   direction (420ms, --ease-snap). --msf-dir is 1 going forward,
+   -1 going back — set by the controller. */
+.motion-ok .msf--stepped .msf__step.is-active {
+  animation: msf-in 0.42s var(--ease-snap) both;
+}
+
+.motion-ok .msf--stepped .msf__step.is-active.is-exiting {
+  animation: msf-out 0.18s ease both;
+}
+
+@keyframes msf-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--msf-dir, 1) * 30px));
+  }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes msf-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   {
+    opacity: 0;
+    transform: translateX(calc(var(--msf-dir, 1) * -30px));
+  }
+}
+
+/* legend needs the float trick to behave like a block heading */
+.msf__legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.msf__legend:focus { outline: none; }
+
+.msf__legend-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--bronze);
+  margin-bottom: 0.5rem;
+}
+
+.msf__legend-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.35rem, 2.1vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.msf__legend + * { clear: both; }
+
+/* ── Chips (tap-select over typing) ───────── */
+.msf__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  clear: both;
+}
+
+.chip { position: relative; }
+
+.chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chip__face {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.55rem 1.3rem;
+  border: 1px solid rgba(27, 27, 27, 0.2);
+  border-radius: 999px;
+  background: var(--arch-white);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.72);
+  cursor: pointer;
+  transition: background-color 0.35s var(--ease-snap),
+    border-color 0.35s var(--ease-snap), color 0.35s var(--ease-snap),
+    transform 0.35s var(--ease-snap), box-shadow 0.35s var(--ease-snap);
+}
+
+/* check mark, drawn with a mask so it inherits the chip's text
+   colour; zero-width until checked so unselected chips keep their
+   exact size */
+.chip__face::before {
+  content: '';
+  width: 0;
+  height: 0.72em;
+  margin-right: 0;
+  opacity: 0;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5.5l3.2 3L11 1.5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5.5l3.2 3L11 1.5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: width 0.3s var(--ease-snap),
+    margin-right 0.3s var(--ease-snap), opacity 0.25s ease;
+}
+
+.chip:hover .chip__face {
+  border-color: var(--bronze);
+  color: var(--arch-black);
+  background: rgba(114, 102, 85, 0.05);
+  transform: translateY(-1px);
+}
+
+.chip input:checked + .chip__face {
+  background: var(--arch-black);
+  border-color: var(--arch-black);
+  color: var(--arch-bone);
+  box-shadow: 0 6px 16px rgba(27, 27, 27, 0.15);
+}
+
+.chip input:checked + .chip__face::before {
+  width: 0.8em;
+  margin-right: 0.45em;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip:hover .chip__face { transform: none; }
+}
+
+.chip input:focus-visible + .chip__face {
+  outline: 2px solid var(--bronze);
+  outline-offset: 3px;
+}
+
+/* Pre-fill settle: a soft breath on the chip a deep link chose */
+.chip__face.chip--settle {
+  animation: chip-settle 0.6s var(--ease-snap);
+}
+
+@keyframes chip-settle {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip__face.chip--settle { animation: none; }
+}
+
+/* A chip that exists only as form data (no visual face) — keeps
+   the "Not sure yet" radio in the DOM for pre-fill and FormData
+   while the visible control is the skip link below the group. */
+.chip--sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* "Not sure yet? Skip this step →" — quiet text control under the
+   system chips, underline-wipe hover like the Back control. */
+.msf__skip {
+  position: relative;
+  display: inline-block;
+  margin: 1.1rem 0 0;
+  padding: 0.35rem 0;
+  background: none;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.5);
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.msf__skip::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0.15rem;
+  width: 100%;
+  height: 1px;
+  background: var(--bronze);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s var(--ease-snap);
+}
+
+.msf__skip:hover { color: var(--arch-black); }
+.msf__skip:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ── Step 02: one-line system note, swapped on selection.
+     Height is reserved so the card never jumps. Stepped only. ── */
+.msf__sysdesc {
+  display: none;
+  min-height: 2.6em;
+  margin-top: 1rem;
+  max-width: 30rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(27, 27, 27, 0.55);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.45s var(--ease-snap),
+    transform 0.45s var(--ease-snap);
+}
+
+.msf--stepped .msf__sysdesc { display: block; }
+
+.msf__sysdesc.is-on {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Step 02: variant as a quiet optional disclosure.
+     Stacked/no-JS keeps the field plainly visible. ── */
+.msf__vtoggle {
+  display: none;
+  position: relative;
+  width: fit-content;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0;
+  background: none;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.5);
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.msf--stepped .msf__vtoggle { display: block; }
+
+.msf__vtoggle:hover { color: var(--arch-black); }
+
+/* stacked (no-JS) form: breathing room after the chips; stepped
+   mode collapses the wrapper so the toggle owns the spacing */
+.msf__variant { margin-top: 1.4rem; }
+
+.msf--stepped .msf__variant {
+  margin-top: 0;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.45s var(--ease-snap),
+    opacity 0.4s ease;
+}
+
+.msf--stepped .msf__variant.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.msf__variant-inner { overflow: hidden; }
+
+.msf--stepped .msf__variant .msf__grid { padding-top: 0.9rem; }
+
+/* ── Step 03: live character counter under the textarea ── */
+.msf__charcount {
+  display: none;
+  align-self: flex-end;
+  margin-top: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: rgba(27, 27, 27, 0.4);
+}
+
+.msf--stepped .msf__charcount { display: block; }
+
+/* ── Step 04: quiet reassurance under the contact fields ── */
+.msf__assure {
+  margin-top: 1.6rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.5);
+}
+
+/* ── Fields ───────────────────────────────── */
+.msf__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem 1.4rem;
+  clear: both;
+}
+
+.msf__field { display: flex; flex-direction: column; }
+
+.msf__field--full { grid-column: 1 / -1; }
+
+/* general sibling — the (hidden) error note and the skip link sit
+   between the chips and the grid, so `+` would never match */
+.msf__chips ~ .msf__grid { margin-top: 1.4rem; }
+
+.msf__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.55);
+  margin-bottom: 0.55rem;
+  transition: color 0.3s ease;
+}
+
+/* the field's label answers focus with the same bronze the
+   underline draws in */
+.msf__field:focus-within > .msf__label {
+  color: var(--bronze);
+}
+
+.msf__label small {
+  font-size: inherit;
+  text-transform: none;
+  letter-spacing: 0.1em;
+  color: rgba(27, 27, 27, 0.35);
+}
+
+/* Underline fields — the airy sibling of the chips: no box, a
+   single hairline that answers focus in bronze. Same treatment
+   on every text field in steps 02–04. */
+.msf__input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.15rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--arch-black);
+  /* focus draws a bronze line over the static hairline,
+     left to right */
+  background-image: linear-gradient(var(--bronze), var(--bronze));
+  background-size: 0% 1px;
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  transition: background-size 0.55s var(--ease-snap),
+    border-color 0.45s var(--ease-snap);
+}
+
+.msf__input::placeholder {
+  color: rgba(27, 27, 27, 0.32);
+  font-weight: 300;
+  transition: opacity 0.3s ease;
+}
+
+.msf__input:focus {
+  outline: none;
+  background-size: 100% 1px;
+}
+
+.msf__input:focus::placeholder { opacity: 0.5; }
+
+/* the drawn underline itself is the focus ring on text fields */
+input.msf__input:focus-visible,
+textarea.msf__input:focus-visible {
+  outline: none;
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msf__input { transition: none; }
+}
+
+/* Variant reads like a product code — set it in the chips' mono */
+.msf__input--mono {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+/* sub-16px inputs make iOS Safari zoom on focus — go full size
+   on small screens */
+@media (max-width: 768px) {
+  .msf__input--mono { font-size: 1rem; }
+}
+
+/* ── Variant is a <select> now ───────────────────────────────
+   It was a free-text box; it lists the chosen system's formats,
+   from the catalogue (see EnquirySection.jsx).
+
+   `appearance: none` because a native select paints its own
+   background, border and radius and would be the one boxed
+   control in a form built entirely from underlines. The caret
+   has to be redrawn as a second background layer, which is why
+   both background properties are restated: the base rule
+   animates `background-size` from 0% to 100% to draw the bronze
+   focus line, and a single-value shorthand there would resize
+   the caret with it. */
+select.msf__input {
+  appearance: none;
+  padding-right: 1.6rem;
+  cursor: pointer;
+  background-image:
+    linear-gradient(var(--bronze), var(--bronze)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231B1B1B' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-size: 0% 1px, 9px 6px;
+  background-position: left bottom, right 0.2rem center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+select.msf__input:focus,
+select.msf__input:focus-visible {
+  background-size: 100% 1px, 9px 6px;
+}
+
+/* The option list is drawn by the operating system, not by this
+   sheet — set the colours it will honour so a dark-mode OS does
+   not render white text on white. */
+select.msf__input option,
+select.msf__input optgroup {
+  background: #ffffff;
+  color: var(--arch-black);
+}
+
+/* keep browser autofill from painting the underline fields */
+input.msf__input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--arch-white) inset;
+  -webkit-text-fill-color: var(--arch-black);
+}
+
+/* visually hidden, present for screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+textarea.msf__input {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.6;
+}
+
+/* ── Errors — always directly under their own field/group ── */
+.msf__error {
+  display: none;
+  margin-top: 0.55rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #A6482F;
+}
+
+.has-error > .msf__error,
+.msf__field.has-error .msf__error { display: block; }
+
+.msf__field.has-error .msf__input {
+  border-bottom-color: rgba(166, 72, 47, 0.6);
+}
+
+/* one gentle sideways breath when a group first errs — no alerts */
+.motion-ok .msf__field.has-error .msf__input,
+.motion-ok .msf__step.has-error .msf__chips {
+  animation: msf-shake 0.35s ease;
+}
+
+@keyframes msf-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  55%      { transform: translateX(3px); }
+  80%      { transform: translateX(-2px); }
+}
+
+/* ── Back / Next / Send rail ──────────────── */
+.msf__nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  clear: both;
+}
+
+/* Back — quiet text control with the underline-wipe hover */
+.msf__back {
+  display: none;
+  position: relative;
+  padding: 0.6rem 0;
+  background: none;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.55);
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.msf--stepped .msf__back { display: inline-block; }
+
+.msf__back::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0.35rem;
+  width: 100%;
+  height: 1px;
+  background: var(--bronze);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s var(--ease-snap);
+}
+
+.msf__back:hover { color: var(--arch-black); }
+.msf__back:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.msf__next-group {
+  display: none;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.msf--stepped:not(.msf--last) .msf__next-group { display: inline-flex; }
+
+/* Send — visible by default so the no-JS stacked form ends in a
+   working submit; in stepped mode it appears on the last step. */
+.msf__submit-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.msf--stepped:not(.msf--last) .msf__submit-group { display: none; }
+
+.msf__status {
+  flex-basis: 100%;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #A6482F;
+}
+
+.msf__status a {
+  color: var(--bronze);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Success note — swapped in for the form after a clean send */
+.msf__done { display: none; }
+.msf__done.is-visible { display: block; }
+
+.msf__done-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  line-height: 1.2;
+}
+
+.msf__done-title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--bronze);
+}
+
+.msf__done-copy {
+  margin-top: 1rem;
+  max-width: 26rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(27, 27, 27, 0.6);
+}
+
+.msf__done-copy a { color: var(--bronze); }
+
+/* ── Right column — tall cinematic image ──── */
+.enq__media {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: rgba(27, 27, 27, 0.06);
+}
+
+/* One image per step, crossfaded; the stack (not the imgs) is the
+   parallax plane so all four ride together. */
+.enq__media-stack {
+  position: absolute;
+  inset: 0;
+  /* headroom for the parallax drift — never shows edges */
+  will-change: transform;
+}
+
+.enq__media-stack img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.enq__media-stack img.is-current { opacity: 1; }
+
+/* Frosted glass pill floating top-right of the image */
+.enq__media-pill {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem 0.45rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--arch-white);
+}
+
+.enq__media-pill::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--champagne);
+}
+
+@media (max-width: 960px) {
+  .enq__inner { grid-template-columns: 1fr; }
+  /* image second on mobile — source order already does this */
+  .msf__grid { grid-template-columns: 1fr; }
+}

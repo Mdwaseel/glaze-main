@@ -1,0 +1,272 @@
+/* About hero — extracted verbatim from the self-contained <style>
+   block in about.html (lines 681-947). Every selector is .ahero*
+   prefixed and both keyframes are uniquely named, so this file needs
+   no page scoping at all. Rule and media-query order preserved. */
+
+.ahero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 34rem;
+  overflow: hidden;
+  background: #141414;
+  color: var(--arch-bone);
+}
+
+/* ── The real factory, veiled in black behind the manifesto.
+     The photograph sits under every atmosphere layer; the veil
+     is heaviest at the top (nav) and foot (scroll cue) and never
+     lets the white cladding fight the bone type. ── */
+.ahero__photo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ahero__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* keep the building and its signage in frame as sides crop */
+  object-position: 50% 38%;
+  /* mute the loud sky into the house palette */
+  filter: saturate(0.55);
+}
+
+.ahero__photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(10, 10, 10, 0.8) 0%,
+    rgba(10, 10, 10, 0.62) 38%,
+    rgba(10, 10, 10, 0.66) 72%,
+    rgba(10, 10, 10, 0.86) 100%);
+}
+
+/* Whisper-soft bronze depth behind the type, no texture.
+   z-index lifts it above the photo layer (tree-order would
+   otherwise paint it underneath). */
+.ahero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 65% at 50% 38%, rgba(114, 102, 85, 0.14), transparent 60%),
+    radial-gradient(120% 80% at 50% 110%, rgba(10, 10, 10, 0.85), transparent 60%);
+}
+
+/* ── Dust: six near-invisible champagne motes crossing the viewport
+     on two very slow paths. Pure CSS, opacity peaks ~0.3; they
+     counter-drift gently against the mouse parallax. Motes rest at
+     opacity 0, so reduced-motion (animation: none) hides them. ── */
+.ahero__dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: translateX(calc(var(--ahero-mx, 0) * -6px));
+}
+
+.ahero__mote {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(167, 154, 135, 0.5);
+  filter: blur(1px);
+  opacity: 0;
+  will-change: translate, opacity;
+}
+
+@keyframes ahero-mote-a {
+  0%   { translate: 0 0; opacity: 0; }
+  12%  { opacity: 0.3; }
+  55%  { opacity: 0.18; }
+  88%  { opacity: 0.26; }
+  100% { translate: 9vw -16vh; opacity: 0; }
+}
+
+@keyframes ahero-mote-b {
+  0%   { translate: 0 0; opacity: 0; }
+  15%  { opacity: 0.22; }
+  60%  { opacity: 0.3; }
+  100% { translate: -7vw 12vh; opacity: 0; }
+}
+
+.ahero__mote:nth-child(1) { left: 16%; top: 64%; animation: ahero-mote-a 44s linear infinite; }
+.ahero__mote:nth-child(2) { left: 32%; top: 28%; width: 2px; height: 2px; animation: ahero-mote-b 56s linear infinite; animation-delay: -18s; }
+.ahero__mote:nth-child(3) { left: 48%; top: 76%; animation: ahero-mote-b 48s linear infinite; animation-delay: -32s; }
+.ahero__mote:nth-child(4) { left: 61%; top: 22%; width: 4px; height: 4px; filter: blur(2px); animation: ahero-mote-a 62s linear infinite; animation-delay: -9s; }
+.ahero__mote:nth-child(5) { left: 78%; top: 58%; width: 2px; height: 2px; animation: ahero-mote-a 52s linear infinite; animation-delay: -41s; }
+.ahero__mote:nth-child(6) { left: 88%; top: 38%; animation: ahero-mote-b 66s linear infinite; animation-delay: -25s; }
+
+/* ── Light glint: a faint radial highlight that follows the cursor
+     across the manifesto type. Sits over the content, blends with
+     `overlay` so the near-black ground stays black and only the
+     bone glyphs catch it; a vertical linear-gradient mask keeps it
+     to the title band. Opacity 0 until the hero script engages —
+     so no JS / reduced-motion never see it. ── */
+.ahero__glint {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  background: radial-gradient(240px circle at var(--ahero-gx, 50%) var(--ahero-gy, 50%),
+    rgba(245, 245, 243, 0.3),
+    transparent 70%);
+  mix-blend-mode: overlay;
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent 6%, #000 28%, #000 74%, transparent 94%);
+  mask-image: linear-gradient(to bottom,
+    transparent 6%, #000 28%, #000 74%, transparent 94%);
+}
+
+.ahero__glint.is-on { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ahero__mote { animation: none; }
+  .ahero__glint { display: none; }
+}
+
+.ahero__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nav-height) 1.5rem 7rem;
+  text-align: center;
+}
+
+/* Signature glass-pill eyebrow, as on the homepage hero */
+.ahero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 2rem;
+  padding: 0.4rem 0.95rem 0.4rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: rgba(245, 245, 243, 0.85);
+  text-transform: uppercase;
+  animation: fade-in 1.2s 0.2s ease-out both;
+}
+
+.ahero__eyebrow::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--champagne);
+  box-shadow: 0 0 6px rgba(167, 154, 135, 0.6);
+  opacity: 0.85;
+}
+
+/* The recurring title pattern: upright Playfair line, then a
+   Bodoni-italic champagne line. */
+.ahero__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: normal;
+  font-size: clamp(2.3rem, 6vw, 5.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--arch-bone);
+  text-wrap: balance;
+  max-width: 62rem;
+}
+
+.ahero__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.ahero__sub {
+  margin-top: 2rem;
+  max-width: 26rem;
+  font-size: clamp(0.98rem, 1.2vw, 1.1rem);
+  line-height: 1.7;
+  color: rgba(245, 245, 243, 0.6);
+  animation: reveal-up 1.2s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* While the preloader owns the screen, hold every hero entrance
+   at frame zero; they resume the moment the curtain lifts. */
+html.is-loading .ahero__eyebrow,
+html.is-loading .ahero__sub,
+html.is-loading .ahero__scroll {
+  animation-play-state: paused;
+}
+
+/* Scroll cue — the homepage mouse */
+.ahero__scroll {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  animation: fade-in 1.2s 1.6s ease-out both;
+}
+
+.ahero__scroll-mouse {
+  position: relative;
+  width: 1.5rem;
+  height: 2.5rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 1rem;
+}
+
+.ahero__scroll-mouse::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  width: 3px;
+  height: 0.5rem;
+  background-color: var(--champagne);
+  border-radius: 2px;
+  transform: translateX(-50%);
+  animation: scroll-wheel 1.8s ease-in-out infinite;
+}
+
+.ahero__scroll-label {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  animation: scroll-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ahero__eyebrow,
+  .ahero__scroll { animation: none; }
+  .ahero__scroll-mouse::before,
+  .ahero__scroll-label { animation: none; }
+}
+
+@media (max-height: 700px) {
+  .ahero__scroll { display: none; }
+}
+
+@media (max-width: 480px) {
+  .ahero__title { line-height: 1.14; }
+  .ahero__sub { margin-top: 1.5rem; font-size: 0.95rem; }
+}

@@ -1,0 +1,102 @@
+# Push to main → the VPS rebuilds and restarts itself.
+#
+# Two jobs, and the order is the point: `check` builds the frontend the same
+# way the container does, and `deploy` only runs if it passed. Without that
+# gate a lint error or a broken import reaches the server and takes the site
+# down for the length of a rebuild.
+#
+# SETUP — four repository secrets (Settings › Secrets and variables › Actions):
+#
+#   VPS_HOST          the server's IP or hostname
+#   VPS_USER          the deploy user (not root)
+#   VPS_SSH_KEY       the PRIVATE key, whole file including the BEGIN/END lines
+#   VPS_SSH_HOST_KEY  the server's public host key, from your own machine:
+#                       ssh-keyscan -t ed25519 YOUR_SERVER_IP
+#
+# ⚠ Generate a key PAIR FOR THIS ONLY (`ssh-keygen -t ed25519 -C github-deploy
+# -f deploy_key`), put the public half in the deploy user's
+# ~/.ssh/authorized_keys, and give GitHub the private half. Do not reuse your
+# personal key: anyone who can push to this repository can then run commands
+# as you on every machine that trusts it.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Lets you redeploy the current main from the Actions tab without an empty
+  # commit — the usual need after changing something in .env on the server.
+  workflow_dispatch:
+
+# One deploy at a time. Two overlapping runs would have `docker compose up`
+# fighting itself over the same containers.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Lint and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install
+        working-directory: client
+        run: npm ci
+
+      - name: Lint
+        working-directory: client
+        run: npm run lint
+
+      - name: Build
+        working-directory: client
+        # Same values the container builds with, so a build that passes here
+        # is the build that ships.
+        env:
+          VITE_API_URL: /api/v1
+          VITE_SITE_URL: https://www.glazewindowsystems.com
+        run: npm run build
+
+  deploy:
+    name: Deploy to VPS
+    needs: check
+    runs-on: ubuntu-latest
+    # The environment is what lets you add a required reviewer later
+    # (Settings › Environments › production › required reviewers) if you ever
+    # want a human to approve production deploys.
+    environment: production
+    steps:
+      - name: Authorise SSH
+        env:
+          KEY: ${{ secrets.VPS_SSH_KEY }}
+          HOST_KEY: ${{ secrets.VPS_SSH_HOST_KEY }}
+          HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          # The pinned host key, NOT ssh-keyscan at runtime. Scanning here
+          # would trust whatever answers on the day, which is precisely the
+          # machine-in-the-middle that host keys exist to prevent.
+          printf '%s\n' "$HOST_KEY" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Run the deploy script
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=yes -i ~/.ssh/id_ed25519 \
+              "$USER@$HOST" \
+              'cd /srv/glaze && ./deploy/deploy.sh'
+
+      - name: Discard the key
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519

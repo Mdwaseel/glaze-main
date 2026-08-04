@@ -1,0 +1,11 @@
+# Production-only additions.
+#
+# Separate from requirements.txt so that a development install on Windows —
+# where gunicorn installs but cannot run, because it forks — stays clean.
+# The container installs this file; a developer installs the other one.
+-r requirements.txt
+
+# WSGI server. `manage.py runserver` is a development server: single-threaded
+# by default, no request limits, and Django's own docs say not to serve a site
+# with it. Gunicorn is the process manager the container actually runs.
+gunicorn==26.0.0

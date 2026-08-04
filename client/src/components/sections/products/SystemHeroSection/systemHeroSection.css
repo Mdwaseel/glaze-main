@@ -1,0 +1,150 @@
+/* Products §01 System Hero — extracted verbatim from the self-contained
+   <style> block in products/sliding.html (lines 252-389). Rule and
+   media-query order preserved.
+
+   NO SCOPING. Every selector is `.shero*`-prefixed; the two keyframes it
+   declares (`shero-push`, `pill-pulse`, `cue-fall`) are named for this
+   section alone. A full `shero` search across src/ returns nothing
+   outside this folder.
+
+   `--champagne`, `--arch-bone`, `--font-mono`, `--font-display`,
+   `--font-bodoni` and `--ease-snap` are the shared tokens from
+   styles/global.css — not redefined here, exactly as in the original. */
+
+/* ═══════════════════════════════════════════════════════════════
+   01 · SYSTEM HERO — full-bleed system clip, slow push-in
+═══════════════════════════════════════════════════════════════ */
+.shero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: #0B0B0B;
+  color: var(--arch-bone);
+  padding: 0 clamp(1.25rem, 5vw, 4rem) clamp(3rem, 9vh, 5.5rem);
+}
+
+.shero__media { position: absolute; inset: 0; }
+.shero__media video,
+.shero__media img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  /* Slow, continuous push-in. It never resets, so the hero keeps
+     breathing for as long as the visitor sits on it. */
+  animation: shero-push 34s var(--ease-snap) forwards;
+}
+@keyframes shero-push { from { transform: scale(1.0); } to { transform: scale(1.14); } }
+
+/* Scrim: heavy at the foot where the type sits, light at the top so
+   the frame in the footage still reads. */
+.shero__scrim {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(to top, rgba(8,8,8,0.92) 0%, rgba(8,8,8,0.58) 34%, rgba(8,8,8,0.18) 66%, rgba(8,8,8,0.52) 100%),
+    radial-gradient(120% 90% at 20% 90%, rgba(114,102,85,0.22), transparent 60%);
+}
+
+.shero__inner { position: relative; width: 100%; max-width: 1280px; margin: 0 auto; }
+
+.shero__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 245, 243, 0.22);
+  background: rgba(245, 245, 243, 0.07);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.86);
+}
+.shero__pill i {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--champagne);
+  box-shadow: 0 0 0 0 rgba(167,154,135,0.55);
+  animation: pill-pulse 2.6s ease-out infinite;
+}
+@keyframes pill-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(167,154,135,0.5); }
+  70%, 100% { box-shadow: 0 0 0 9px rgba(167,154,135,0); }
+}
+
+.shero__title {
+  margin-top: clamp(1.5rem, 3vh, 2.2rem);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(3.2rem, 11vw, 9.5rem);
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+}
+.shero__title span.accent {
+  display: block;
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 4.2vw, 3.4rem);
+  letter-spacing: -0.01em;
+  color: var(--champagne);
+  margin-top: 0.35em;
+}
+
+.shero__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-top: clamp(2rem, 5vh, 3.2rem);
+}
+.shero__lede {
+  max-width: 34ch;
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.75;
+  color: rgba(245, 245, 243, 0.72);
+}
+
+/* Magnetic scroll cue — the dot drifts a few pixels toward the
+   pointer, then springs home when it leaves. */
+.shero__cue {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.55);
+  padding: 0.6rem;
+}
+.shero__cue-well {
+  position: relative;
+  width: 26px; height: 44px;
+  border: 1px solid rgba(245, 245, 243, 0.32);
+  border-radius: 999px;
+}
+.shero__cue-dot {
+  position: absolute;
+  left: 50%; top: 8px;
+  width: 4px; height: 8px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--champagne);
+  animation: cue-fall 2.1s var(--ease-snap) infinite;
+}
+@keyframes cue-fall {
+  0% { transform: translateY(0); opacity: 0; }
+  22% { opacity: 1; }
+  75% { transform: translateY(18px); opacity: 0; }
+  100% { transform: translateY(18px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shero__media video, .shero__media img { animation: none; }
+  .shero__cue-dot, .shero__pill i { animation: none; }
+}

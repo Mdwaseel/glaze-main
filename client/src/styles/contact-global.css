@@ -1,0 +1,349 @@
+/* ═══════════════════════════════════════════════════════════════
+   Contact page — global styles.
+
+   Extracted from contact.html's <head> <style> block (lines 26-538).
+   Only the parts NOT already present in styles/global.css +
+   navbar.css + footer.css are here. Verified byte-identical to the
+   already-migrated CSS and therefore shared, not duplicated:
+   `html { scroll-behavior }`, `html, body` (apart from the ground),
+   `a`, `.reveal-word-mask` (apart from one declaration),
+   `.reveal-word`, `.fade-up`, `.fade-up.is-revealed`, their
+   reduced-motion block, every `.nav*` rule apart from `.nav` itself,
+   the whole footer block, and the Lenis required styles.
+
+   SCOPED SELECTORS (the declared deviation from CSS-verbatim). These
+   exist on more than one page with DIFFERENT rules, so in one bundle
+   the later one would otherwise win for every page. Each is prefixed
+   so it can only ever match while the Contact page is mounted:
+
+     original                 ->  scoped as
+     html, body               ->  body:where(.page-contact)   (Contact's
+                                  ground is --arch-bone; Home's is
+                                  --arch-white, About's --arch-black)
+                                  + html:has(> body.page-contact) for the
+                                  canvas background — see below
+     img                      ->  :where(.page-contact) img   (Contact-only
+                                  base rule; unscoped it would make every
+                                  Home image display:block)
+     a/button/input/select/
+     textarea:focus-visible   ->  :where(.page-contact) ...    (Contact rings
+                                  in --bronze and covers form controls;
+                                  global.css rings in --champagne and
+                                  covers only a/button/[tabindex])
+     .nav a/button …,
+     .visit a, .footer a
+       :focus-visible         ->  :where(.page-contact) ...    (the dark-band
+                                  champagne re-tint, Contact-only)
+     .nav                     ->  :where(.page-contact) .nav   (Contact opens
+                                  on paper, not a dark hero, so the bar keeps
+                                  its solid treatment from frame one; Home and
+                                  About use navbar.css's gradient scrim)
+     .reveal-word-mask        ->  :where(.page-contact) ...    (Contact adds
+                                  white-space: nowrap for the character
+                                  curtain, exactly as About does)
+     .cursor-dot__label       ->  :where(.page-contact) ...    (Contact's pill
+                                  is dark with bone text; About's is bone with
+                                  dark text — the two are inverted)
+
+   The scope uses :where(), which contributes ZERO specificity, so each
+   scoped rule scores exactly what the original bare selector scored.
+
+   ⚠ ORDERING NOTE. `.cursor-dot__label` is the one scoped rule whose
+   unscoped counterpart (in about-global.css) still matches this page's
+   DOM. Both score (0,1,0), so the tie is resolved by sheet order, and
+   this sheet loads after about-global.css because App.jsx imports Home,
+   About, then Contact. That is deterministic for the static import
+   graph, and it is verified in the Phase 27 checks. Consolidating the
+   two page sheets — or scoping About's side as Phase 16 did for
+   `.proc*` — would remove the dependency; that is deliberately NOT done
+   here because about-global.css is audited (Phase 26) and no mismatch
+   was found in it.
+
+   Everything below the scoped block is verbatim.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Additive token ─────────────────────────────────────────────
+   contact.html's :root is otherwise a strict subset of the shared one
+   (Home's three --overlay-* tokens are inert here). Only --line is new;
+   it is declared exactly as the original does, on :root. Nothing else
+   on the site reads it, so it cannot affect Home or About. */
+:root {
+  /* Hairline used on the light editorial sections of this page */
+  --line: rgba(27, 27, 27, 0.13);
+}
+
+/* ── Scoped: Contact-only base rules ───────────────────────────── */
+
+/* contact.html: `html, body { width:100%; font-family; background-color:
+   var(--arch-bone); color: var(--arch-black) }` — width/font/colour are
+   already identical in the shared reset; only the background differs.
+   html keeps the shared `height: 100%`, which is inert here because the
+   body grows past it and Lenis sets both to auto anyway. */
+body:where(.page-contact) {
+  height: auto;
+  background-color: var(--arch-bone);
+}
+
+/* …and the SAME background on <html> — the half of `html, body` the
+   body-only scope above cannot reach. The root element's background is
+   what paints the CANVAS, so it is what shows in the overscroll gutter;
+   left at the shared reset's --arch-white it is visibly cooler than the
+   bone ground. Scoped from the body class via :has(), because
+   `page-contact` lives on <body> and adding it to <html> too would put a
+   class on the element that contact.html does not have. See the matching
+   note in about-global.css. */
+html:where(:has(> body.page-contact)) {
+  background-color: var(--arch-bone);
+}
+
+/* contact.html line 66: `img { max-width: 100%; display: block; }` */
+:where(.page-contact) img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ⚠ Tailwind ships its OWN `.sr-only` utility, and the class name is in
+   contact.html's markup (#msfLive), so the utility is generated into the
+   bundle. contact.html's authored `.sr-only` (§02a, enquirySection.css)
+   loads after it and wins every declaration the two share — but Tailwind
+   adds two the original never had, and `clip-path: inset(50%)` survives
+   into the computed style. Nothing renders differently (the element is
+   1x1px and already `clip`ped), but it is a declaration the reference
+   does not have, so it is reset here rather than by editing the
+   byte-verbatim section sheet. `border-width: 0` needs no reset: the
+   element is a <p>, whose computed border-width is 0 regardless. */
+:where(.page-contact) .sr-only {
+  clip-path: none;
+}
+
+/* Keyboard focus is always visible — bronze ring on the light
+   sections; the dark bands re-tint it champagne below. */
+:where(.page-contact) a:focus-visible,
+:where(.page-contact) button:focus-visible,
+:where(.page-contact) input:focus-visible,
+:where(.page-contact) select:focus-visible,
+:where(.page-contact) textarea:focus-visible {
+  outline: 2px solid var(--bronze);
+  outline-offset: 3px;
+}
+
+:where(.page-contact) .nav a:focus-visible,
+:where(.page-contact) .nav button:focus-visible,
+:where(.page-contact) .nav__drawer a:focus-visible,
+:where(.page-contact) .visit a:focus-visible,
+:where(.page-contact) .footer a:focus-visible {
+  outline-color: var(--champagne);
+}
+
+/* ───────────────────────────────────────────
+   Navigation  (same component as hero.html / about.html)
+   One page-level difference: this page opens on paper, not a
+   dark hero, so the bar keeps its solid "scrolled" treatment
+   from frame one — white links always read.
+─────────────────────────────────────────── */
+:where(.page-contact) .nav {
+  background: rgba(27, 27, 27, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Current page marker */
+.nav__link[aria-current="page"] {
+  color: var(--champagne);
+}
+
+/* 1 — Character-curtain reveal: every word sits in an unbreakable
+   mask and each character inside it rides its own curtain. The shared
+   .reveal-word-mask is otherwise identical, so only this one
+   declaration is added. */
+:where(.page-contact) .reveal-word-mask {
+  /* characters are inline-blocks — keep the word unbreakable */
+  white-space: nowrap;
+}
+
+/* ── Verbatim from contact.html below this line ────────────────── */
+
+/* 3 — Image wipe: media reveals through a horizontal mask instead
+   of a plain fade. Gated behind html.motion-ok (added by the base
+   script only when JS + IntersectionObserver are live and motion
+   is allowed), so no-JS and reduced-motion pages never see a
+   clipped frame — no overrides needed. */
+.motion-ok .wipe-in {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.15s var(--ease-snap);
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+.motion-ok .wipe-in.is-revealed {
+  clip-path: inset(0 0 0 0);
+}
+
+/* 4 — Light-sweep for buttons and media: a champagne sheen crosses
+   the face once per hover. Champagne (not white) so it reads on
+   both the dark and bone surfaces. */
+.sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -45%;
+  width: 38%;
+  background: linear-gradient(105deg,
+    transparent 0%,
+    rgba(167, 154, 135, 0.35) 50%,
+    transparent 100%);
+  transform: skewX(-18deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sheen:hover::after {
+  animation: sheen-sweep 0.9s var(--ease-snap);
+}
+
+@keyframes sheen-sweep {
+  from { transform: translateX(0) skewX(-18deg); opacity: 1; }
+  to   { transform: translateX(420%) skewX(-18deg); opacity: 0; }
+}
+
+/* 5 — Cursor companion: a small champagne dot trailing fine
+   pointers; over elements tagged [data-cursor-label] it opens
+   into a bone pill naming the interaction. Created by JS only
+   when motion is allowed — the native cursor is never hidden. */
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 140;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.cursor-dot.is-on { opacity: 1; }
+
+.cursor-dot__core {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--champagne);
+  opacity: 0.65;
+  transition: opacity 0.3s ease, transform 0.3s var(--ease-snap);
+}
+
+/* SCOPED — Contact inverts the pill against About's. */
+:where(.page-contact) .cursor-dot__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+  padding: 0.55em 0.85em 0.55em 1.1em;
+  border-radius: 999px;
+  background: rgba(27, 27, 27, 0.92);
+  color: var(--arch-bone);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.35s var(--ease-snap);
+}
+
+.cursor-dot.has-label .cursor-dot__core {
+  opacity: 0;
+  transform: scale(0.4);
+}
+
+.cursor-dot.has-label .cursor-dot__label {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheen:hover::after { animation: none; }
+  .cursor-dot { display: none; }
+}
+
+/* ── Shared button primitives (reference's black pill, GLAZE'd) ── */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px tier — same visual weight as a selected (black) chip */
+  min-height: 44px;
+  padding: 0.7rem 2rem;
+  border: 1px solid var(--arch-black);
+  border-radius: 999px;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease,
+    color 0.3s ease, transform 0.3s var(--ease-snap),
+    box-shadow 0.35s var(--ease-snap);
+}
+
+/* the magnetic pull owns the button's transform, so hover depth
+   comes from shadow, not scale */
+.btn-pill:hover {
+  background: #000;
+  border-color: #000;
+  box-shadow: 0 10px 24px rgba(27, 27, 27, 0.18);
+}
+
+.btn-pill[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Small circular arrow companion beside the pill */
+.btn-circ {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--arch-black);
+  border-radius: 50%;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  cursor: pointer;
+  transition: background-color 0.3s ease,
+    transform 0.3s var(--ease-snap),
+    box-shadow 0.35s var(--ease-snap);
+}
+
+.btn-circ:hover {
+  background: #000;
+  box-shadow: 0 8px 20px rgba(27, 27, 27, 0.18);
+}
+
+.btn-circ svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.35s var(--ease-snap);
+}
+
+.btn-circ:hover svg { transform: translateX(2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-circ:hover svg { transform: none; }
+}

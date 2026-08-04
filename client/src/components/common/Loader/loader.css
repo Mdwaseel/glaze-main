@@ -1,0 +1,67 @@
+/* Preloader — the animated GLAZE mark.
+   Was about.html's "Glass Clear" wordmark (its <style> block, lines
+   575-644). The TIMING ENGINE is unchanged; what it drives is now the
+   clip the client supplied, and nothing else: no wordmark, no tagline,
+   no percentage.
+
+   THE GROUND IS #000, and that is measured, not chosen. Every corner of
+   every frame of Loader.mp4 samples 000000, so the plane behind the clip
+   and the clip's own background are the same black and the square video
+   has no visible edge — the whole screen reads as one surface.
+
+   The wipe-away is the original's, unchanged: transform 0.85s
+   cubic-bezier(0.19, 1, 0.22, 1), which is --ease-snap. */
+
+.loader {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  /* Matched to the clip's own background — see the note above. */
+  background: #000000;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.loader--on {
+  display: flex;
+}
+
+/* Scroll is locked while the loader owns the screen */
+html.is-loading,
+html.is-loading body {
+  overflow: hidden;
+}
+
+/* The mark. Square, so it is sized off the SHORT viewport edge — a
+   percentage of width would fill a phone and be a stamp on a desktop.
+   The cap keeps it from going soft on a large monitor: the clip is
+   720px, and past that it would be upscaled. */
+.loader__mark {
+  display: block;
+  width: min(44vmin, 400px);
+  height: min(44vmin, 400px);
+  /* Progress drives these two, and only these two — the loader has no
+     other moving part and nothing to read. */
+  opacity: 0.88;
+  transform: scale(0.985);
+  will-change: opacity, transform;
+}
+
+.loader__mark video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* `contain`, not `cover`: the mark must never be cropped, and the
+     letterbox it leaves is the same black as everything around it. */
+  object-fit: contain;
+  background: #000000;
+}
+
+/* Reduced motion never reaches this file — the loader is gated off in
+   the component — but a stylesheet that assumes its own JS ran is a
+   stylesheet that breaks quietly. */
+@media (prefers-reduced-motion: reduce) {
+  .loader { display: none !important; }
+}

@@ -1,0 +1,199 @@
+/* ═══════════════════════════════════════════════════════════════
+   About page — global styles.
+
+   Extracted from about.html's <style> block (lines 22-470). Only the
+   parts NOT already present in styles/global.css + navbar.css are here:
+   31 rules were verified byte-identical to the migrated Home CSS and are
+   therefore shared, not duplicated.
+
+   SCOPED SELECTORS (the declared deviation from CSS-verbatim). These
+   exist on both pages with DIFFERENT rules, or are About-only base rules
+   that would leak into the audited Home page. Each is prefixed so it can
+   only ever match while the About page is mounted:
+
+     original            ->  scoped as
+     html, body          ->  body.page-about        (background + height)
+                             + html:has(> body.page-about)  (the canvas
+                                                     background — see below)
+     img                 ->  .page-about img        (About-only base rule;
+                                                     unscoped it would make
+                                                     every Home image a block)
+     .reveal-word-mask   ->  .page-about ...        (About adds white-space:
+                                                     nowrap for the character
+                                                     curtain; the shared rule
+                                                     is left untouched)
+
+   Everything below the scoped block is verbatim.
+
+   The remaining four — .proc, .proc__title, .proc__intro, .proc__step —
+   landed with §02b Process in Phase 16 and live in that section's own
+   sheet (components/sections/about/ProcessSection/processSection.css),
+   next to the rules they scope. That collision is BIDIRECTIONAL, so
+   Home's five matching rules carry the mirror scope
+   `:where(body:not(.page-about))` — see the header of
+   components/sections/home/ProcessSection/processSection.css.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Scoped: About-only base rules ─────────────────────────────── */
+
+/* The scope is written with :where(), which contributes ZERO specificity.
+   `:where(.page-about) img` scores exactly the same as the original bare
+   `img` selector, so the scoping cannot silently win a cascade battle the
+   original would have lost — it only limits WHERE the rule applies. The
+   sheet loads after styles/global.css, so equal-specificity ties still
+   resolve in About's favour, which is what the separate documents did. */
+
+/* about.html: `html, body { width:100%; font-family; background-color:
+   var(--arch-black); color: var(--arch-black) }` — width/font/color are
+   already identical in the shared reset; only the background differs.
+   html keeps the shared `height: 100%`, which is inert here because the
+   body grows past it and Lenis sets both to auto anyway. */
+body:where(.page-about) {
+  height: auto;
+  background-color: var(--arch-black);
+}
+
+/* …and the SAME background on <html>, which is the half of `html, body`
+   the body-only scope above cannot reach. It is not decorative: the root
+   element's background is what paints the CANVAS, so it is the colour
+   shown in the overscroll/rubber-band gutter and anywhere the body box
+   does not cover. Left at the shared reset's --arch-white it flashes
+   white on a page whose ground is near-black. The scope has to come from
+   the body class, since `page-about` lives on <body> and putting it on
+   <html> as well would add a class the original document does not have —
+   hence :has(). Zero specificity via :where(), same as every rule here;
+   if a browser lacks :has() the rule is simply dropped. */
+html:where(:has(> body.page-about)) {
+  background-color: var(--arch-black);
+}
+
+/* about.html line 67: `img { max-width: 100%; display: block; }` */
+:where(.page-about) img {
+  max-width: 100%;
+  display: block;
+}
+
+/* about.html line 288: the character curtain needs each word mask to be
+   unbreakable. The shared .reveal-word-mask is otherwise identical, so
+   only this one declaration is added. */
+:where(.page-about) .reveal-word-mask {
+  white-space: nowrap;
+}
+
+/* ── Verbatim from about.html below this line ──────────────────── */
+
+/* Current-page nav link (About only). */
+.nav__link[aria-current="page"] {
+  color: var(--champagne);
+}
+
+/* 3 — Image wipe: media reveals through a horizontal mask instead
+   of a plain fade. Everything is gated behind html.motion-ok (added
+   by the base script only when JS + IntersectionObserver are live
+   and motion is allowed), so no-JS and reduced-motion pages never
+   see a clipped image — no overrides needed. */
+.motion-ok .wipe-in {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.15s var(--ease-snap);
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+.motion-ok .wipe-in.is-revealed {
+  clip-path: inset(0 0 0 0);
+}
+
+
+/* 5 — Light-sweep for buttons: a champagne sheen crosses the face
+   once per hover. Champagne (not white) so it reads on both the
+   dark and bone button states. */
+.sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -45%;
+  width: 38%;
+  background: linear-gradient(105deg,
+    transparent 0%,
+    rgba(167, 154, 135, 0.35) 50%,
+    transparent 100%);
+  transform: skewX(-18deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sheen:hover::after {
+  animation: sheen-sweep 0.9s var(--ease-snap);
+}
+
+@keyframes sheen-sweep {
+  from { transform: translateX(0) skewX(-18deg); opacity: 1; }
+  to   { transform: translateX(420%) skewX(-18deg); opacity: 0; }
+}
+
+/* 6 — Cursor companion: a small champagne dot trailing fine
+   pointers; over elements tagged [data-cursor-label] it opens
+   into a bone pill naming the interaction ("Meet", "Explore",
+   "Visit"). Created by JS only when motion is allowed — the
+   native cursor is never hidden. */
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 140;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.cursor-dot.is-on { opacity: 1; }
+
+.cursor-dot__core {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--champagne);
+  opacity: 0.65;
+  transition: opacity 0.3s ease, transform 0.3s var(--ease-snap);
+}
+
+.cursor-dot__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+  padding: 0.55em 0.85em 0.55em 1.1em;
+  border-radius: 999px;
+  background: rgba(245, 245, 243, 0.92);
+  color: var(--arch-black);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.35s var(--ease-snap);
+}
+
+.cursor-dot.has-label .cursor-dot__core {
+  opacity: 0;
+  transform: scale(0.4);
+}
+
+.cursor-dot.has-label .cursor-dot__label {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheen:hover::after { animation: none; }
+  .cursor-dot { display: none; }
+}

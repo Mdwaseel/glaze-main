@@ -1,0 +1,51 @@
+# ---- Secrets: never commit these ----
+.env
+.env.*
+*.env
+!.env.example
+
+# ---- Python / Django ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Local database + user uploads
+*.sqlite3
+*.sqlite3-journal
+media/
+staticfiles/
+
+# Logs
+*.log
+logs/
+
+# ---- Node / frontend ----
+node_modules/
+.vite/
+*.tsbuildinfo
+
+# ---- Tooling ----
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ---- Editors / OS ----
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp

@@ -1,0 +1,186 @@
+/* ═══════════════════════════════════════════════════════════════
+   Products system pages — global styles.
+
+   Extracted from the BASE block of products/sliding.html's <head>
+   <style> (lines 21-149). Only the parts NOT already present in
+   styles/global.css + navbar.css + footer.css are here. Verified
+   identical to the already-migrated CSS and therefore shared, not
+   duplicated: the `*` reset, every `:root` token except `--sys-nav-h`,
+   `html { scroll-behavior }`, `html, body` (apart from
+   font-smoothing), `a`, `:where(a, button, [tabindex]):focus-visible`,
+   the whole `.skip-link` pair, every NON-RESPONSIVE `.nav*` rule
+   (products' nav block is otherwise the hero.html component unchanged),
+   and the whole footer block.
+
+   ⚠ THE NAV'S RESPONSIVE BLOCK IS NOT SHARED, and it is the one place
+   where these pages disagree with the other three. hero/about/contact
+   step the bar down at 1024px and collapse it to the hamburger at 768px;
+   products has a single step and collapses at 900px, with a 36px logo
+   rather than 38px. Between 769px and 900px the two disagree about
+   whether the desktop links are visible at all. The products half is at
+   the foot of this file; navbar.css carries the mirror-image
+   `:where(body:not(.page-products))` scope on its three queries.
+
+   SCOPED SELECTORS (the declared deviation from CSS-verbatim). These
+   are bare ELEMENT or attribute selectors that exist on the other
+   pages with different rules — or with no rule at all — so unscoped
+   they would reach every route in the bundle. Each is prefixed so it
+   can only ever match while a Products page is mounted:
+
+     original                 ->  scoped as
+     html, body               ->  body:where(.page-products)   (only the
+                                  font-smoothing declaration is new; the
+                                  ground is already --arch-white in the
+                                  shared reset, same as Home)
+     [id]                     ->  :where(.page-products) [id]  (the
+                                  anchor offset for the sticky system bar.
+                                  Unscoped it would give EVERY id on Home,
+                                  About and Contact a 94px+ scroll margin
+                                  and quietly change every in-page jump on
+                                  the site)
+     img, video               ->  :where(.page-products) img/video
+                                  (Products-only base rule; unscoped it
+                                  would make every Home image and video
+                                  display:block — the same reason
+                                  contact-global.css scopes its `img`)
+     button                   ->  :where(.page-products) button  (strips
+                                  the UA button chrome page-wide. Home and
+                                  About style their buttons individually
+                                  and would lose their own backgrounds)
+
+   The scope uses :where(), which contributes ZERO specificity, so each
+   scoped rule scores exactly what the original bare selector scored.
+
+   Everything below the scoped block — the shared editorial primitives —
+   is verbatim. Those class names (`.eyebrow`, `.sec-title`, `.wc__*`,
+   `.clip--armed`, `.rule*`) appear nowhere else in src/; checked against
+   the full-bundle collision scan run when these pages landed.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Additive token ─────────────────────────────────────────────
+   products/sliding.html's :root is otherwise a strict subset of the
+   shared one. Only --sys-nav-h is new; it is declared exactly as the
+   original does, on :root, and is MEASURED AT RUNTIME by the system bar
+   controller — the 94px here is the fallback the original ships. Nothing
+   else on the site reads it, so it cannot affect Home, About or
+   Contact. */
+:root {
+  /* Measured at runtime by the switcher controller — the sticky bar
+     parks exactly under the real nav rather than a guessed number. */
+  --sys-nav-h: 94px;
+}
+
+/* ── Scoped: Products-only base rules ──────────────────────────── */
+
+/* products/sliding.html line 46: `html, body { … -webkit-font-smoothing:
+   antialiased }` — width / font-family / background / colour are already
+   identical in the shared reset; only the smoothing is new, and it
+   inherits, so the body alone carries it. */
+body:where(.page-products) {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Anchored scrolling has to clear the fixed nav, or every in-page
+   jump lands underneath it. */
+:where(.page-products) [id] {
+  scroll-margin-top: calc(var(--sys-nav-h) + 1.5rem);
+}
+
+:where(.page-products) img,
+:where(.page-products) video {
+  display: block;
+  max-width: 100%;
+}
+
+:where(.page-products) button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ── Verbatim from products/sliding.html below this line ───────── */
+
+/* ── Shared editorial primitives ─────────────────────────────── */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+.eyebrow::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+  transform: scaleX(var(--eyebrow-scale, 1));
+  transform-origin: left center;
+}
+
+.sec-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 4.2vw, 3.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.sec-title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--bronze);
+}
+.on-dark .sec-title em, .sec-title--dark em { color: var(--champagne); }
+
+/* Word-curtain — each word rides up out of its own clipping mask.
+   The default state is the FINISHED state, so no-JS and reduced
+   motion read the headline normally; the controller only adds the
+   hidden start state when it is actually going to animate it. */
+/* The padding/negative-margin pair gives descenders somewhere to
+   live so `overflow: hidden` does not shave the tail off a "g". */
+.wc__w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.wc__i { display: inline-block; will-change: transform; }
+.wc--armed .wc__i { transform: translateY(110%); }
+
+/* Images arrive from behind a clip rather than fading, which reads
+   as a curtain lifting off the render instead of a load-in. */
+.clip--armed { clip-path: inset(0 0 100% 0); }
+
+/* Divider that grows left → right when it enters. */
+.rule {
+  height: 1px;
+  background: linear-gradient(to right, var(--bronze), rgba(114, 102, 85, 0.08));
+  transform-origin: left center;
+}
+.rule--armed { transform: scaleX(0); }
+
+/* ── The nav's responsive block, scoped ─────────────────────────
+   products/sliding.html lines 245-250, verbatim apart from the scope.
+   See the ⚠ note in this file's header and the matching one in
+   navbar.css: the two sets are mutually exclusive, so which sheet the
+   bundler emits first does not matter.
+
+   `.nav__drawer`'s `@media (min-width: 769px) { display: none }` has no
+   products counterpart — the system pages never hide the drawer element,
+   they rely on its own `opacity: 0; visibility: hidden` resting state,
+   which is what navbar.css's unscoped `.nav__drawer` rule already gives
+   this page. Nothing to add. */
+@media (max-width: 900px) {
+  :where(.page-products) .nav { padding: 1rem 1.25rem; }
+  :where(.page-products) .nav__links,
+  :where(.page-products) .nav__cta { display: none; }
+  :where(.page-products) .nav__toggle { display: flex; }
+  :where(.page-products) .nav__logo img { height: 36px; }
+}

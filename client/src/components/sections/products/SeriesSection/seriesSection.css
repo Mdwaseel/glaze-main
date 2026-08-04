@@ -1,0 +1,265 @@
+/* Products §05 Profile Series — extracted verbatim from the
+   self-contained <style> block in products/sliding.html (lines 581-831).
+   Rule and media-query order preserved.
+
+   NO SCOPING. Every selector is `.ser*`-prefixed and the file declares no
+   keyframes; a full `ser__` search across src/ returns nothing outside
+   this folder. `.is-open` / `.is-fit` are shared state names but appear
+   only compounded onto `.ser__card`, so they cannot match anything else.
+
+   ⚠ The panel's height is tweened by the controller, so `height: 0` here
+   is the CLOSED state, not a hidden one. The original's `<noscript>`
+   override (`.ser__panel, .ser__more { display: none }`) is NOT carried
+   over: it exists to withdraw an accordion that cannot open without JS,
+   and in an SPA the scripts are never absent. */
+
+/* ═══════════════════════════════════════════════════════════════
+   05 · PROFILE SERIES — cards + one shared expandable spec panel
+   Default state: every card visible, panel closed. With no JS the
+   cards still read as a reference spread and the panel markup for
+   each series is present but hidden behind its own <details>-free
+   fallback rule at the foot of this block.
+═══════════════════════════════════════════════════════════════ */
+.ser {
+  background: var(--arch-bone);
+  border-top: 1px solid rgba(27, 27, 27, 0.06);
+  padding: clamp(4.5rem, 12vh, 8rem) clamp(1.25rem, 5vw, 4rem);
+}
+.ser__inner { max-width: 1280px; margin: 0 auto; }
+
+.ser__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 1.6rem;
+}
+.ser__note {
+  max-width: 40ch;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  color: rgba(27, 27, 27, 0.6);
+}
+
+.ser__grid {
+  display: grid;
+  /* Column count comes from the page — systems carry different
+     numbers of series and an empty cell reads as a missing card. */
+  grid-template-columns: repeat(var(--ser-cols, 6), minmax(0, 1fr));
+  gap: 1px;
+  margin-top: clamp(2.5rem, 6vh, 3.5rem);
+  background: rgba(27, 27, 27, 0.1);
+  border: 1px solid rgba(27, 27, 27, 0.1);
+}
+
+.ser__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  background: var(--arch-white);
+  padding: 1.1rem 1.1rem 1.3rem;
+  transition: background-color 0.35s ease;
+}
+.ser__card::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 2px;
+  background: var(--champagne);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-snap);
+}
+.ser__card:hover { background: #fbfbfa; }
+.ser__card.is-open::after { transform: scaleX(1); }
+
+.ser__shot {
+  display: block;
+  aspect-ratio: 1 / 1;
+  background: #fff;
+  overflow: hidden;
+}
+.ser__shot img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  transform: scale(1.02);
+  transition: transform 0.7s var(--ease-snap);
+  mix-blend-mode: multiply;
+}
+.ser__card:hover .ser__shot img { transform: scale(1.09); }
+
+/* Type tag, and the champagne flag on the series that suit the
+   system whose page you are on. Every page lists all twelve. */
+.ser__type {
+  display: block;
+  margin-top: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.34);
+  line-height: 1.5;
+  min-height: 2.2em;
+}
+.ser__type b {
+  display: block;
+  font-weight: 400;
+  color: var(--champagne);
+}
+.ser__card.is-fit { background: #fdfcfa; }
+.ser__card.is-fit .ser__shot { background: #fdfcfa; }
+
+.ser__name {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--arch-black);
+}
+.ser__dims {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: rgba(27, 27, 27, 0.5);
+}
+.ser__more {
+  margin-top: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--bronze);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ser__more i {
+  transition: transform 0.4s var(--ease-snap);
+  font-style: normal;
+}
+.ser__card.is-open .ser__more i { transform: rotate(180deg); }
+
+/* Shared detail panel — height is tweened by the controller. */
+.ser__panel {
+  overflow: hidden;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  border: 1px solid rgba(27, 27, 27, 0.1);
+  border-top: none;
+  height: 0;
+}
+.ser__panel-in { padding: clamp(1.8rem, 4vw, 2.8rem); }
+
+.ser__panel-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(167, 154, 135, 0.18);
+}
+.ser__panel-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+}
+.ser__panel-name em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  color: var(--champagne);
+}
+.ser__panel-kind {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.45);
+}
+
+.ser__metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.8rem;
+}
+.ser__metric-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.42);
+  line-height: 1.6;
+  min-height: 2.6em;
+}
+.ser__metric-value {
+  margin-top: 0.55rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  line-height: 1;
+  color: var(--arch-bone);
+  font-variant-numeric: tabular-nums;
+}
+.ser__metric-unit {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--champagne);
+  margin-left: 0.25rem;
+}
+
+/* Folding series report a leaf inside an overall opening; that
+   second set of numbers lands here rather than in the metric row. */
+.ser__extra {
+  margin-top: 1.5rem;
+  padding-left: 0.9rem;
+  border-left: 1px solid rgba(167, 154, 135, 0.4);
+  font-size: 0.86rem;
+  line-height: 1.7;
+  color: rgba(245, 245, 243, 0.6);
+}
+.ser__extra[hidden] { display: none; }
+
+.ser__standards {
+  margin-top: 2rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid rgba(245, 245, 243, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.38);
+}
+
+.ser__panel-cta {
+  margin-top: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.4rem;
+  border: 1px solid rgba(167, 154, 135, 0.4);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--champagne);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.ser__panel-cta:hover { background: var(--champagne); color: var(--arch-black); }
+
+@media (max-width: 1100px) {
+  .ser__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ser__metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .ser__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ser__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -109,10 +109,22 @@
       "PowerShell(Set-Location 'D:\\\\Projects\\\\glaze-react\\\\glaze-react-migration\\\\client'; Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue; $env:VITE_API_URL='/api/v1'; $env:VITE_SITE_URL='https://www.glazewindowsystems.com'; npm run lint 2>&1 | Select-String -Pattern 'error' | Select-Object -First 3; Write-Output \"lint-exit=$LASTEXITCODE\"; npm run build 2>&1 | Select-Object -Last 2; Write-Output \"build-exit=$LASTEXITCODE\")",
       "Bash(DEBUG=False ALLOWED_HOSTS=www.glazewindowsystems.com SITE_URL=https://www.glazewindowsystems.com CORS_ALLOWED_ORIGINS=https://www.glazewindowsystems.com ../.venv/Scripts/python.exe manage.py check --deploy)",
       "Bash(PYTHONIOENCODING=utf-8 PYTHONPATH=/c/Users/Mohd/AppData/Local/Temp/claude/d--Projects-glaze-react-glaze-react-migration/cf394005-3dab-41d0-908e-1573200e7745/scratchpad/pylib python -)",
-      "Bash(PYTHONIOENCODING=utf-8 python -c ' *)"
+      "Bash(PYTHONIOENCODING=utf-8 python -c ' *)",
+      "Bash(ls client/node_modules | grep -i -E \"playwright|puppeteer\" ; ls \"$HOME/AppData/Local/ms-playwright\" 2>/dev/null | head)",
+      "Read(//c/Users/Mohd/AppData/Local/**)",
+      "Bash(ls /d/Projects/glaze-react/glaze-react-migration/client/node_modules | grep -iE \"playwright|puppeteer\"; ls \"/c/Users/Mohd/AppData/Local/ms-playwright\" 2>/dev/null | head)",
+      "Bash(npm run dev -- --port 5199 --host 127.0.0.1 > /tmp/vite.log 2>&1 & *)",
+      "Bash(node diag.mjs)",
+      "Bash(node diag2.mjs)",
+      "Bash(node diag3.mjs)",
+      "Bash(node diag4.mjs)",
+      "Bash(node diag5.mjs)",
+      "Bash(node diag6.mjs)",
+      "Bash(pkill -f \"vite\")"
     ],
     "additionalDirectories": [
-      "C:\\Users\\Mohd\\AppData\\Local\\Temp\\claude\\chrome-prof"
+      "C:\\Users\\Mohd\\AppData\\Local\\Temp\\claude\\chrome-prof",
+      "\\tmp"
     ]
   }
 }

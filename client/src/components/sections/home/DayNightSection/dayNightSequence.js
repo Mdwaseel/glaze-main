@@ -21,6 +21,26 @@ export const DAYNIGHT_SEQUENCE = {
   // Reduced motion → a static, representative frame mid-sequence.
   // Original: dn.setStatic(Math.round(119 * 0.55)) → frame 65.
   reducedMotionFrame: Math.round(119 * 0.55),
+
+  /* ⚠ DO NOT REMOVE — this section is two screens below the fold and its
+     frames are 8.6 MB. Starting them on mount, which is what happened
+     before this line existed, put them in a straight fight with the
+     hero's 8.1 MB for the same connection while the hero was the only
+     thing anyone could see. The hero came in at roughly half speed and
+     scrubbed on stale frames for it.
+
+     150% of the viewport is ~1.5 screens of warning, the same lead the
+     engineering sequence gives itself (performanceSequence.js) — the
+     section is pinned for 320vh, so the set has the whole of the
+     philosophy section plus its own approach to finish in. */
+  deferUntilNear: '150% 0px',
+
+  /* Same two-pass load as the hero (imageSequence.js): a spread of the
+     sequence first, the gaps behind it. Nothing is gated on this one, but
+     the section can be reached before 8.6 MB has landed — the spread pass
+     is what makes the sun move smoothly rather than jumping between the
+     handful of frames that happened to arrive in order. */
+  priorityStride: 4,
 }
 
 /**

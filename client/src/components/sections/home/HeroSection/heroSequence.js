@@ -21,6 +21,38 @@ export const HERO_SEQUENCE = {
   anchorY: 0.5,
   // Reduced motion → static, representative frame + copy stays visible.
   reducedMotionFrame: 0,
+
+  /* ── The preloader waits for these frames ─────────────────────────
+     The hero is the first screen, and a scrub over frames that have not
+     arrived does not degrade gracefully: `nearestLoaded()` repaints the
+     closest decoded frame, so the sequence visibly STICKS on one image
+     while the page scrolls under it. Naming a boot task here makes the
+     preloader hold until the set is in — and gives it real progress to
+     show instead of a 2200ms guess. See utils/boot.js and Loader.jsx,
+     which caps the wait so a slow connection is never trapped. */
+  bootTask: 'hero-frames',
+
+  /* ── Pacing, and why the hero alone overrides it ──────────────────
+     The shared default (6 frames every 120ms after an 80ms head start)
+     exists to keep 120 requests from competing with first paint. Behind
+     the preloader there IS no first paint to protect — the curtain is
+     opaque and the network is otherwise idle — and at the default rate
+     the last frame was not even REQUESTED until 2.4s in, most of the
+     preloader's budget spent issuing requests rather than filling them.
+     10 every 60ms has them all open inside ~700ms. Do not apply these
+     numbers to a sequence that loads with the page on screen. */
+  batchSize: 10,
+  batchInterval: 60,
+  startDelay: 0,
+
+  /* What the preloader waits for is the STRIDE-4 pass — frames 0, 4, 8 …
+     116 and 119, 31 of the 120, ~2.1 MB rather than 8.1. The remaining
+     89 stream in behind the revealed page. `nearestLoaded()` puts the
+     worst case at two frames off over a 120-frame push-in, which is not
+     a difference anyone can see; waiting for all of them would mean
+     holding a phone on a slow connection for the full 8 MB, hitting the
+     preloader's cap, and lifting on a half-loaded sequence anyway. */
+  priorityStride: 4,
 }
 
 /**

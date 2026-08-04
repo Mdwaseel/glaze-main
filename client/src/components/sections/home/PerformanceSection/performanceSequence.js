@@ -66,6 +66,12 @@ export function buildPerformanceSequence(section, refs) {
       batchSize: 6,
       batchInterval: 110,
       startDelay: 0,
+      /* Two-pass load, as the hero and day/night use: a stride-4 spread
+         of the 145 frames first, the gaps behind it. The section is
+         pinned for 400vh and the scrub can reach the far end long before
+         4.3 MB has, and a contain-fitted assembly stuck on a stale frame
+         is more obvious than a landscape pan is. See imageSequence.js. */
+      priorityStride: 4,
     },
     // Original: `if (!painted || i === curIndex) draw();`
     // Note it tests `painted` (set on the first successful PAINT), not a

@@ -46,6 +46,27 @@
 
 html {
   scroll-behavior: smooth;
+
+  /* ⚠ LOAD-BEARING — this is what stops the page being 15px too wide on a
+     first visit.
+
+     The preloader locks the scroll with `overflow: hidden` (loader.css).
+     On a classic-scrollbar platform that takes the scrollbar away, so for
+     the ~3 seconds the curtain is up the document lays out ~15px wider
+     than it will afterwards. Anything that measured the viewport in that
+     window measured a viewport that was about to stop existing — and
+     GSAP's pin-spacers, which carry an inline pixel width, kept it. The
+     result was 15px of empty page hanging off the right edge, scrollable,
+     until something forced a refresh. Nothing did: `window.innerWidth`
+     counts the scrollbar, so it reads identically either side of the
+     change and no resize event is fired.
+
+     `stable` reserves the gutter whether or not the scrollbar is drawn,
+     so locking the scroll no longer changes the layout width — the
+     mismatch cannot arise. It also removes the reflow every short page
+     used to cause on this site. Loader.jsx forces a re-measure on reveal
+     as well, for platforms that ignore this property. */
+  scrollbar-gutter: stable;
 }
 
 html, body {

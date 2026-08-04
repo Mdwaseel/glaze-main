@@ -1,22 +1,47 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { keepMuted } from '@/utils/media'
+import { bootPending, bootProgress } from '@/utils/boot'
+import { ScrollTrigger } from '@/utils/gsap'
 import './loader.css'
 
 /**
  * Loader — the site preloader.
  *
- * The TIMING ENGINE is about.html's, unchanged: the inline pre-paint gate
- * (lines 655-668) and the driver script #about-loader-script (4858-4933),
- * still plain rAF plus CSS transitions and still deliberately GSAP-free —
- * adding GSAP here would change the timing.
+ * The MOTION is about.html's, unchanged: plain rAF plus CSS transitions,
+ * no GSAP timeline — adding one would change the feel.
  *
- *   • progress crawls to 92% on a 2200ms clock, eased toward the target by
- *     12% per frame so it never jumps; window "load" (after a 950ms HOLD)
- *     or a 3500ms CAP releases the final stretch to 100
+ *   • progress eases toward its target by 12% per frame so it never jumps
  *   • finish, beat 1: the mark fades and lifts away, 0.5s --ease-snap
  *   • finish, beat 2 (+560ms): the whole plane wipes to translateY(-101%),
  *     0.85s --ease-snap, `is-loading` scroll lock released, hero announced
  *   • +1500ms: display:none
+ *
+ * ⚠ WHAT THE GATE WAITS FOR CHANGED, and this is the part that matters.
+ *
+ * It used to be a 2200ms clock capped at 3500ms, gated only on window
+ * "load". Nothing in that gate knew about the hero's 120-frame WebP
+ * sequence — those frames are requested by `new Image()` AFTER React
+ * mounts, so they are not part of "load" at all. The curtain lifted on a
+ * hero with a handful of frames decoded, the scrub fell back to
+ * `nearestLoaded()`, and the sequence sat on one image while the page
+ * scrolled underneath it. That is the "frames get stuck" report.
+ *
+ * The gate is now: window "load" AND every registered boot task finished
+ * AND fonts resolved — with the HOLD and the CAP unchanged in spirit but
+ * sized for real work rather than a guess:
+ *
+ *   HOLD  950ms   floor, so a warm cache still shows the mark
+ *   CAP   12000ms ceiling — 4500ms on save-data / 2G, where waiting for
+ *                 8 MB of frames would be a punishment rather than a wait
+ *
+ * The progress the mark resolves against is REAL: bootProgress() is the
+ * weighted fraction of frames actually decoded (utils/boot.js). The old
+ * 2200ms crawl is kept as a floor so a cached visit still animates
+ * instead of snapping open.
+ *
+ * A route with no sequence on it (contact, blog, a system page) registers
+ * no boot tasks, so bootPending() is 0 from the start and the behaviour is
+ * exactly what it was before.
  *
  * ⚠ WHAT IT DRAWS IS NOW THE CLIENT'S CLIP, AND NOTHING ELSE. The
  * wordmark, the "Glass, clear" tagline, the 000-099 counter and the bone
@@ -98,8 +123,16 @@ export default function Loader({ storageKey = 'glazeSeen' }) {
     const start = performance.now()
     let progress = 0 // eased display progress 0→1
     let loaded = document.readyState === 'complete'
-    const HOLD = 950 // ms before "load" can complete the count
-    const CAP = 3500 // absolute ceiling — never trap the page
+    const HOLD = 950 // ms floor — never flash the mark and go
+
+    /* Ceiling. A visitor is never trapped behind work that is not
+       arriving; they only ever pay this much for it. The slow-link branch
+       is deliberate — holding a phone on a metered 2G connection for the
+       full frame set would be a punishment, and the hero degrades to
+       `nearestLoaded()` rather than breaking. */
+    const conn = navigator.connection
+    const frugal = !!conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))
+    const CAP = frugal ? 4500 : 12000
 
     let rafId = 0
     const timers = []
@@ -108,6 +141,54 @@ export default function Loader({ storageKey = 'glazeSeen' }) {
       loaded = true
     }
     window.addEventListener('load', onLoad)
+
+    /* Webfonts are part of "fully loaded" as anyone reading the page
+       means it: releasing before they resolve swaps the hero headline
+       from the fallback serif to Playfair a beat after the curtain
+       lifts. Never blocks on its own — the CAP still owns the ceiling,
+       and a browser without document.fonts just reads as ready. */
+    let fontsReady = true
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      fontsReady = false
+      document.fonts.ready.then(function () {
+        fontsReady = true
+      }, function () {
+        fontsReady = true
+      })
+    }
+
+    /**
+     * ⚠ THE 15px OF EMPTY PAGE ON THE RIGHT, and why it only ever showed
+     * on a first visit.
+     *
+     * `is-loading` locks the scroll with `overflow: hidden`, which on a
+     * classic-scrollbar platform TAKES THE SCROLLBAR AWAY — the document
+     * lays out ~15px wider for as long as the curtain is up. Everything
+     * that measured the viewport in that window measured the wrong one,
+     * and the worst offender was GSAP: ScrollTrigger builds a pin-spacer
+     * with an INLINE PIXEL WIDTH, so #performance's spacer was frozen at
+     * the full 1440 while the real content box became 1425. That 15px of
+     * overhang is the gap, and it is horizontally scrollable.
+     *
+     * Nothing recovered on its own because `window.innerWidth` COUNTS the
+     * scrollbar: it reads the same before and after, so the browser fires
+     * no resize event and neither ScrollTrigger nor any resize listener
+     * ever learned the layout had changed. Measured headlessly at 1440×900:
+     * fresh visit scrollWidth 1440 vs clientWidth 1425; the same page on a
+     * revisit, where the loader is skipped, 1425 and 1425.
+     *
+     * `scrollbar-gutter: stable` in global.css is the structural half of
+     * the fix — the gutter is now reserved whether or not the scrollbar is
+     * drawn, so locking the scroll no longer changes the width at all.
+     * This is the belt to that pair of braces: it forces the recompute
+     * that the missing resize event never triggered, so anything measured
+     * behind the curtain is corrected the moment it lifts, on this
+     * platform and on any future one where the two widths disagree.
+     */
+    function remeasure() {
+      window.dispatchEvent(new Event('resize'))
+      if (ScrollTrigger && ScrollTrigger.refresh) ScrollTrigger.refresh()
+    }
 
     function finish() {
       try {
@@ -128,6 +209,7 @@ export default function Loader({ storageKey = 'glazeSeen' }) {
           loader.style.transform = 'translateY(-101%)'
           document.documentElement.classList.remove('is-loading')
           announce()
+          remeasure()
         }, 560)
       )
 
@@ -144,10 +226,16 @@ export default function Loader({ storageKey = 'glazeSeen' }) {
 
     function tick(now) {
       const elapsed = now - start
-      // Crawl to 92% on a clock; the real window "load" (or the
-      // ceiling) releases the last stretch.
-      let target = Math.min(0.92, elapsed / 2200)
-      if ((loaded && elapsed > HOLD) || elapsed > CAP) target = 1
+
+      /* The bar is the larger of two readings, and both earn their place:
+         the 2200ms clock is the floor that keeps a fully cached visit
+         moving, bootProgress() is the truth about the frames. Capped at
+         92% so the last stretch always belongs to the release below —
+         a bar that reaches 100% and then waits is worse than a slow one. */
+      let target = Math.min(0.92, Math.max(elapsed / 2200, bootProgress() * 0.92))
+
+      const ready = loaded && fontsReady && bootPending() === 0
+      if ((ready && elapsed > HOLD) || elapsed > CAP) target = 1
 
       // ease toward the target so the mark never snaps
       progress += (target - progress) * 0.12

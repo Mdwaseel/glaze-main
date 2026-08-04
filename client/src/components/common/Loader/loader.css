@@ -28,7 +28,14 @@
   display: flex;
 }
 
-/* Scroll is locked while the loader owns the screen */
+/* Scroll is locked while the loader owns the screen.
+
+   ⚠ This is only safe because global.css sets `scrollbar-gutter: stable`
+   on <html>. Without it, `overflow: hidden` removes the scrollbar, the
+   document lays out ~15px wider for the length of the preloader, and
+   everything measured behind the curtain — GSAP pin-spacers above all —
+   keeps the wrong width once it lifts. See the notes in global.css and in
+   Loader.jsx's remeasure(). */
 html.is-loading,
 html.is-loading body {
   overflow: hidden;

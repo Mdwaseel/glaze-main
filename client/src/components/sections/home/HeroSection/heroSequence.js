@@ -40,7 +40,7 @@ export const HERO_SEQUENCE = {
  * sequence down and rebuilds it against the other folder; nothing else in
  * the section has to know.
  *
- * Source: public/videos/mobile-hero-section-video.mp4, 1080×1916 @ 24fps.
+ * Source: assets-source/videos/mobile-hero-section-video.mp4, 1080×1916 @ 24fps.
  * See MOBILE_SEQUENCE_QUERY below for the recipe that produced the files.
  */
 export const HERO_SEQUENCE_MOBILE = {
@@ -59,7 +59,7 @@ export const HERO_SEQUENCE_MOBILE = {
  *
  * The frames were produced with:
  *
- *   ffmpeg -i public/videos/mobile-hero-section-video.mp4 \
+ *   ffmpeg -i assets-source/videos/mobile-hero-section-video.mp4 \
  *     -vf "crop=1078:1916,scale=720:1280:flags=lanczos" \
  *     -fps_mode passthrough -c:v libwebp -quality 75 -compression_level 6 \
  *     -f image2 out/f_%04d.webp

@@ -138,6 +138,12 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 # paste that into SECRET_KEY, and set DB_PASSWORD to match the role above
 
 python manage.py migrate
+# ⚠ Not created by migrate, and required. The rate limiters and the
+# robots/sitemap page cache use the database cache backend — see CACHES in
+# settings.py for why a per-process cache silently multiplies every throttle
+# by the worker count. Without this table a throttled request raises
+# ProgrammingError. Idempotent; the container entrypoint runs it on every boot.
+python manage.py createcachetable
 python manage.py seed_blog          # categories, an author, one sample article
 python manage.py bootstrap_admin --email you@example.com --password '...'
 python manage.py runserver 8000
@@ -305,6 +311,94 @@ blank field injects nothing at all. See *SEO* below.
 > places.
 
 **Security log** — sign-in attempts and the audit trail, both read-only.
+
+---
+
+## Performance
+
+### What the browser downloads
+
+| | Raw | Gzipped |
+|---|---|---|
+| `index.js` — every public page, eagerly imported | 323 kB | **83 kB** |
+| `react-vendor` | 190 kB | 60 kB |
+| `gsap` | 112 kB | 44 kB |
+| `router` | 43 kB | 15 kB |
+| `index.css` | 184 kB | 33 kB |
+| **Total on first paint** | | **≈235 kB** |
+
+The Studio is a separate ~90 kB of chunks that only load at `/admin`, and the
+vendor split means a copy edit reships the 83 kB app chunk rather than 200 kB
+of framework the browser already holds.
+
+**JavaScript is not this site's weight problem** — the media is. Which is why
+the work below is about what gets requested, not about shaving kilobytes off a
+bundle that is already reasonable.
+
+### Media
+
+**`client/public` is published in full.** Anything in it is copied verbatim
+into `dist/`, baked into the web image and shipped to the server, whether or
+not a single page links to it. 191 MB of it was ffmpeg *source* footage — the
+originals that the frame sequences and variant clips were encoded from — which
+now lives in [`assets-source/`](assets-source/README.md) instead. Nothing a
+visitor requests changed; the build went from 325 MB to 121 MB.
+
+That is a build and deploy saving, **not** a page-speed one. No browser was
+ever downloading those files.
+
+Everything that does ship is already paced deliberately:
+
+- Frame sequences load frame 0 first, then batches of 6 every 120 ms
+  (`utils/imageSequence.js`). The numbers are load-bearing and the file says
+  so — 120 parallel requests would starve everything else on the page.
+- Below-the-fold video is `preload="none"`; card video is `preload="metadata"`.
+- The variant player ships its `<video>` elements with `data-src`, not `src`,
+  so a system page fetches one clip rather than eight.
+- The loader plays a 645 kB clip, not the 7 MB one it was cut from.
+
+### First paint
+
+Two changes in `index.html`:
+
+**One font request, not two.** Both Google Fonts stylesheets blocked rendering,
+serially, on separate round trips to the same host. The `css2` endpoint accepts
+any number of `family=` parameters, so the second link was pure latency.
+
+**The first hero frame is preloaded.** The homepage hero is a `<canvas>`
+scrubbed through 120 WebP frames, and frame 0 is requested by `new Image()` —
+which cannot run until the CSS and JS have downloaded, parsed and mounted
+React. Until it lands the hero is blank. The preload starts that fetch
+alongside the bundle. Two `media` queries make it exactly one file: the 76 kB
+landscape frame or the 41 kB portrait one, never both.
+
+> ⚠ `index.html` is the shell for **every** route, so someone landing on
+> `/contact` downloads a hero frame they will not see and DevTools logs an
+> unused-preload warning. Accepted: the homepage is the dominant entry point
+> and the cost is one image. A per-route shell needs prerendering, which would
+> also fix the social-preview limit below.
+
+### Server
+
+nginx does the parts a Django worker should never be tied up with: gzip on text
+(never on video — it is already compressed), immutable one-year caching on the
+content-hashed `/assets/`, 30 days on media, and `no-cache` on `index.html`
+alone, which is what makes a deploy visible without breaking the hashed bundles
+it names.
+
+**Not done, and deliberately:**
+
+- **Brotli** — roughly 15% better than gzip on text, but the stock nginx image
+  has no brotli module and building one is more maintenance than 5 kB is worth
+  here.
+- **`width`/`height` on every `<img>`** — 61 of 95 lack them. Checked rather
+  than assumed: they sit in containers with fixed sizing and `object-fit:
+  cover`, so the CSS already reserves the space and there is no layout shift to
+  fix. Worth adding for the ones that are not, which is a smaller job than the
+  count suggests.
+- **Lighthouse / Core Web Vitals** — not measured. There is no browser in the
+  environment this was built in, so any number here would be invented. Run it
+  against the live site after launch.
 
 ---
 

@@ -29,7 +29,7 @@ export const DAYNIGHT_SEQUENCE = {
  * See the notes there for why a 16:9 frame cannot simply be cropped into
  * a 9:16 viewport, and for the ffmpeg recipe that cut these.
  *
- * Source: public/videos/mobile-day-and-night-video.mp4, 1080×1916 @ 24fps.
+ * Source: assets-source/videos/mobile-day-and-night-video.mp4, 1080×1916 @ 24fps.
  * Only `dir` differs — the phase table, the pin travel and the 6% push-in
  * are shared, so the sun still lands on Dawn/Midday/Night at the same
  * scroll positions on both.

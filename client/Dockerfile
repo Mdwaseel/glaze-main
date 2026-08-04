@@ -43,6 +43,32 @@ ENV VITE_API_URL=$VITE_API_URL \
 # one caught by a visitor.
 RUN npm run lint && npm run build
 
+# ⚠ THE SILENT DEPLOY KILLER, made loud.
+#
+# services/api.js falls back to `http://localhost:8000/api/v1` when
+# VITE_API_URL is absent. That fallback is right for development and fatal in
+# production: the site builds, deploys and renders perfectly, and then every
+# API call goes to the VISITOR'S own machine. The catalogue falls back to
+# static data so the pages still look fine — but the journal is empty, the
+# Studio cannot log in, and enquiry submission fails. Nothing in the build
+# output hints at it.
+#
+# The SECOND failure mode is not hypothetical — it happened while this file was
+# being written. Git Bash / MSYS2 on Windows rewrites any environment value that
+# LOOKS like a Unix path into a Windows one, so
+#
+#     VITE_API_URL=/api/v1 npm run build
+#
+# run from that shell bakes `C:/Program Files/Git/api/v1` into the bundle. The
+# build succeeds, the localhost check passes, and every API call 404s. Docker
+# builds on Linux and cannot hit it; a hand-run build on a developer's machine
+# can, so the image refuses to carry the result either way.
+#
+# Both checks live in one script file rather than inline, because a `#` comment
+# inside a line-continued RUN is parsed inconsistently and can silently swallow
+# the command that follows it.
+RUN sh verify-bundle.sh dist
+
 # ── Stage 2: serve ─────────────────────────────────────────────────────
 # Unpinned minor deliberately — the guide recommends pinning to a digest once
 # the first deploy is verified, and a version that does not exist yet is a
@@ -51,7 +77,7 @@ FROM nginx:alpine
 
 # The configuration is NOT copied in. docker-compose.yml bind-mounts it from
 # deploy/nginx/, so an nginx change is `docker compose restart web` rather
-# than a rebuild of a ~350 MB image — and so the TLS bootstrap can swap
+# than a rebuild of a ~160 MB image — and so the TLS bootstrap can swap
 # configs without touching the build at all.
 COPY --from=build /app/dist /usr/share/nginx/html
 

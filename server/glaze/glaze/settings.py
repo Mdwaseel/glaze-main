@@ -124,6 +124,40 @@ else:
     }
 
 
+# Cache
+# ------------------------------------------------------------------
+# ⚠ NOT left at the default, and this is a correctness fix rather than a
+# performance one.
+#
+# Django's default cache is LocMemCache, which is PER PROCESS. Gunicorn runs
+# several worker processes (3 by default here), and every DRF throttle counter
+# — login, captcha, enquiry, track, comment, chat — is stored in the cache.
+# With a per-process cache each worker keeps its own tally, so a client turned
+# away by one worker simply lands on the next: THROTTLE_LOGIN=10/min actually
+# admits 30/min, and THROTTLE_ENQUIRY=5/min admits 15. The limits silently
+# mean N times whatever they say, where N is the worker count.
+#
+# The database backend is shared by every worker, so a limit means what it
+# says. It costs one indexed query per throttled request — nothing beside the
+# login or LLM call it is protecting. Redis is faster and is the right answer
+# under real traffic; it is also an extra service to run, secure and back up,
+# which a marketing site's rate limiter does not justify.
+#
+# ⚠ The table is NOT created by migrate. `manage.py createcachetable` makes it,
+# and the container entrypoint runs that on every start (it is idempotent).
+# Without the table every throttled request raises ProgrammingError, so if you
+# run this project outside Docker, run that command once by hand.
+CACHES = {
+    'default': {
+        'BACKEND': env(
+            'CACHE_BACKEND',
+            default='django.core.cache.backends.db.DatabaseCache',
+        ),
+        'LOCATION': env('CACHE_LOCATION', default='glaze_cache'),
+    }
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 

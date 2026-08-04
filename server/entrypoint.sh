@@ -62,6 +62,18 @@ echo "✓ postgres reachable"
 echo "→ applying migrations"
 python manage.py migrate --noinput
 
+# ── Cache table ────────────────────────────────────────────────────────
+#
+# The DRF throttles and the sitemap/robots page cache use the database cache
+# backend (see CACHES in settings.py — a per-process cache would let every
+# rate limit be exceeded once per gunicorn worker). Its table is not created
+# by migrate.
+#
+# Idempotent: the command checks for the table and says so rather than
+# failing, so this is safe on every start.
+echo "→ ensuring the cache table exists"
+python manage.py createcachetable
+
 # ── Static files ───────────────────────────────────────────────────────
 #
 # This is Django's OWN static — the /django-admin/ stylesheets — not the

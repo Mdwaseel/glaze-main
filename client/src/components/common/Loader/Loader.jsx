@@ -26,7 +26,7 @@ import './loader.css'
  * (0.985 → 1.00) instead, which is the same job the wordmark's
  * blur(8px) → blur(0) used to do.
  *
- * ⚠ THE CLIP IS NOT public/videos/Loader.mp4. That file is 1440² at
+ * ⚠ THE CLIP IS NOT assets-source/videos/Loader.mp4. That file is 1440² at
  * 10 Mbps — 7.5 MB, on the one screen whose entire purpose is to be over
  * quickly. It is re-encoded to 720² as videos/loader/mark.{mp4,webm}
  * (~650 KB each) with mark.webp as the poster, so the first frame paints

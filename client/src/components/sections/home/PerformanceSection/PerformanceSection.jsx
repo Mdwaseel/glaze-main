@@ -86,7 +86,7 @@ export default function PerformanceSection() {
 
         {/* PRODUCT RENDER — scroll-scrubbed WebP frame sequence
             frames/layers/layer_000.webp … layer_144.webp (145)
-            Source: videos/layer by layer precision.mp4
+            Source: assets-source/videos/layer by layer precision.mp4
             The frames are tone-graded to --eng-ground (#E3E2E4), which is
             what lets the render sit on the page without a visible plate —
             see the ffmpeg note in the original markup before re-exporting. */}

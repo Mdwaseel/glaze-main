@@ -69,17 +69,60 @@
   <meta name="twitter:description" content="Aluminium window and door systems engineered to disappear into the architecture." />
   <meta name="twitter:image" content="https://www.glazewindowsystems.com/og-default.jpg" />
 
-  <!-- Google Fonts -->
+  <!-- ── Fonts ─────────────────────────────────────────────────────
+       ONE request for all four families, not two.
+       A stylesheet in <head> blocks rendering, so two of them meant the
+       browser waited on two serial round trips to fonts.googleapis.com
+       before it could paint anything. The css2 endpoint takes any number
+       of `family=` parameters, so the second link bought nothing but
+       latency. Families are in alphabetical order because Google's CDN
+       caches per exact URL and that is the conventional form.
+
+       ⚠ Adding a family here costs every visitor a render-blocking wait.
+       Check the weight is actually used in the CSS first.
+
+       Still third-party: this hands every visitor's IP to Google before
+       the page paints, which a German court has held unlawful under GDPR
+       (LG München I, 3 O 17493/20). Self-hosting the woff2 files removes
+       both the legal question and the two extra connections — see the
+       performance notes in the README. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap"
     rel="stylesheet"
   />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet"
-  />
+
+  <!-- ── First hero frame ──────────────────────────────────────────
+       The homepage hero is a <canvas> scrubbed through 120 WebP frames.
+       Frame 0 is what fills it on arrival, and it is requested by
+       `new Image()` from utils/imageSequence.js — which cannot run until
+       the CSS and the JS bundle have both downloaded, parsed and mounted
+       React. Until it lands the hero is an empty canvas.
+
+       Preloading starts that fetch in parallel with the bundle instead of
+       after it. The JS request then hits the HTTP cache, so nothing in
+       the sequence loader changes; its deliberately paced batching (see
+       the warning in imageSequence.js) is untouched — this is frame 0
+       only.
+
+       The two media queries are exact complements of MOBILE_SEQUENCE_QUERY
+       in heroSequence.js, so precisely one of them ever matches and a
+       phone is never made to download the 76 KB landscape frame.
+
+       ⚠ TRADE-OFF: this file is the SPA shell for EVERY route, so a
+       visitor landing on /contact or /blog downloads a hero frame they
+       will not see, and DevTools logs an unused-preload warning there.
+       Accepted because the homepage is the dominant entry point on a
+       marketing site and the cost is one 41-76 KB image. Serving a
+       per-route shell would need prerendering, which would fix this and
+       the social-preview limit together. -->
+  <link rel="preload" as="image" type="image/webp" fetchpriority="high"
+        href="/frames/hero/hero_000.webp"
+        media="(min-width: 769px), (orientation: landscape)" />
+  <link rel="preload" as="image" type="image/webp" fetchpriority="high"
+        href="/frames/hero-mobile/hero_000.webp"
+        media="(max-width: 768px) and (orientation: portrait)" />
 
   <!--
     ── Structured data ────────────────────────────────────────────────

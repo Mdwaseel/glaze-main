@@ -9,7 +9,7 @@
  * asks "which profile carries it".
  *
  * ⚠ THE CLIPS ARE NOT THE FILES THE CLIENT DROPPED IN. The raw drops sit
- * in `public/videos/product videos/<Category>/<Name>.mp4` at 1928×1076
+ * in `assets-source/videos/product videos/<Category>/<Name>.mp4` at 1928×1076
  * and ~9 Mbps — roughly six times the bitrate a full-bleed background
  * loop needs, behind filenames with spaces, double full stops and one
  * typo ("ouble Casement Window..mp4"). They are re-encoded once, at

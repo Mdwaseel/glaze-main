@@ -67,8 +67,8 @@ they are reachable only from inside the compose network.
   frontend build is the peak, and 1 GB will be killed part-way through with a
   message that looks nothing like "out of memory". [Add swap](#not-enough-ram-for-the-build)
   if you are on 1 GB and cannot resize.
-- **~6 GB free disk.** The images are large, mostly because the site ships
-  311 MB of video and frame sequences.
+- **~4 GB free disk.** The web image carries the site's own media — 120 MB of
+  video and WebP frame sequences.
 - Control of the DNS for `glazewindowsystems.com`.
 - The Gmail app password for `info@glazewindowsystems.com`.
 
@@ -153,20 +153,38 @@ git push -u origin main
 
 ### About the repository size
 
-The commit is roughly **315 MB**, of which **311 MB is `client/public`** —
-81 videos, 625 hero frame images, and the product photography. That is fine for
-GitHub (the limits are 100 MB *per file*, and the largest here is 18 MB), but
-two things follow:
+The commit is roughly **311 MB**, and it splits in two:
 
-- The first `git clone` on the VPS downloads all of it. Expect several minutes.
+| | Size | Deployed? |
+|---|---|---|
+| `client/public` — videos, 625 WebP hero frames, product photography | 120 MB | **Yes** — this is the site |
+| [`assets-source/`](../assets-source/README.md) — the original clips those were encoded from | 191 MB | **No** — excluded from the Docker build context |
+
+That is fine for GitHub (the limit is 100 MB *per file*; the largest here is
+17 MB), but two things follow:
+
+- The first `git clone` on the VPS downloads all of it, `assets-source/`
+  included. Expect several minutes. Only `client/public` reaches the image.
 - Git stores every *version* of a binary forever. Replacing a 15 MB video ten
-  times adds 150 MB to the history permanently, and it can never be shrunk
+  times adds 150 MB to the history permanently, and it cannot be reclaimed
   without rewriting history.
 
-If the videos start changing regularly, move them to
-[Git LFS](https://git-lfs.com) *before* that happens, not after. As a one-time
-upload of assets that rarely change, plain git is the simpler choice and this
-setup uses it.
+If the videos start changing regularly, move `assets-source/` to
+[Git LFS](https://git-lfs.com) *before* that happens, not after — or drop it
+from the repository entirely and keep the originals in your own backup. The
+site builds and deploys identically without it; only regenerating a frame
+sequence needs it.
+
+**Clone faster on the VPS.** The server needs the current commit, not years of
+history:
+
+```bash
+git clone --depth 1 git@github.com:YOUR-USER/glaze.git /srv/glaze
+```
+
+`deploy/deploy.sh` works unchanged against a shallow clone — `git pull` deepens
+it as needed. Skip the flag if you would rather have the full history on the
+server for debugging.
 
 ---
 
@@ -297,7 +315,7 @@ docker compose up -d --build
 ```
 
 The first build takes **5–15 minutes**: it installs Python dependencies,
-installs npm packages, and runs the Vite build over 311 MB of assets. Watch it:
+installs npm packages, and runs the Vite build over 120 MB of assets. Watch it:
 
 ```bash
 docker compose logs -f
@@ -607,6 +625,8 @@ deploy — a data migration, a restore.
 | Enquiry saved but no email | SMTP credentials, or the app password was revoked | `docker compose logs api \| grep -i smtp`, then Studio › Contact settings › send a test |
 | Certificate did not renew | Port 80 closed, or the ACME location was redirected | `curl http://www.glazewindowsystems.com/.well-known/acme-challenge/test` must not 301 |
 | `docker compose` says port 80 in use | Host nginx/apache running | `sudo systemctl disable --now nginx apache2` |
+| Build fails with "BUILD REJECTED: … localhost API URL" | `VITE_API_URL` never reached Vite | Working as intended — it caught a bundle that would have called the visitor's own machine. Check the `args:` block under `web` in `docker-compose.yml` |
+| Build fails with "BUILD REJECTED: … Windows path" | You built by hand from Git Bash | MSYS2 rewrote `/api/v1` into `C:/Program Files/Git/api/v1`. Build from PowerShell, or prefix with `MSYS_NO_PATHCONV=1`. Docker builds on Linux and never hits this |
 
 ### Not enough RAM for the build
 
@@ -633,7 +653,6 @@ Stated plainly, so none of it is a surprise later.
 | **Zero-downtime deploys** | `docker compose up -d` replaces containers, so there is a few-second gap. Fixing it properly means two api containers and an nginx upstream that drains — worth it for a busy application, not for this. |
 | **Off-site backups** | [`deploy/backup.sh`](../deploy/backup.sh) writes to the same disk as the data. A commented `rclone`/`s3 sync` line is at the bottom of it. **Do this** — it is the difference between an incident and a catastrophe. |
 | **Uptime monitoring** | Nothing tells you the site is down. Point any free monitor at `/healthz`. |
-| **Log rotation for Docker** | Container logs grow without limit. Add `log-driver: json-file` with `max-size` in `/etc/docker/daemon.json`. |
 | **A staging environment** | The same compose file on a second host with `VITE_NOINDEX=true` and a different domain. The noindex support is already built in. |
 | **Cookie consent banner** | Needed for EU/UK traffic *before* the Meta Pixel is switched on. The pixel field is deliberately blank, with that warning next to it in the Studio. |
 | **Rollback** | `git revert` then redeploy. There is no image-tag rollback because images are not tagged per release — add `image: glaze-web:${GIT_SHA}` to `docker-compose.yml` if you want one. |

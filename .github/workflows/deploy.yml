@@ -64,6 +64,12 @@ jobs:
           VITE_SITE_URL: https://www.glazewindowsystems.com
         run: npm run build
 
+      # The same assertion the Docker build makes, run here so a wrong API URL
+      # fails in 30 seconds rather than after a full image build on the VPS.
+      - name: Verify the bundle's API URL
+        working-directory: client
+        run: sh verify-bundle.sh dist
+
   deploy:
     name: Deploy to VPS
     needs: check

@@ -17,8 +17,18 @@
      `.vrt__cta` champagne fill on hover,
      arrow translateX(5px)                    ← .sysm__cta
      `translateY(-4px)` hover lift            ← .ovw__str:hover
+     wheel bloom (radial dark scrim)          ← .vrt__head::before
+     wheel glass: blur + saturate, low-alpha
+     fill, bright edge, inset top highlight   ← .vrt__panels
 
    No new colour, no new font, no new radius, no second glass recipe.
+
+   THE ONE SHAPE THAT IS NEW is the desktop timeline: a segmented
+   selector ring rather than numbers on a line, borrowed in FORM from a
+   game HUD's weapon wheel and in nothing else — every colour, weight,
+   duration and easing in it is a token declared below, and its wedges
+   are cut from the same glass as the card. Tablet and mobile keep the
+   flat rail. See the block comment above it.
 
    ── THE LOCAL TOKENS ────────────────────────────────────────────
    Everything that repeats is declared once on `.vrt` and read from
@@ -249,13 +259,14 @@
   color: var(--vrt-ink-mute);
 }
 
-/* ── The timeline ──────────────────────────────────────────────
-   Numbers on a hairline, evenly spread. The name belongs to whichever
-   item is current or hovered and is lifted above the line, so a system
-   with eleven formats puts eleven NUMBERS across the foot of the frame
-   rather than eleven strings of type. The name of the current variant
-   is set large in the card anyway; down here it is a preview, not a
-   label. */
+/* ── The timeline: the flat rail ───────────────────────────────
+   Numbers in a row, evenly spread. This is what TABLET AND MOBILE get,
+   and it is the base state the wheel below is written on top of —
+   there the panel has dropped to the foot of the screen and a 200px
+   selector has nowhere to sit that is not on top of it.
+
+   Everything the wheel needs and this does not — the hub ring, the
+   readout — is switched off here rather than left to overlap. */
 .vrt__rail {
   position: relative;
   display: flex;
@@ -265,47 +276,21 @@
   max-width: min(100%, 66ch);
 }
 
-/* The hairline the ticks sit on. */
-.vrt__rail-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 2.6rem;
-  height: 1px;
-  background: var(--vrt-hair);
-}
+.vrt__rail-line,
+.vrt__rail-read,
+.vrt__rail-glass,
+.vrt__rail-arc,
+.vrt__rail-icon { display: none; }
 
 .vrt__rail-item {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.55rem;
-  /* The negative top margin pulls the tick onto the hairline; the
-     padding is hit area, which a 10px number badly needs. */
-  margin-top: -0.5rem;
+  /* Padding is hit area, which a 10px number badly needs. */
   padding: 0.5rem 0.35rem 0.2rem;
   color: var(--vrt-ink-mute);
   transition: color var(--vrt-fast) var(--ease-snap);
-}
-
-/* The tick — a hairline stub hanging off the line, which becomes a
-   champagne mark with a soft glow on the current item.
-
-   ⚠ THE HEIGHT IS FIXED AND scaleY DOES THE GROWING. Animating `height`
-   would push the number down by 6px every time the active item changed,
-   which is a layout shift on every single scroll step. */
-.vrt__rail-tick {
-  width: 1px;
-  height: 15px;
-  background: rgba(245, 245, 243, 0.28);
-  border-radius: 1px;
-  transform: scaleY(0.6);
-  transform-origin: top center;
-  transition: transform var(--vrt-fast) var(--ease-snap),
-    background-color var(--vrt-fast) var(--ease-snap),
-    box-shadow var(--vrt-fast) var(--ease-snap),
-    width var(--vrt-fast) var(--ease-snap);
 }
 
 .vrt__rail-num {
@@ -314,62 +299,406 @@
   letter-spacing: 0.24em;
   /* Letter-spacing is applied to the right of the LAST glyph too, so a
      centred number sits half a step left of true centre. Pulling the
-     box in by the same amount puts the glyphs back on the tick. */
+     box in by the same amount puts the glyphs back on centre. */
   margin-right: -0.24em;
   font-variant-numeric: tabular-nums;
   transition: color var(--vrt-fast) var(--ease-snap);
 }
 
-/* The preview name. Absolute so it cannot push the numbers around as it
-   appears, and pointer-events:none so it can overhang its neighbours
-   without stealing their clicks. */
-.vrt__rail-name {
-  position: absolute;
-  bottom: calc(100% - 0.1rem);
-  left: 50%;
-  transform: translate(-50%, 4px);
-  white-space: nowrap;
-  pointer-events: none;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--champagne);
-  opacity: 0;
-  transition: opacity var(--vrt-fast) var(--ease-snap),
-    transform var(--vrt-fast) var(--ease-snap);
-}
-
-/* ── Timeline states ── */
 .vrt__rail-item:hover { color: rgba(245, 245, 243, 0.9); }
-.vrt__rail-item:hover .vrt__rail-tick {
-  transform: scaleY(0.86);
-  background: rgba(245, 245, 243, 0.6);
-}
-
 .vrt__rail-item.is-current { color: var(--champagne); }
-.vrt__rail-item.is-current .vrt__rail-tick {
-  width: 3px;
-  transform: scaleY(1);
-  background: var(--champagne);
-  /* The gentle glow. Two rings, both champagne, both nearly gone — it
-     reads as the light being on rather than as a highlight. */
-  box-shadow: 0 0 0 3px rgba(167, 154, 135, 0.12), 0 0 12px rgba(167, 154, 135, 0.55);
-}
 
-.vrt__rail-item.is-current .vrt__rail-name,
-.vrt__rail-item:hover .vrt__rail-name,
-.vrt__rail-item:focus-visible .vrt__rail-name {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
+/* ── The timeline: the wheel ───────────────────────────────────
+   Desktop only. A segmented ring — one wedge per variant, running
+   clockwise from twelve o'clock, the current one lit and pushed a few
+   pixels out along its own radius, its name above the wheel and its
+   place in the set in the hub. It is a game HUD's selector wheel, and
+   it is meant to read as one: the section is a full-bleed moving
+   picture with a heads-up panel floating over it, and a row of tick
+   marks was the one part of it that still read as a web page.
 
-/* Two names side by side would collide, so while the pointer is
-   anywhere in the timeline the current item yields its preview to
-   whichever item is actually under the cursor. */
-.vrt__rail:hover .vrt__rail-item.is-current:not(:hover) .vrt__rail-name {
-  opacity: 0;
-  transform: translate(-50%, 4px);
+   ── THE MATERIAL ─────────────────────────────────────────────────
+   The wedges are GLASS, built to the same recipe as `.vrt__panels`:
+   a deep backdrop blur with a little saturation, a very low-alpha fill
+   and a bright hairline along the edge. Every colour in here is a
+   neutral off --arch-bone; --champagne appears in exactly three places
+   — the lit outer arc, the name above the wheel, and the numeral in
+   the hub — and nowhere as a fill.
+
+   ⚠ THAT LAST SENTENCE IS THE WHOLE POINT AND IT IS THE SECOND
+   ATTEMPT. The first version filled the wedges with the ground colour
+   at 0.55 and the current one with champagne at 0.30. Over a warm
+   interior render the dark fill went brown and the champagne fill went
+   beige, and the wheel read as a mud-coloured dial — the exact failure
+   the ⚠ on `.vrt__panels` describes, which is that a low-alpha warm
+   tint does not stay warm, it takes the colour of whatever is behind
+   it. The fix is the same one that worked there: let the BLUR do the
+   separating and keep the fills neutral. Lit states brighten the glass
+   rather than tinting it.
+
+   ⚠ ELEVEN BACKDROP FILTERS IS THE KNOWN COST OF THAT, and it is
+   bounded on purpose: only the FACE of each wedge carries one — never
+   the arc, never the lit layers, never the hover layer — so a system
+   with eleven variants runs eleven small blurs, not forty. They are
+   desktop-only, they are clipped to a sector of a ≤254px box, and the
+   media block's ⚠ about filters still stands for anything full-bleed.
+   If frames ever drop here, drop the blur radius before anything else.
+
+   ⚠ EVERY GRADIENT STOP IS A HARD STOP (`X% Y%` then the next colour
+   starting AT Y%) unless it is deliberately a ramp between two opaque
+   colours. A soft stop into `transparent` interpolates through
+   transparent BLACK in sRGB and leaves a grey bruise at the edge of
+   every band. If a stop is retuned, move both numbers together.
+
+   ⚠ `circle closest-side` IS LOAD-BEARING. The default ending shape is
+   farthest-corner, which on a square box is 70.7% of the half-width —
+   every percentage below would then mean something 1.41× smaller than
+   the radius it is written against. closest-side makes 100% exactly
+   the wheel's radius, so the stops read as the fractions they are and
+   match WHEEL_HOLE / WHEEL_FACE in the component. Those two numbers
+   and these percentages are one set: change one, change both. */
+@media (min-width: 1025px) {
+  .vrt {
+    /* The one size the whole HUD is built from. Everything else is a
+       fraction of it, so there is a single number to change.
+
+       ⚠ RAISED FROM 254px WHEN THE NUMERALS BECAME STILLS. A 10px
+       numeral reads at any wheel size; a photograph of a room does
+       not, and on the eleven-variant page the still is only 15.5% of
+       this number across. */
+    --vrt-wheel: clamp(210px, 19vw, 282px);
+  }
+
+  .vrt__rail {
+    display: block;
+    /* ⚠ BOTH OF THESE, NOT JUST THE WIDTH. `.vrt__inner` is a column
+       flexbox: without `align-self` the wheel stretches to the full
+       column width and the wedges become ellipses, and without
+       `flex: none` a short viewport squashes its height instead of
+       overflowing. */
+    align-self: flex-start;
+    flex: none;
+    width: var(--vrt-wheel);
+    height: var(--vrt-wheel);
+    padding-top: 0;
+    max-width: none;
+  }
+
+  /* The bloom the wheel sits in — the same idea as `.vrt__head::before`
+     and for the same reason: this is glass, and glass is only visible
+     against something. Sized to the wheel and bled well past it, so
+     there is no edge anywhere near the shape.
+
+     ⚠ FAR LIGHTER THAN THE FIRST VERSION (0.62 → 0.38). With the
+     wedges themselves dark it took a heavy scrim to hold them; with
+     them frosted it takes very little, and the heavy one was half of
+     what made the whole corner read brown. */
+  .vrt__rail::before {
+    content: '';
+    position: absolute;
+    inset: -40%;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(6, 8, 10, 0.38) 0%,
+      rgba(6, 8, 10, 0.2) 44%,
+      rgba(6, 8, 10, 0) 72%
+    );
+  }
+
+  /* ── The hub ──
+     The hole in the middle, as its own small pane. Repurposed from the
+     flat rail's hairline: same element, same job of being the line the
+     numbers are measured against.
+
+     Blurred and very slightly darkened, which is what gives the
+     numeral something to sit on — over a bright render an unbacked
+     1.45rem figure in the middle of an empty circle had nothing
+     holding it. The tint is NEUTRAL-COOL (20,22,24), never the warm
+     ground; see the ⚠ at the head of this block. */
+  .vrt__rail-line {
+    display: block;
+    position: absolute;
+    left: 50%;
+    right: auto;
+    top: 50%;
+    /* ⚠ 0.76, NOT 0.80. WHEEL_HOLE is 0.40, so 0.80 would put this
+       pane's lit edge hard against the wedges' inner lit edge and the
+       two hairlines read as one thick double line. 0.76 leaves a few
+       pixels of open ground between the hub and the ring — which is
+       also what makes the hub read as a separate piece of glass rather
+       than as the middle of the same one. */
+    width: calc(var(--vrt-wheel) * 0.76);
+    height: calc(var(--vrt-wheel) * 0.76);
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(245, 245, 243, 0.14);
+    border-radius: 50%;
+    background: rgba(20, 22, 24, 0.22);
+    backdrop-filter: blur(14px) saturate(130%);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* ── A wedge ──
+     All N stacked at inset 0; the clip-path is what separates them,
+     for the eye and for the pointer both. The button itself paints
+     NOTHING — it is the hit area and the push-out, and the three
+     layers below it do the rest. */
+  .vrt__rail-item {
+    --vrt-push: 0px;
+    position: absolute;
+    inset: 0;
+    display: block;
+    padding: 0;
+    clip-path: var(--vrt-hit);
+    /* Out along its own radius when it lights up — the direction comes
+       from the component as a unit vector, so all N push away from the
+       hub rather than all in one direction. */
+    transform: translate(calc(var(--vrt-ox) * var(--vrt-push)), calc(var(--vrt-oy) * var(--vrt-push)));
+    /* The section's short duration, not its long one. This is a
+       control, and a control that takes 0.7s to acknowledge a click
+       reads as lag rather than as grace — the clips get the slow
+       number, the HUD gets the fast one. */
+    transition: transform var(--vrt-fast) var(--ease-snap),
+      color var(--vrt-fast) var(--ease-snap);
+  }
+
+  /* ── The face: the pane of glass ──
+     Its own clip, so the backdrop-filter stops where the glass stops —
+     see the ⚠ in the component about why this is not the button's clip.
+
+     The two hairlines at 40–40.8% and 87.2–88% are the lit EDGES of
+     the pane, and they are the single biggest reason this reads as
+     glass rather than as a translucent shape: a real edge catches
+     light, a fill does not. */
+  .vrt__rail-glass,
+  .vrt__rail-arc {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .vrt__rail-glass {
+    clip-path: var(--vrt-seg);
+    background: radial-gradient(
+      circle closest-side at 50% 50%,
+      transparent 0 40%,
+      rgba(245, 245, 243, 0.26) 40% 40.8%,
+      rgba(245, 245, 243, 0.07) 40.8% 87.2%,
+      rgba(245, 245, 243, 0.26) 87.2% 88%,
+      transparent 88%
+    );
+    backdrop-filter: blur(18px) saturate(135%);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+  }
+
+  /* Two lit states, one layer each, cross-fading on opacity — a flat
+     fill is enough because the parent's clip already cuts it to the
+     sector. Painting them as extra gradients on the face itself would
+     mean animating gradient COLOURS, which does not interpolate
+     cleanly and cannot be composited. ::after is later in paint order
+     than ::before, which is why current sits over hover and not the
+     other way about. */
+  .vrt__rail-glass::before,
+  .vrt__rail-glass::after,
+  .vrt__rail-arc::before,
+  .vrt__rail-arc::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity var(--vrt-fast) var(--ease-snap);
+  }
+
+  /* Hover and keyboard focus: more light through the pane. */
+  .vrt__rail-glass::before { background: rgba(245, 245, 243, 0.12); }
+
+  /* Current: brighter still, and warming towards the outer edge where
+     the lit arc is about to pick the colour up. This is the ONE place
+     champagne touches the face, it is a ramp rather than a flat tint,
+     and it never reaches full strength inside the glass. */
+  .vrt__rail-glass::after {
+    background: radial-gradient(
+      circle closest-side at 50% 50%,
+      transparent 0 40%,
+      rgba(245, 245, 243, 0.16) 40%,
+      rgba(212, 200, 182, 0.2) 68%,
+      rgba(167, 154, 135, 0.28) 88%
+    );
+  }
+
+  /* ── The arc: the detached band outside the glass ──
+     Not frosted. It is a mark, not a surface, and it is what actually
+     says which variant is current — at full champagne it is the
+     brightest thing in the section's lower left. */
+  .vrt__rail-arc { background: rgba(245, 245, 243, 0.12); }
+  .vrt__rail-arc::before { background: rgba(245, 245, 243, 0.4); }
+  .vrt__rail-arc::after { background: var(--champagne); }
+
+  .vrt__rail-item:hover .vrt__rail-glass::before,
+  .vrt__rail-item:focus-visible .vrt__rail-glass::before,
+  .vrt__rail-item:hover .vrt__rail-arc::before,
+  .vrt__rail-item:focus-visible .vrt__rail-arc::before { opacity: 1; }
+
+  .vrt__rail-item.is-current .vrt__rail-glass::after,
+  .vrt__rail-item.is-current .vrt__rail-arc::after { opacity: 1; }
+
+  .vrt__rail-item:hover,
+  .vrt__rail-item:focus-visible,
+  .vrt__rail-item.is-current { --vrt-push: 5px; }
+  .vrt__rail-item.is-current:hover,
+  .vrt__rail-item.is-current:focus-visible { --vrt-push: 8px; }
+
+  /* ⚠ THE OUTLINE HAS TO BE REPLACED, NOT JUST REMOVED. clip-path
+     clips the focus ring along with everything else, so the default
+     indicator is invisible on a wedge no matter how it is styled. The
+     lit glass, the lit arc, the push-out and the still coming up to
+     full colour carry it instead — four simultaneous changes, all
+     inside the clip. */
+  .vrt__rail-item:focus-visible { outline: none; }
+
+  /* ── The still ──
+     The wheel shows the format rather than its number.
+
+     ⚠ THE NUMERAL IS HIDDEN BY `:has()`, NOT UNCONDITIONALLY, AND
+     THAT IS THE FALLBACK. A variant added through the admin panel with
+     no poster yet renders no `.vrt__rail-icon` at all; without this
+     guard its wedge would be blank, which is worse than the number it
+     replaced. The numeral is styled for the wheel below so that a
+     part-filled catalogue degrades to a mixed ring rather than to a
+     hole in one. */
+  .vrt__rail-item:has(.vrt__rail-icon) .vrt__rail-num { display: none; }
+
+  .vrt__rail-num {
+    position: absolute;
+    left: var(--vrt-nx);
+    top: var(--vrt-ny);
+    z-index: 2;
+    margin-right: 0;
+    color: rgba(245, 245, 243, 0.72);
+    /* Centred on its point, then nudged back by half the trailing
+       letter-space — the same correction the flat rail makes with a
+       negative margin, which an absolutely positioned box ignores. */
+    transform: translate(calc(-50% - 0.12em), -50%);
+  }
+  .vrt__rail-item:hover .vrt__rail-num,
+  .vrt__rail-item:focus-visible .vrt__rail-num,
+  .vrt__rail-item.is-current .vrt__rail-num { color: var(--arch-bone); }
+
+  .vrt__rail-icon {
+    display: block;
+    position: absolute;
+    left: var(--vrt-nx);
+    top: var(--vrt-ny);
+    z-index: 2;
+    /* One diameter for the whole wheel, computed from the count and
+       set on the <nav>. The button is a square the size of the wheel,
+       so a percentage width is a fraction of the wheel — which is what
+       lets the still hold its proportion through every step of the
+       --vrt-wheel clamp(). */
+    width: var(--vrt-icon);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    border-radius: 50%;
+    border: 1px solid rgba(245, 245, 243, 0.22);
+    /* ⚠ NO DROP SHADOW HERE, AND THE LIT RING IS ONLY 2px. The wedge's
+       clip-path cuts anything that leaves the sector, and at eleven
+       variants the still clears its own wedge by about five pixels — a
+       soft shadow would be sliced off along a straight edge, which
+       looks like a rendering fault rather than like a shadow. The
+       border does the lifting instead; it cannot overflow. */
+    transition: border-color var(--vrt-fast) var(--ease-snap),
+      box-shadow var(--vrt-fast) var(--ease-snap);
+  }
+
+  /* Held back until the wedge is live, so the ring reads as ONE
+     object with one thing lit in it rather than as N photographs
+     arranged in a circle. Desaturated and dimmed, never blurred: a
+     blur on a bitmap costs a repaint of every frame the wheel is on
+     screen, and these sit over a playing clip. */
+  .vrt__rail-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: grayscale(0.55) brightness(0.72) contrast(1.05);
+    transition: filter var(--vrt-fast) var(--ease-snap);
+  }
+
+  .vrt__rail-item:hover .vrt__rail-icon img,
+  .vrt__rail-item:focus-visible .vrt__rail-icon img { filter: grayscale(0.15) brightness(0.9); }
+  .vrt__rail-item.is-current .vrt__rail-icon img { filter: none; }
+
+  .vrt__rail-item:hover .vrt__rail-icon,
+  .vrt__rail-item:focus-visible .vrt__rail-icon { border-color: rgba(245, 245, 243, 0.45); }
+
+  .vrt__rail-item.is-current .vrt__rail-icon {
+    border-color: var(--champagne);
+    box-shadow: 0 0 0 2px rgba(167, 154, 135, 0.18);
+  }
+
+  /* ── The readout ──
+     Sibling of its wedge, holding still while the wedge moves. Fades
+     as one block, so the name above the wheel and the counter in the
+     hub always agree with each other. */
+  .vrt__rail-read {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity var(--vrt-fast) var(--ease-snap),
+      transform var(--vrt-fast) var(--ease-snap);
+  }
+  .vrt__rail-item.is-current + .vrt__rail-read,
+  .vrt__rail-item:hover + .vrt__rail-read,
+  .vrt__rail-item:focus-visible + .vrt__rail-read {
+    opacity: 1;
+    transform: none;
+  }
+  /* Two readouts stacked on one another would be unreadable, so while
+     the pointer is anywhere in the wheel the current wedge yields its
+     label to whichever one is actually under the cursor. */
+  .vrt__rail:hover .vrt__rail-item.is-current:not(:hover) + .vrt__rail-read {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  .vrt__rail-name {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 1.1rem);
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-indent: 0.09em;
+    text-transform: uppercase;
+    color: var(--champagne);
+  }
+
+  /* Where you are, in the hole in the middle. The number and nothing
+     else: the count that used to sit under it on a hairline was the
+     one figure the HUD did not need, because a wheel of six wedges is
+     already a picture of six. */
+  .vrt__rail-count {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(1.25rem, 1.7vw, 1.55rem);
+    letter-spacing: 0.12em;
+    text-indent: 0.06em;
+    color: var(--champagne);
+  }
 }
 
 /* ── The floating panel ────────────────────────────────────────
@@ -687,10 +1016,16 @@
   .vrt__panels:hover { transform: translateY(-4px); }
   .vrt__desc { max-width: 46ch; }
 
-  /* The timeline scrolls horizontally here, so the hairline — which is
-     absolutely positioned against the padding box, not the scroll width
-     — would sit still while the ticks moved past it. The ticks carry
-     the line on their own. */
+  /* The flat rail, docked to the foot of the frame and scrolling
+     horizontally when a system has more formats than fit. No wheel
+     here: the glass panel has moved directly above this line, and a
+     200px circle would either sit on top of it or push it off screen.
+
+     ⚠ `overflow-x: auto` computes `overflow-y: auto` as well, so
+     anything positioned ABOVE an item — the wheel's readout — would be
+     clipped by the scroll container rather than drawn. It is redundant
+     here anyway: the panel sitting directly above the timeline already
+     carries the variant's name at 2rem. */
   .vrt__rail {
     position: absolute;
     left: var(--vrt-gutter);
@@ -704,15 +1039,7 @@
     scrollbar-width: none;
   }
   .vrt__rail::-webkit-scrollbar { display: none; }
-  .vrt__rail-line { display: none; }
-  .vrt__rail-item { flex: 0 0 auto; margin-top: 0; }
-  .vrt__rail-tick { display: none; }
-  /* ⚠ `overflow-x: auto` computes `overflow-y: auto` as well, so the
-     preview name — which is positioned ABOVE its item — was being
-     clipped by the scroll container rather than drawn. It is redundant
-     here anyway: the panel sitting directly above the timeline already
-     carries the variant's name at 2rem. */
-  .vrt__rail-name { display: none; }
+  .vrt__rail-item { flex: 0 0 auto; }
 
   /* The panel has moved under the video rather than beside it, so the
      wash turns through 90°: weight at the foot for the panel and the
@@ -743,6 +1070,11 @@
    first things a 615px-tall laptop can spare. ── */
 @media (max-height: 760px) and (min-width: 1025px) {
   .vrt__lede { display: none; }
+  /* The wheel is the tallest thing in the flow column, so it gives up
+     the most. The floor is set by the stills rather than by the shape:
+     below about 190px the eleven-variant wheel's are 30px across and
+     stop being pictures of anything. */
+  .vrt { --vrt-wheel: clamp(190px, 27vh, 226px); }
   .vrt__inner { padding-top: calc(var(--sys-nav-h) + 2rem); }
   .vrt__panels { padding: 1.5rem 1.5rem 1.4rem; }
   .vrt__name { margin-top: 1.15rem; }
@@ -760,9 +1092,14 @@
   .vrt__panels,
   .vrt__panels::before,
   .vrt__rail-item,
-  .vrt__rail-tick,
+  .vrt__rail-glass::before,
+  .vrt__rail-glass::after,
+  .vrt__rail-arc::before,
+  .vrt__rail-arc::after,
   .vrt__rail-num,
-  .vrt__rail-name,
+  .vrt__rail-icon,
+  .vrt__rail-icon img,
+  .vrt__rail-read,
   .vrt__cta,
   .vrt__cta::before,
   .vrt__cta-arrow {

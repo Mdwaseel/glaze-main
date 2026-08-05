@@ -145,7 +145,9 @@
       "Bash(SSH_ASKPASS=C:/Users/Mohd/AppData/Local/Temp/claude/d--Projects-glaze-react-glaze-react-migration/caeaae73-2f57-4f10-a1db-150ed5fe77bf/scratchpad/askpass.sh SSH_ASKPASS_REQUIRE=force DISPLAY=:0 ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o NumberOfPasswordPrompts=1 root@187.127.182.159 'echo CONNECTED; hostname; uptime')",
       "Bash(curl -s -i -m 25 https://www.glazewindowsystems.com/api/v1/auth/captcha/)",
       "Bash(DJANGO_SETTINGS_MODULE=glaze.settings ../.venv/Scripts/python.exe -)",
-      "Bash(curl -s -m 20 https://www.glazewindowsystems.com/api/v1/auth/captcha/)"
+      "Bash(curl -s -m 20 https://www.glazewindowsystems.com/api/v1/auth/captcha/)",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(Object.keys\\(p.devDependencies||{}\\).join\\(' '\\)\\);console.log\\('---scripts'\\);console.log\\(JSON.stringify\\(p.scripts\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\('react',p.dependencies.react\\)\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\Mohd\\AppData\\Local\\Temp\\claude\\chrome-prof",

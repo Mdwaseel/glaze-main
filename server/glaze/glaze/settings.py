@@ -64,13 +64,31 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    # ⚠ NEAR THE TOP ON PURPOSE. Response middleware runs in reverse order,
-    # so this gets the last word on Cache-Control — which is the point: it
-    # is what stops a reverse proxy caching /api/ responses. It was added
-    # after cPanel's ea-nginx cached the single-use login captcha for an
-    # hour and made signing in impossible. See glaze/middleware.py.
+    # ⚠ FIRST, AND ABOVE SecurityMiddleware — THAT ORDER IS THE FIX.
+    #
+    # This stops a cache storing /api/ responses. It was added after cPanel's
+    # ea-nginx cached the single-use login captcha for an hour and made
+    # signing in impossible; see glaze/middleware.py for that incident.
+    #
+    # It sat BELOW SecurityMiddleware first, and that left the worse half of
+    # the bug open. A middleware that returns a response from its request
+    # phase short-circuits the chain — everything below it is skipped, on
+    # the way in AND on the way out. SECURE_SSL_REDIRECT lives in
+    # SecurityMiddleware and does exactly that, so its 301 went out with no
+    # Cache-Control on it at all.
+    #
+    # An uncacheable 301 is not a small thing: a redirect with no
+    # Cache-Control is heuristically cacheable and browsers keep 301s
+    # INDEFINITELY. One redirect served to /api/v1/auth/captcha/ — which is
+    # what happened while the proxy was forwarding X-Forwarded-Proto: http —
+    # and that browser stops asking the server for a captcha at all. It
+    # replays the cached redirect forever and the login page can only say
+    # "Could not load the captcha. The server may be unreachable."
+    #
+    # From position 0 this wraps SecurityMiddleware instead of sitting under
+    # it, so the redirect comes back up through here and gets stamped.
     'glaze.middleware.ApiNoStoreMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

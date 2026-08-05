@@ -65,6 +65,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # ⚠ NEAR THE TOP ON PURPOSE. Response middleware runs in reverse order,
+    # so this gets the last word on Cache-Control — which is the point: it
+    # is what stops a reverse proxy caching /api/ responses. It was added
+    # after cPanel's ea-nginx cached the single-use login captcha for an
+    # hour and made signing in impossible. See glaze/middleware.py.
+    'glaze.middleware.ApiNoStoreMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

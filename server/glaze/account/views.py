@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import update_last_login
 from django.middleware.csrf import get_token
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -155,12 +157,28 @@ class ChangePasswordView(APIView):
         return set_auth_cookies(response, access, refresh)
 
 
+@method_decorator(never_cache, name='dispatch')
 class CaptchaChallengeView(APIView):
     """GET /api/v1/auth/captcha/ — a fresh login challenge.
 
     With the internal provider this returns an inline SVG and the signed token
     that goes back with the answer. With a hosted provider there is nothing to
     render server-side, so it returns the site key for the widget to mount.
+
+    ⚠ never_cache IS LOAD-BEARING, and it is not redundant with
+    ApiNoStoreMiddleware — it is the belt to that pair of braces.
+
+    This response is single-use by construction: solving a challenge burns
+    its nonce (captcha.py), so a cached copy is not merely stale, it is
+    POISON. Every visitor served it gets a challenge that has already been
+    spent, and "This captcha has already been used." is all anyone can get
+    out of the login form. That is not hypothetical — it is what cPanel's
+    ea-nginx proxy cache did to this endpoint in production, for an hour at
+    a time, because DRF sent no Cache-Control and the vhost's default is
+    `proxy_cache_valid 200 60m`.
+
+    The middleware covers every /api/ path today. If it is ever narrowed,
+    scoped or reordered, this endpoint must still never be stored anywhere.
     """
 
     permission_classes = [AllowAny]

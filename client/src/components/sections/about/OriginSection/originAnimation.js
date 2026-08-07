@@ -25,9 +25,14 @@ import { gsap, ScrollTrigger } from '@/utils/gsap'
 
 /* ── PACING ─────────────────────────────────────────
    ORIGIN_TRACK_VH — extra viewport-heights the flight
-   lasts. 420 ≈ one unhurried wheel-length per plane
-   (intro text + five eras). */
-export const ORIGIN_TRACK_VH = 420
+   lasts. ~70 ≈ one unhurried wheel-length per plane, so
+   the intro text + four eras want 350. (It was 420 when
+   there were five eras; leaving it there would not have
+   slowed the flight — HOLD and the camera target are both
+   fractions of the track, so the same scrub would simply
+   have been stretched over a longer pin, adding a
+   viewport-height of dead scrolling at the same speed.) */
+export const ORIGIN_TRACK_VH = 350
 
 /* ── PROJECTION (after codrops-depth-gallery) ───────
    GAP         — px of camera travel between planes
@@ -53,7 +58,6 @@ const SCATTER = [
   { x: 11, y: -4 },
   { x: -12, y: 5 },
   { x: 10, y: 6 },
-  { x: -11, y: -5 },
   { x: 0, y: 0 },
 ]
 
@@ -61,14 +65,21 @@ const SCATTER = [
    palette, as in the source demo. `hex` documents the
    dominant colour sampled from that photograph; `wash` is a
    lifted pastel of the same hue that tints the full-bleed
-   backdrop while the era holds focus, at strength `a`. */
+   backdrop while the era holds focus, at strength `a`.
+
+   Re-sampled from the commissioned photographs, and the arc
+   they happen to make is the section's own: warm sepia
+   workshop → daylit concrete floor → the near-white CNC hall
+   (`a` drops to 0.2 there, since that frame is already bright
+   and any heavier wash just greys the page) → travertine and
+   garden light at home. Cold in the middle, warm at both
+   ends — the metal going out and the room coming back. */
 const PALETTE = [
   { name: '', hex: '#F5F5F3', wash: [245, 245, 243], a: 0 },
-  { name: 'Umber', hex: '#483C37', wash: [156, 131, 107], a: 0.32 },
-  { name: 'Ember', hex: '#C96A35', wash: [212, 148, 102], a: 0.3 },
-  { name: 'Gunmetal', hex: '#605857', wash: [141, 142, 150], a: 0.28 },
-  { name: 'Limestone', hex: '#6F6E5D', wash: [174, 171, 148], a: 0.28 },
-  { name: 'Champagne', hex: '#A79A87', wash: [188, 172, 146], a: 0.34 },
+  { name: 'Umber', hex: '#5A483C', wash: [156, 131, 107], a: 0.32 },
+  { name: 'Concrete', hex: '#77787A', wash: [150, 153, 158], a: 0.26 },
+  { name: 'Silver', hex: '#A8AEB3', wash: [178, 184, 190], a: 0.2 },
+  { name: 'Travertine', hex: '#9C8F76', wash: [186, 176, 150], a: 0.32 },
 ]
 
 /* Trail tuning — the source demo's numbers, adapted to 2D:

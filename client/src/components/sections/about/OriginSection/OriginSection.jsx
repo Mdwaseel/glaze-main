@@ -5,8 +5,8 @@ import './originSection.css'
 /**
  * OriginSection — port of about.html lines 1320-1418.
  *
- * Thirty-seven years in the metal: an intro text block and five milestone
- * figures, flown through as depth planes inside a 520vh pinned track.
+ * Thirty-seven years in the metal: an intro text block and four milestone
+ * figures, flown through as depth planes inside a 450vh pinned track.
  * With reduced motion (or no GSAP) the markup stays exactly as authored —
  * a static archive strip revealed by the page's own .fade-up / .wipe-in
  * system. Every runtime artefact of the flight (the atmosphere wash, the
@@ -63,75 +63,80 @@ export default function OriginSection() {
 
             </div>
 
-            {/* Five milestone snapshots, one plane each in the depth
+            {/* Four milestone snapshots, one plane each in the depth
                 flight (the camera passes them in DOM order). Each
                 carries its year / title / one-line note: beside the
                 image in the flight (--tr text right · --tl text
                 left — the side the era leans toward, away from the
                 centre corridor the thread runs through), below the
                 image in the static strip.
-                TODO(archive): swap all five for real Glaze archive
-                photographs, keeping the same filenames.
-                TODO(copy): confirm the one-line era notes. */}
+
+                The photographs are commissioned Glaze shots and they
+                are what fixes the count at four — there was a fifth
+                era here ("2020 · New Facility", a stock production
+                hall) with nothing to show for it, and the 2010 frame
+                is that purpose-built plant anyway. One beat per
+                photograph reads truer than a milestone propped up by
+                a borrowed image.
+
+                No width/height attributes on these imgs, deliberately.
+                The usual CLS argument does not apply — originSection.css
+                already pins the frame with `aspect-ratio: 4 / 3`, so the
+                box is known before the file lands. Worse, the attributes
+                actively break it: the page's only img reset
+                (styles/about-global.css, `:where(.page-about) img`) sets
+                max-width and display but never `height: auto`, so
+                `height="1086"` survives as a presentational hint, and an
+                element with both a used width and height ignores
+                aspect-ratio. The photograph renders 1086px tall inside a
+                445px plane. */}
             <div className="origin__eras" id="originEras" ref={erasRef}>
               <figure className="origin__era origin__era--tr" data-year="1989">
                 <div className="origin__era-media wipe-in">
-                  <img src="/images/about/origin-1989.jpg"
-                       alt="A machinist working a lathe in the early workshop years"
-                       loading="lazy" />
+                  <img src="/images/about/origin-1989.webp"
+                       alt="A fabricator checking an aluminium window profile with a micrometer in the early workshop"
+                       loading="lazy" decoding="async" />
                 </div>
                 <figcaption className="origin__era-text fade-up">
                   <span className="origin__year">1989</span>
                   <span className="origin__era-title">Foundation</span>
-                  <span className="origin__era-copy">Glaze begins extruding and engineering aluminium in Hyderabad.</span>
+                  <span className="origin__era-copy">One workshop in Hyderabad, extruding aluminium and measuring every section by hand.</span>
                 </figcaption>
               </figure>
               <figure className="origin__era origin__era--tl" data-year="2001" style={{ '--reveal-delay': '0.08s' }}>
                 <div className="origin__era-media wipe-in">
-                  <img src="/images/about/origin-craft.webp"
-                       alt="Sparks from aluminium fabrication on the workshop floor"
-                       loading="lazy" />
+                  <img src="/images/about/origin-2001.webp"
+                       alt="Fabricators assembling window frames along racks of aluminium profiles on the fabrication floor"
+                       loading="lazy" decoding="async" />
                 </div>
                 <figcaption className="origin__era-text fade-up">
                   <span className="origin__year">2001</span>
                   <span className="origin__era-title">Expansion</span>
-                  <span className="origin__era-copy">The workshop grows into a full fabrication floor.</span>
+                  <span className="origin__era-copy">The workshop becomes a fabrication floor — racked stock, assembly bays, a full team.</span>
                 </figcaption>
               </figure>
               <figure className="origin__era origin__era--tr" data-year="2010" style={{ '--reveal-delay': '0.16s' }}>
                 <div className="origin__era-media wipe-in">
-                  <img src="/images/about/origin-automation.jpg"
-                       alt="Robotic arms working a production line"
-                       loading="lazy" />
+                  <img src="/images/about/origin-2010.webp"
+                       alt="A line of CNC machining centres cutting aluminium profiles in the modern plant"
+                       loading="lazy" decoding="async" />
                 </div>
                 <figcaption className="origin__era-text fade-up">
                   <span className="origin__year">2010</span>
                   <span className="origin__era-title">Automation</span>
-                  <span className="origin__era-copy">Automated lines take over the repetitive work; tolerances tighten.</span>
+                  <span className="origin__era-copy">CNC lines take the repetitive work under one purpose-built roof; tolerances tighten to the millimetre.</span>
                 </figcaption>
               </figure>
-              <figure className="origin__era origin__era--tl" data-year="2020" style={{ '--reveal-delay': '0.24s' }}>
+              <figure className="origin__era origin__era--tl" data-year="2026" style={{ '--reveal-delay': '0.24s' }}>
                 <div className="origin__era-media wipe-in">
-                  <img src="/images/about/origin-facility.jpg"
-                       alt="A vast steel-framed production hall"
-                       loading="lazy" />
-                </div>
-                <figcaption className="origin__era-text fade-up">
-                  <span className="origin__year">2020</span>
-                  <span className="origin__era-title">New Facility</span>
-                  <span className="origin__era-copy">A purpose-built plant brings extrusion, finishing and assembly under one roof.</span>
-                </figcaption>
-              </figure>
-              <figure className="origin__era origin__era--tr" data-year="2026" style={{ '--reveal-delay': '0.32s' }}>
-                <div className="origin__era-media wipe-in">
-                  <img src="/images/about/origin-now.webp"
-                       alt="Modern glass towers rising against the sky"
-                       loading="lazy" />
+                  <img src="/images/about/origin-2026.webp"
+                       alt="Slim-framed sliding glass opening a living room onto a courtyard garden"
+                       loading="lazy" decoding="async" />
                 </div>
                 <figcaption className="origin__era-text fade-up">
                   <span className="origin__year">2026</span>
-                  <span className="origin__era-title">GLAZE</span>
-                  <span className="origin__era-copy">The window brand &mdash; everything the metal has learned, turned to glass.</span>
+                  <span className="origin__era-title">Today</span>
+                  <span className="origin__era-copy">Everything the metal has learned, turned to glass — and to the rooms it opens.</span>
                 </figcaption>
               </figure>
             </div>

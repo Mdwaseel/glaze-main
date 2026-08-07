@@ -63,7 +63,7 @@ export default function ValuesSection() {
             </div>
             <div className="vcard__media">
               <img src="/images/about/value-durability.webp"
-                   alt="Monsoon rain beading and running off a hard surface"
+                   alt="Monsoon rain beading on a bronze-finish aluminium window frame, hills beyond"
                    loading="lazy" />
             </div>
           </li>
@@ -81,7 +81,7 @@ export default function ValuesSection() {
             </div>
             <div className="vcard__media">
               <img src="/images/about/value-lowmaintenance.webp"
-                   alt="A bright, calm living room washed in window light"
+                   alt="A calm living room behind slim black-framed sliding glass, morning light across the floor"
                    loading="lazy" />
             </div>
           </li>
@@ -98,8 +98,11 @@ export default function ValuesSection() {
               </p>
             </div>
             <div className="vcard__media">
-              <img src="/images/about/value-versatility.webp"
-                   alt="A modern house facade mixing timber, render and slim-framed glazing"
+              {/* value-design, not value-versatility: the old file is still
+                  the third photograph in the Contact page's enquiry media
+                  stack, so it keeps its name and its portrait crop. */}
+              <img src="/images/about/value-design.webp"
+                   alt="Four houses in different architectural styles — concrete, timber, render and charred cladding — each glazed with the same slim black frames"
                    loading="lazy" />
             </div>
           </li>
@@ -117,7 +120,7 @@ export default function ValuesSection() {
             </div>
             <div className="vcard__media">
               <img src="/images/about/value-eco.webp"
-                   alt="Sunlight breaking through a broad green tree canopy"
+                   alt="Low sun breaking through a tree canopy into a living room behind full-height glazing"
                    loading="lazy" />
             </div>
           </li>

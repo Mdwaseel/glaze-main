@@ -213,8 +213,8 @@ export default function ProcessSection() {
       <article className="proc__step">
         <figure className="proc__media">
           <div className="proc__media-inner wipe-in">
-            <img src="/images/about/process/process-install.jpg"
-                 alt="A hammer drill resting on site during fitting"
+            <img src="/images/about/process/process-install.webp"
+                 alt="A fitter seating a window sash into its frame on site"
                  loading="lazy" />
           </div>
         </figure>
@@ -244,8 +244,8 @@ export default function ProcessSection() {
       <article className="proc__step">
         <figure className="proc__media">
           <div className="proc__media-inner wipe-in">
-            <img src="/images/about/process/process-handover.jpg"
-                 alt="A finished living space behind black-framed sliding glass doors"
+            <img src="/images/about/process/process-handover.webp"
+                 alt="A finished living room, its glazed doors and transoms opening onto a wooded deck"
                  loading="lazy" />
           </div>
         </figure>

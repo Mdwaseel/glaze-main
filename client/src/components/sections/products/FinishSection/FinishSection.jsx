@@ -1,5 +1,7 @@
 import { useLayoutEffect, useRef } from 'react'
+import { useMediaQuery } from '@/hooks'
 import { initFinishSwitcher } from './finishSwitcher'
+import FinishMobile from './FinishMobile'
 import './finishSection.css'
 
 /**
@@ -20,6 +22,13 @@ import './finishSection.css'
  * Bronze", so the section is complete before the controller runs.
  *
  * The `.fin__stage` clip reveal comes from useProductsEntrance.
+ *
+ * ⚠ ALL OF THIS IS THE 769px-AND-UP SECTION. Below that the whole subtree
+ * is replaced by FinishMobile — a touch-first configurator with a 4:5
+ * preview, family pills and circular swatches — because everything here
+ * is driven by hover, and a phone has no pointer to hover with. See its
+ * header for the reasoning, and the `isMobile` note in the body for how
+ * the swap is kept safe. Tablet still gets this section, unchanged.
  */
 
 /** The eight finishes, in the order the original lists them. */
@@ -37,7 +46,33 @@ const FINISHES = [
 export default function FinishSection() {
   const sectionRef = useRef(null)
 
-  useLayoutEffect(() => initFinishSwitcher(sectionRef.current), [])
+  /* ⚠ THE PHONE GETS A DIFFERENT SECTION, NOT A NARROWER ONE. Below 768px
+     everything from `.fin__grid` down is replaced by FinishMobile. It is a
+     SWAP, not an overlay — neither tree is rendered hidden behind the
+     other — and the shell around it is the same element either way: same
+     id, same label, same ground, which is what the phone layout reads its
+     colours from. */
+  const isMobile = useMediaQuery('(max-width: 768px)')
+
+  /* ⚠ `isMobile` IS A DEPENDENCY, NOT JUST A RENDER FLAG. The switcher is
+     an imperative controller that captured its swatches, layers and stamp
+     when it ran; crossing 768px destroys all three. Listing it here runs
+     the AbortController teardown on the way across in both directions, and
+     keeps the hover/focus/mouseleave bindings off the phone entirely. */
+  useLayoutEffect(() => {
+    if (isMobile) return undefined
+    return initFinishSwitcher(sectionRef.current)
+  }, [isMobile])
+
+  if (isMobile) {
+    return (
+      <section className="fin" id="sys-finish" aria-labelledby="fin-title" ref={sectionRef}>
+        <div className="fin__inner">
+          <FinishMobile finishes={FINISHES} />
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="fin" id="sys-finish" aria-labelledby="fin-title" ref={sectionRef}>

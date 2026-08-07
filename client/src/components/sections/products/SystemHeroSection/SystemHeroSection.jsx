@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { SYSTEM_CARD_MEDIA } from '@/data/systems'
 import './systemHeroSection.css'
 
 /**
@@ -40,6 +41,24 @@ export default function SystemHeroSection({ system }) {
 
   const { hero } = system
 
+  /* ⚠ THE POSTER USED TO BE `/products/glass/clear.webp` — HARD-CODED,
+     AND THE SAME ON ALL SIX PAGES. That file is the Glass Switcher's
+     "Clear" sample: a close-up of a pane, which is not a frame of any
+     hero clip and not even a picture of a window. It is what the visitor
+     saw for the whole of the metadata fetch, and for good on any browser
+     that refused autoplay — a sheet of glass where the system should be.
+     `preload="metadata"` makes that window longer than it looks: nothing
+     of the clip itself is fetched until playback is attempted.
+
+     The first frame of each clip already exists — the cross-link cards
+     use it, extracted once at 6–13 KB apiece — so the hero now shows the
+     system it is the hero of. `hero.poster` first, so a system whose clip
+     is replaced through the admin panel can carry its own; the card still
+     for that slug next; and nothing at all rather than a wrong picture if
+     neither is there, which for a `<video>` means the element's own black
+     rather than an unrelated photograph. */
+  const poster = hero.poster || SYSTEM_CARD_MEDIA[system.slug]?.poster || undefined
+
   return (
     <header className="shero" id="sys-hero">
       <div className="shero__media">
@@ -50,7 +69,7 @@ export default function SystemHeroSection({ system }) {
             id="sheroVideo"
             ref={videoRef}
             src={hero.video}
-            poster="/products/glass/clear.webp"
+            poster={poster}
             autoPlay
             muted
             loop

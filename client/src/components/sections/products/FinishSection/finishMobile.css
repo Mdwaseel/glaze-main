@@ -1,0 +1,601 @@
+/* Products §08 Frame & Finish — THE PHONE LAYOUT.
+   Every rule in this file is inside `@media (max-width: 768px)`.
+
+   ── WHY THIS FILE EXISTS ────────────────────────────────────────
+   finishSection.css draws a two-column hover study: a square stage of
+   eight stacked photographs beside a headline, a row of family labels
+   and a 4×2 grid of small square chips. Its whole grammar is HOVER —
+   the stage previews whatever the pointer is over and settles back to
+   the locked finish when it leaves. A phone has no pointer, so that
+   composition arrives on a phone as a picture with eight unexplained
+   squares under it.
+
+   So below 768px the section is a configurator, and the configurator is
+   PUT AWAY. The page holds one large photograph, one floating control,
+   the headline, the sentence and the RAL figure — nothing else. The
+   eight finishes and the four families live in a bottom sheet that
+   rises when the control is tapped. The reference points are the pages
+   this section competes with on a phone, which are Apple's and
+   Polestar's material pickers, not this site's own desktop.
+
+   ⚠ NOT ONE LINE OF THIS FILE APPLIES ABOVE 768px, and the component it
+   styles is not rendered above 768px either (FinishSection swaps on the
+   same query). Desktop and tablet are untouched by construction — there
+   is no shared rule here to regress.
+
+   ── TWO ROOTS, ONE TOKEN SET ────────────────────────────────────
+   `.finm` is the section content; `.finm-modal` is the sheet, and the
+   sheet is PORTALLED INTO <body> (see the component header for why —
+   short version: the page transforms, and a transform captures every
+   fixed-position descendant). They are therefore not ancestors of one
+   another, so the custom properties are declared on both.
+
+   ── WHAT IT BORROWS ─────────────────────────────────────────────
+   Every colour, face and curve is the section's own, read off `.fin`:
+
+     ground #0A0A0A, stage ground #050505           ← .fin / .fin__stage
+     bone ink, and the 0.62 / 0.48 / 0.38 ink steps ← .fin__lede / __sw-name
+                                                      / .fin__families
+     champagne accent on the live thing             ← .fin__sw.is-active
+     hairline rgba(245,245,243,0.12–0.18)           ← .fin__stamp / .fin__ral
+     mono 10px @ 0.26em for every label             ← .fin__stamp
+     display face for the figure                    ← .fin__ral b
+     translucent black + 14px blur on the pill      ← .fin__stamp
+     var(--ease-snap)                               ← .fin__sw
+
+   No new colour, no new typeface, no gradient. The one thing this file
+   adds is a radius family — 22px on the picture and the card, 26px on
+   the sheet's top corners, 999px on the pills — because the desktop
+   section is drawn entirely in square corners and a full-bleed square
+   photograph on a phone reads as an unstyled asset.
+
+   ── TIMING ──────────────────────────────────────────────────────
+   Sheet in 0.42s / out 0.36s, both driven from JS, both inside the
+   brief's 350–450ms. The picture's crossfade, its 1.02 settle and its
+   horizontal nudge are GSAP as well — three properties choreographed
+   against each other on two elements at once is past what transitions
+   can express. What is left in CSS is the resting state of every layer
+   (so the FIRST paint is correct before any JS runs) and the small
+   stuff: rings, ticks, ink, and the pill's press.
+
+     --finm-tint  0.3s   ink and border colour
+     --finm-move  0.5s   the ring opening, the tick landing
+*/
+
+@media (max-width: 768px) {
+
+  /* ── Tokens, on both roots ─────────────────────────────────── */
+  .finm,
+  .finm-modal {
+    --finm-radius: 22px;
+    --finm-sheet-radius: 26px;
+    --finm-move: 0.5s;
+    --finm-tint: 0.3s;
+    --finm-gutter: clamp(1.25rem, 6vw, 1.75rem);
+    --finm-block: clamp(2rem, 7.5vw, 2.6rem);
+    --finm-hair: rgba(245, 245, 243, 0.14);
+    /* The sheet's share of the screen. ⚠ THE COMPONENT MEASURES THIS
+       RATHER THAN REPEATING IT — it reads the sheet's rendered height to
+       work out how much room is left above, and centres the frame in
+       whatever that is. Change it here and the preview follows. */
+    --finm-sheet-h: 70svh;
+  }
+
+  /* The shell's own padding. The desktop values are a 12vh band and a
+     5vw gutter, which at 390px is 96px of air above a section whose
+     first element is now a near-full-screen photograph.
+     ⚠ THE GUTTER IS WRITTEN OUT RATHER THAN read from `--finm-gutter`.
+     That token is declared on `.finm`, which is a DESCENDANT of this
+     element, and custom properties inherit downward only — `.fin` would
+     silently fall through to the fallback. Same number, kept in step by
+     hand, because the alternative is a value that looks live and is not. */
+  .fin {
+    padding: clamp(3rem, 8vh, 4.25rem) clamp(1.25rem, 6vw, 1.75rem)
+      clamp(3.5rem, 10vh, 5rem);
+  }
+
+  .finm { color: var(--arch-bone); }
+
+  /* Everything that steps back when the sheet rises. `transform` is set
+     from JS; the origin is declared here because it is a design
+     decision, not an animation value. */
+  .finm__page { transform-origin: 50% 50%; }
+
+  /* ── The preview ───────────────────────────────────────────────
+     ⚠ A HEIGHT, NOT AN ASPECT RATIO. The brief asks for roughly 65% of
+     the viewport and that is a statement about the SCREEN, not about
+     the picture — a ratio would give a 320px-wide phone a short frame
+     and a 430px one a tall one, for the same 65% intent. The floor
+     stops a landscape phone collapsing it to a letterbox. */
+  .finm__hero {
+    position: relative;
+    height: 65svh;
+    min-height: 320px;
+    border-radius: var(--finm-radius);
+    background: #050505;
+    border: 1px solid rgba(167, 154, 135, 0.14);
+    overflow: hidden;
+  }
+
+  .finm__layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    /* ⚠ THE RADIUS IS REPEATED DOWN THE STACK, not left to the parent's
+       `overflow: hidden`. A transformed child inside a rounded, clipping
+       ancestor is exactly the case WebKit gets wrong — the corners square
+       off for the length of the transition and snap back at the end. */
+    border-radius: inherit;
+    /* ⚠ NO TRANSITION HERE, DELIBERATELY, and this is the one thing in
+       the file that would be a bug if it were written the obvious way.
+       GSAP writes `opacity` inline on EVERY FRAME of the crossfade; a CSS
+       transition on the same property makes the browser start a second,
+       competing animation toward each of those per-frame values, and the
+       fade arrives late and stepped. The transition therefore exists only
+       under reduced motion, which is the one path that sets the end value
+       in a single write and has something for a transition to do.
+
+       ⚠ THIS CLASS IS THE RESTING STATE ONLY. From the first change
+       onward GSAP's inline opacity, scale and x outrank it; the class is
+       here so the FIRST paint, the no-JS render and the reduced-motion
+       path are right without a frame of JavaScript. */
+  }
+  .finm__layer.is-live { opacity: 1; }
+  .finm__layer img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: inherit;
+  }
+
+  /* ── The floating control ──────────────────────────────────────
+     The only interactive element on the page until it is pressed. In
+     the desktop stamp's own materials — translucent black under a 14px
+     blur, hairline border — at a size a thumb can hit. */
+  .finm__pill {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    /* ⚠ ABOVE THE LAYERS, EXPLICITLY. DOM order is not enough here: the
+       crossfade hands the incoming layer `z-index: 2` and the outgoing
+       one `z-index: 1`, and a positioned sibling with a z-index beats a
+       positioned sibling without one however late it comes in the
+       markup. Left on `auto`, the pill is clickable exactly once — until
+       the first finish is chosen, after which the live photograph is
+       painted over the only control on the page. */
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(245, 245, 243, 0.2);
+    background: rgba(10, 10, 10, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    /* The one shadow in this file, and it is doing a job: the pill sits
+       on a photograph whose brightness it cannot know, so it needs its
+       own separation from whatever is behind it. */
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.75);
+    /* The release. A slight overshoot past 1 is what makes it read as
+       springing back rather than as easing back. */
+    transition: transform 0.42s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  /* The press. Faster than the release, because a control that takes as
+     long to go down as it does to come up feels sticky. */
+  .finm__pill:active {
+    transform: scale(0.96);
+    transition-duration: 0.12s;
+  }
+
+  /* ⚠ 22px OF ACTUAL FINISH, NOT A 7px PIP. The disc carries the
+     selected chip photograph, so the pill states which finish is on
+     screen instead of merely announcing that colour is configurable.
+     Small enough to stay a pill; large enough that ashwood and golden
+     oak are told apart at arm's length, which a dot cannot do. */
+  .finm__pill-chip {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    overflow: hidden;
+    /* A hairline, not the champagne ring the swatches wear — inside the
+       pill this disc is a value being reported, not a thing selected,
+       and a selection ring here would compete with the real one. */
+    border: 1px solid rgba(245, 245, 243, 0.28);
+  }
+  .finm__pill-chip img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ⚠ THE HOUSE SANS, NOT THE MONO. Every other label in this section is
+     mono 10px at 0.26em, and that is right for the ones that ARE labels —
+     the stamp, the family pills, the swatch names, all of which sit in
+     rows and want a set width. This one is a button on a photograph with
+     a 22px disc beside it: tracked-out capitals next to that read as
+     small print next to an object, and the word stops being a target.
+     Sentence case at 0.9rem gives it the same weight as the disc. */
+  .finm__pill-label {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    line-height: 1;
+    color: var(--arch-bone);
+  }
+
+  /* ── The copy ──────────────────────────────────────────────────
+     `.sec-title` unchanged — same face, weight, tracking and clamp,
+     which at 390px resolves to its 2.1rem floor. The break is authored
+     rather than left to wrap: "Choose a finish. Watch it settle." wraps
+     after "Watch" at this measure and strands two words of the italic
+     on the second line. */
+  .finm__copy { margin-top: var(--finm-block); }
+
+  .finm__title em { color: var(--champagne); }
+
+  .finm__lede {
+    margin-top: 1.1rem;
+    max-width: 42ch;
+    font-size: 1rem;
+    line-height: 1.75;
+    color: rgba(245, 245, 243, 0.62);
+  }
+
+  /* Desktop sets this figure on a hairline rule at the foot of the
+     column. On a phone that hairline is the last thing on the screen and
+     the number reads as a footnote, so it is boxed — same ink, same
+     display face, same 1px hairline, now a card. */
+  .finm__ral {
+    margin-top: var(--finm-block);
+    padding: clamp(1.5rem, 6vw, 1.9rem) clamp(1.4rem, 5.5vw, 1.75rem);
+    border-radius: var(--finm-radius);
+    border: 1px solid rgba(245, 245, 243, 0.12);
+    /* A lift off the section's #0A0A0A rather than a fill — the card is
+       meant to read as air, not as a panel. */
+    background: rgba(245, 245, 243, 0.022);
+  }
+  .finm__ral-fig {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 2.6rem;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    color: var(--champagne);
+  }
+  .finm__ral-key {
+    margin-top: 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: rgba(245, 245, 243, 0.66);
+  }
+  .finm__ral-sub {
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: rgba(245, 245, 243, 0.42);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     THE SHEET
+     Portalled into <body>, so none of this can be nested under `.finm`.
+  ═══════════════════════════════════════════════════════════════ */
+
+  /* Above the nav (60) and the blog's sub-bar (61), below the preloader
+     (9999) — the sheet must never be drawn over the opening curtain. */
+  .finm-modal__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    /* ⚠ 0.46, NOT 0.7. The picture behind this is the reason the sheet
+       stops at 70% instead of covering the screen; a scrim heavy enough
+       to feel like a proper modal is also heavy enough to make the finish
+       change unreadable, which is the one thing being demonstrated. */
+    background: rgba(0, 0, 0, 0.46);
+    /* Set from JS on the way in and out. */
+    opacity: 0;
+  }
+
+  .finm-modal__sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 901;
+    display: flex;
+    flex-direction: column;
+    height: var(--finm-sheet-h);
+    border-top-left-radius: var(--finm-sheet-radius);
+    border-top-right-radius: var(--finm-sheet-radius);
+    /* One step up from the section's #0A0A0A, so the sheet separates
+       from the picture behind it without a border doing the work. */
+    background: #101010;
+    border-top: 1px solid rgba(245, 245, 243, 0.1);
+    overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* ⚠ NO `transform: translateY(100%)` HERE, AND IT COST AN EVENING.
+       It looks like the obvious way to park the sheet off-screen before
+       the open tween takes over, and it silently breaks that tween.
+
+       GSAP does not read a CSS transform as the declaration you wrote —
+       it reads the COMPUTED MATRIX, which resolves percentages against
+       the element's own height and hands back pixels. So a sheet
+       declared at `translateY(100%)` is loaded by GSAP as `y: 590.797`
+       (on an 844px screen), with `yPercent: 0`. The open tween then
+       animates yPercent 100 → 0 exactly as written, lands, and moves the
+       sheet nowhere at all — because the 590.797px sitting in the OTHER
+       half of GSAP's transform was never part of the tween. The scrim
+       faded up over an empty screen and the sheet stayed at the bottom
+       edge, which reads as "the modal does not open".
+
+       The start state belongs to whoever owns the property. GSAP owns
+       this transform, so GSAP sets the start state — in a layout effect,
+       which runs before paint, so there is no frame of a sheet at rest
+       to see. */
+  }
+
+  /* Only the close button lives here now, so the row is right-aligned
+     and the heading below starts at the top of the sheet's own measure. */
+  .finm-modal__bar {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.9rem var(--finm-gutter) 0.2rem;
+  }
+
+  .finm-modal__close {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    /* Pulled out to the gutter's edge so the ICON lines up with the
+       content while the 44px target still overhangs it. */
+    margin-right: -0.7rem;
+    border-radius: 50%;
+    border: 1px solid var(--finm-hair);
+    color: rgba(245, 245, 243, 0.8);
+    transition: border-color var(--finm-tint) ease, color var(--finm-tint) ease;
+  }
+  .finm-modal__close svg { width: 18px; height: 18px; display: block; }
+  .finm-modal__close:active { border-color: var(--champagne); color: var(--arch-bone); }
+
+  .finm-modal__head {
+    flex: none;
+    padding: 0.4rem var(--finm-gutter) 1.4rem;
+  }
+
+  /* ⚠ THE HOUSE SANS, NOT PLAYFAIR, AND THIS IS THE ONE PLACE IN THE
+     SECTION THAT IS TRUE. The display face is for the two headlines and
+     the RAL figure — type you look at. This is type you READ while your
+     thumb is already over the swatches: three short facts, the last of
+     which changes under you. Playfair at 1.55rem made it a second
+     headline sitting 40px above the first one you scrolled past, and the
+     live half could not be told from the fixed half at a glance.
+
+     The weight break does the work the two sizes used to: `<b>` is the
+     subject, the rest of the sentence is the offer. Both are one
+     paragraph, at one size. */
+  .finm-modal__title {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    max-width: 34ch;
+    color: rgba(245, 245, 243, 0.62);
+  }
+  .finm-modal__title b {
+    font-weight: 600;
+    color: var(--arch-bone);
+  }
+
+  /* The live line. Same size and leading as the sentence above it, so
+     the two read as one block — only the finish name is lifted, because
+     the finish name is the only part of it that ever moves. */
+  .finm-modal__shown {
+    margin-top: 0.15rem;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    color: rgba(245, 245, 243, 0.62);
+  }
+  .finm-modal__shown span { color: var(--champagne); }
+
+  /* Only the grid scrolls. The families stay put at the top of the
+     sheet, so the tab you are on is never scrolled off the thing it is
+     filtering your view of. */
+  .finm-modal__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 var(--finm-gutter) clamp(2rem, 8vw, 2.75rem);
+  }
+
+  /* ── The family pills ──────────────────────────────────────────
+     Desktop's static label row, given a hit area. Wrapping, not
+     scrolling: four short strings fit two-up at 320px, and a scroller
+     would hide half the range behind a gesture nothing announces. */
+  .finm__families {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.35rem;
+  }
+
+  .finm__fam {
+    min-height: 44px;
+    padding: 0.75rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid var(--finm-hair);
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(245, 245, 243, 0.58);
+    transition: background-color var(--finm-tint) ease,
+      border-color var(--finm-tint) ease,
+      color var(--finm-tint) ease;
+  }
+  .finm__fam.is-active {
+    background: var(--champagne);
+    border-color: var(--champagne);
+    /* The house ink for type on champagne, not pure black — the same
+       pairing the champagne buttons elsewhere on the page use. */
+    color: var(--arch-black);
+  }
+  .finm__fam:active { transform: scale(0.98); }
+
+  /* No :hover branch anywhere in this file. This layout exists because
+     the pointer does not, and a sticky hover state on a phone is a
+     control that looks selected until something else is tapped. */
+
+  /* ── The swatches ──────────────────────────────────────────────
+     Desktop's 4×2 grid of squares becomes 2×4 circles. Two columns, not
+     three: a third column at 390px puts the circle under 100px and
+     breaks "Champagne Bronze" across three lines. */
+  .finm__swatches {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.6rem, 6vw, 2.2rem) clamp(1.25rem, 5vw, 1.75rem);
+    padding-top: 0.5rem;
+  }
+
+  .finm__sw {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    background: none;
+    transition: transform var(--finm-move) var(--ease-snap);
+  }
+  .finm__sw:active { transform: scale(0.97); }
+
+  .finm__sw-chip {
+    position: relative;
+    display: block;
+    width: 100%;
+    /* Capped so a 430px screen does not draw two 190px discs; the cell
+       stays centred either way. */
+    max-width: 148px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+  }
+  .finm__sw-chip img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 1px solid var(--finm-hair);
+    transition: border-color var(--finm-tint) ease;
+  }
+  .finm__sw.is-active .finm__sw-chip img { border-color: rgba(167, 154, 135, 0.55); }
+
+  /* The ring. A separate element rather than a box-shadow because it has
+     to OPEN — it starts inside the disc's own edge and expands out to its
+     resting radius, which a shadow cannot be animated to do without
+     repainting the disc under it. */
+  .finm__sw-ring {
+    position: absolute;
+    inset: -9px;
+    border-radius: 50%;
+    border: 1px solid var(--champagne);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity var(--finm-tint) ease,
+      transform var(--finm-move) var(--ease-snap);
+    pointer-events: none;
+  }
+  .finm__sw.is-active .finm__sw-ring { opacity: 1; transform: scale(1); }
+
+  /* The confirmation mark, centred ON the disc's edge at half past four.
+     ⚠ 85.36%, NOT `right: 0; bottom: 0`. The chip's box is a SQUARE and
+     the thing drawn in it is a circle, so the box's corner is 20% of the
+     radius clear of anything visible — a badge pinned there floats in the
+     gap. 85.36% is 50% + cos(45°)/2, which is where the circle actually
+     is, and it stays there at every disc size. */
+  .finm__sw-tick {
+    position: absolute;
+    left: 85.36%;
+    top: 85.36%;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--champagne);
+    color: var(--arch-black);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+    transition: opacity var(--finm-tint) ease,
+      transform var(--finm-move) var(--ease-snap);
+    pointer-events: none;
+  }
+  .finm__sw-tick svg { width: 14px; height: 14px; display: block; }
+  .finm__sw.is-active .finm__sw-tick { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  .finm__sw-name {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.5;
+    text-align: center;
+    color: rgba(245, 245, 243, 0.48);
+    transition: color var(--finm-tint) ease;
+  }
+  .finm__sw.is-active .finm__sw-name { color: var(--champagne); }
+
+  /* Focus has to be drawn even though hover is not: the arrow keys walk
+     the swatches and the roving tabindex means this ring is the only
+     thing saying where you are. */
+  .finm__pill:focus-visible,
+  .finm__fam:focus-visible,
+  .finm__sw:focus-visible,
+  .finm-modal__close:focus-visible {
+    outline: 2px solid var(--champagne);
+    outline-offset: 6px;
+  }
+  /* ⚠ ON THE SWATCH ONLY. `outline` follows the element's own radius, and
+     the swatch button has none of its own — the circle is a child.
+     Giving the pill or the close button a radius here would square their
+     corners the moment they took focus. */
+  .finm__sw:focus-visible { border-radius: 14px; }
+
+  /* ── Reduced motion ────────────────────────────────────────────
+     The picture still changes and the sheet still opens — both are
+     information, not decoration. What goes is the travel: the settle,
+     the horizontal nudge, the rise, the page stepping back. The
+     crossfade is kept and shortened, because a hard cut between two
+     photographs of the same corner reads as a glitch rather than as a
+     change. (The JS half of this is in the component: it skips the
+     GSAP tweens entirely and sets the end state.) */
+  @media (prefers-reduced-motion: reduce) {
+    .finm__layer { transition: opacity 0.15s linear; }
+    .finm__pill,
+    .finm__sw,
+    .finm__sw-ring,
+    .finm__sw-tick { transition-duration: 0.01ms; }
+    /* ⚠ THE RING AND THE TICK KEEP THEIR RESTING TRANSFORM, they do not
+       get `transform: none`. The ring's scale(1) is its resting size and
+       the tick's translate(-50%,-50%) is what centres it on the disc's
+       edge — dropping either does not remove motion, it moves the thing.
+       What is withdrawn is the travel INTO those values, and setting the
+       start state equal to the end state is what does that. */
+    .finm__sw-ring { transform: scale(1); }
+    .finm__sw-tick { transform: translate(-50%, -50%); }
+    .finm__pill:active,
+    .finm__sw:active,
+    .finm__fam:active { transform: none; }
+  }
+}

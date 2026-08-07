@@ -8,6 +8,7 @@ import FactorySection from '@/components/sections/about/FactorySection'
 import ManifestoSection from '@/components/sections/about/ManifestoSection'
 import PeopleSection from '@/components/sections/about/PeopleSection'
 import ValuesSection from '@/components/sections/about/ValuesSection'
+import EcosystemSection from '@/components/sections/about/EcosystemSection'
 import NumbersSection from '@/components/sections/about/NumbersSection'
 import CodaSection from '@/components/sections/about/CodaSection'
 import ContactSection from '@/components/sections/about/ContactSection'
@@ -111,6 +112,12 @@ export default function About() {
       {/* Ships parked behind the `hidden` attribute, as in about.html. */}
       <PeopleSection />
       <ValuesSection />
+      {/* §07b The Brio Ecosystem — NOT from about.html. New content, and
+          the second section on this page that is not a port (see
+          AssemblySection above). It sits here because this is where the
+          page stops describing how Glaze builds and starts describing who
+          Glaze belongs to — the last thing said before the figures. */}
+      <EcosystemSection />
       <NumbersSection />
       <CodaSection />
       {/* §11 Contact is the last section. The FOOTER that follows it in

@@ -1,0 +1,374 @@
+/* About §07b The Brio Ecosystem — the index.
+
+   NEW WORK, not a port. Every selector is `.eco*`-prefixed and the file
+   declares no keyframes; a full `eco` search across src/ returns nothing
+   outside this folder, so nothing here can collide with another section.
+
+   ── WHAT THIS REPLACED, AND WHY ─────────────────────────────────
+   Five equal cards. Legible, and forgettable: five identical rectangles
+   give five companies identical weight, which is a table of contents
+   rather than a composition, and no amount of padding inside a card fixes
+   a shape that repeats. Every card also capped its own heading at the
+   card's width, which is why the type could never carry the section.
+
+   This is an index instead. One entry per company across the full
+   measure, separated by a single drawn hairline, and the entries
+   ALTERNATE which half of the grid they hold — type left / mark right,
+   then reversed. Read down the page that is a zig-zag the eye follows
+   rather than a block it scans.
+
+   ⚠ THE EMPTY HALF OF EVERY ROW IS LOAD-BEARING. It is not padding that
+   could be tuned away in a tight sprint; it is the other side of the
+   alternation. Collapse it and the layout becomes a stack of full-width
+   blocks — which is exactly what it correctly becomes below 900px, where
+   there is no second half to alternate into.
+
+   ── THE PALETTE IS THE HOUSE PALETTE ────────────────────────────
+   The brief specified #0B0B0B and #C8A46A. Both were tried and reverted:
+   a ground a stop darker and an accent a stop warmer than every
+   neighbouring section reads as a rendering inconsistency rather than as
+   emphasis. The tokens declared on `.eco` below are the page's own, and
+   nothing in this file names a colour outside them.
+
+   ── WHAT IT STILL BORROWS ───────────────────────────────────────
+     the display heading with its Bodoni italic  ← .ptr__heading / .values__heading
+     mono 10px @ 0.26em for every label          ← the site-wide label voice
+     square corners, 2–3px at most               ← the About radius family
+     var(--ease-snap)                            ← the one shared curve
+     .fade-up / js-word-reveal                   ← the page's own reveal hooks
+*/
+
+.eco {
+  /* ⚠ THE HOUSE TOKENS, NOT THE BRIEF'S LITERALS. This section was first
+     authored to #0B0B0B / #C8A46A as specified. Both were reverted to the
+     page's own tokens on review: a ground a stop darker and an accent a
+     stop warmer than every neighbouring section reads as a rendering
+     inconsistency rather than as emphasis, and a hard-coded gold here
+     would be the one accent on the site that a future palette change
+     silently skips. The two lines below are the whole switch — swap them
+     back for the literals if the divergence is ever wanted. */
+  --eco-ground: var(--arch-black);
+  --eco-ink: var(--arch-bone);
+  --eco-gold: var(--champagne);
+  /* One hairline value for the whole section. The rules, the chips and
+     the CTA underline are all this, at different opacities of the same
+     ink — so there is one edge in the design, not four. */
+  --eco-hair: rgba(245, 245, 243, 0.12);
+  /* The vertical rhythm. Every gap below is this or a fraction of it. */
+  --eco-block: clamp(3.25rem, 8vw, 6rem);
+
+  position: relative;
+  background: var(--eco-ground);
+  color: var(--eco-ink);
+  padding: clamp(6rem, 15vh, 11rem) clamp(1.25rem, 5vw, 3rem);
+}
+
+.eco__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+/* ── The head ─────────────────────────────────────────────────── */
+.eco__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--eco-gold);
+}
+
+.eco__heading {
+  margin-top: 1.6rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  /* The largest thing in the section, and the only thing allowed to be. */
+  font-size: clamp(2.6rem, 6.4vw, 5.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.eco__heading em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--eco-gold);
+}
+
+.eco__lede {
+  margin-top: clamp(1.75rem, 3vw, 2.5rem);
+  /* ⚠ NOT FULL WIDTH, AND NOT CENTRED. Held to a reading measure and left
+     on the grid's left edge, so the empty space to its right is the first
+     statement the section makes about how much air it intends to use. */
+  max-width: 46ch;
+  font-size: clamp(1rem, 1.15vw, 1.1rem);
+  line-height: 1.85;
+  color: rgba(245, 245, 243, 0.56);
+}
+
+/* ── The index ────────────────────────────────────────────────── */
+.eco__index {
+  margin-top: clamp(4.5rem, 11vh, 8rem);
+  list-style: none;
+}
+
+.eco__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: center;
+  padding: var(--eco-block) 0;
+}
+
+/* The one edge in the design. Drawn from the left as the entry arrives —
+   see ecosystemAnimation.js — which is why it is an element with a
+   transform origin rather than a border on the row. */
+.eco__rule {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--eco-hair);
+  transform-origin: left center;
+  transition: background-color 0.5s var(--ease-snap);
+}
+
+/* Odd entries: type left, mark right. */
+.eco__text { grid-column: 1 / span 6; }
+.eco__figure { grid-column: 8 / span 5; }
+
+/* Even entries reverse it. `grid-row: 1` on both is what lets the DOM
+   order stay type-then-mark — which is the order they should be READ in,
+   and therefore the order a screen reader and a keyboard get — while the
+   picture moves to the other side visually. */
+.eco__row:nth-child(even) .eco__text { grid-column: 7 / span 6; grid-row: 1; }
+.eco__row:nth-child(even) .eco__figure { grid-column: 1 / span 5; grid-row: 1; }
+
+/* ── The entry's type ─────────────────────────────────────────── */
+.eco__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+.eco__num { color: var(--eco-gold); }
+/* A short rule between the number and the industry, in place of a
+   slash or a bullet — the same hairline as everything else. */
+.eco__meta-sep {
+  width: clamp(1.5rem, 3vw, 2.75rem);
+  height: 1px;
+  background: rgba(245, 245, 243, 0.24);
+}
+.eco__industry { color: rgba(245, 245, 243, 0.5); }
+
+.eco__name {
+  margin-top: clamp(1.1rem, 2vw, 1.6rem);
+  font-family: var(--font-display);
+  font-weight: 500;
+  /* Five times its own eyebrow. This is the size a card could not give
+     it, and the reason the layout changed. */
+  font-size: clamp(2.2rem, 4.4vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--eco-ink);
+  /* Nudged by the row hover below. */
+  transition: transform 0.6s var(--ease-snap);
+}
+
+.eco__body {
+  /* ⚠ WIDER THAN IT LOOKS IT SHOULD BE. The name above runs to 56px at
+     a 1.05 line-height, so a 1.2rem gap that reads as generous under a
+     20px heading reads as collision under this one. Leading scales with
+     the type it follows, not with the page. */
+  margin-top: clamp(1.4rem, 2.4vw, 2rem);
+  max-width: 44ch;
+  font-size: clamp(0.95rem, 1.05vw, 1.02rem);
+  line-height: 1.8;
+  color: rgba(245, 245, 243, 0.54);
+}
+
+/* ── Services ─────────────────────────────────────────────────── */
+/* Thin outline only, no fill. They are a footnote to the paragraph above
+   them, not a row of buttons — nothing here is clickable and nothing
+   should suggest it is. */
+.eco__services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: clamp(1.5rem, 2.4vw, 2rem);
+  list-style: none;
+}
+.eco__services li {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--eco-hair);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: rgba(245, 245, 243, 0.58);
+  transition: border-color 0.5s var(--ease-snap), color 0.5s var(--ease-snap);
+}
+
+/* ── The mark ─────────────────────────────────────────────────── */
+.eco__figure { overflow: hidden; }
+
+.eco__plate {
+  /* Matches the canvas baked into every file, so the corner clips white
+     against white and no seam can show at the crop. */
+  background: #ffffff;
+  border-radius: 3px;
+  overflow: hidden;
+  /* GSAP owns yPercent here for the drift; declaring a transform in CSS
+     would be seeded back as pixels and fight it. */
+  will-change: transform;
+}
+
+.eco__plate img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* The files are already identical 3:1 canvases with equal ink area —
+     see the component header — so there is nothing left for CSS to
+     equalise and no per-logo constant anywhere in this file. */
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+  transition: transform 0.9s var(--ease-snap);
+}
+
+/* ── The hover ────────────────────────────────────────────────── */
+/* Three things move together and all three are small: the rule warms to
+   gold, the name steps toward the mark, and the mark itself scales by 3%.
+   Gated on a real pointer — on a phone a sticky :hover leaves one entry
+   permanently lit, which reads as a selection nobody made. */
+@media (hover: hover) {
+  .eco__row:hover .eco__rule { background: var(--eco-gold); }
+  .eco__row:hover .eco__name { transform: translateX(10px); }
+  .eco__row:hover .eco__plate img { transform: scale(1.03); }
+  .eco__row:hover .eco__services li {
+    border-color: rgba(200, 164, 106, 0.34);
+    color: rgba(245, 245, 243, 0.74);
+  }
+}
+
+/* ── The foot ─────────────────────────────────────────────────── */
+.eco__foot {
+  position: relative;
+  padding-top: clamp(3rem, 7vw, 5rem);
+}
+.eco__rule--foot { transform: none; }
+
+.eco__cta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  /* 44px of hit area without a box drawn around it. */
+  padding: 0.85rem 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--eco-ink);
+  text-decoration: none;
+}
+
+/* The underline is its own element's ::after so it can be drawn rather
+   than switched on — origin left on the way in, and it is the only
+   decoration the CTA has. */
+.eco__cta-label {
+  position: relative;
+  padding-bottom: 0.35rem;
+}
+.eco__cta-label::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--eco-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.6s var(--ease-snap);
+}
+
+.eco__cta-arrow {
+  color: var(--eco-gold);
+  transition: transform 0.6s var(--ease-snap);
+}
+
+@media (hover: hover) {
+  .eco__cta:hover .eco__cta-label::after { transform: scaleX(1); }
+  .eco__cta:hover .eco__cta-arrow { transform: translateX(8px); }
+}
+
+/* Keyboard gets the same two moves the pointer does, rather than a ring
+   bolted on beside them. */
+.eco__cta:focus-visible {
+  outline: 2px solid var(--eco-gold);
+  outline-offset: 8px;
+}
+.eco__cta:focus-visible .eco__cta-label::after { transform: scaleX(1); }
+.eco__cta:focus-visible .eco__cta-arrow { transform: translateX(8px); }
+
+/* ── Responsive ───────────────────────────────────────────────── */
+/* Tablet keeps the alternation but narrows the gutter between the halves
+   — at this width a 4rem gap is a third of the type's measure. */
+@media (max-width: 1180px) {
+  .eco__text { grid-column: 1 / span 7; }
+  .eco__figure { grid-column: 9 / span 4; }
+  .eco__row:nth-child(even) .eco__text { grid-column: 6 / span 7; }
+  .eco__row:nth-child(even) .eco__figure { grid-column: 1 / span 4; }
+}
+
+/* ⚠ THE ALTERNATION ENDS HERE, IT DOES NOT COMPRESS. Below 900px there is
+   no second half of the grid to alternate into — two 6-column halves
+   become two narrow columns, and the name that this whole layout exists
+   to set large would wrap after one word. So the entries stack: mark
+   first, then type, in one full-measure column.
+
+   The mark leads rather than follows because on a phone the entry has to
+   announce WHICH company it is before it starts describing one, and at
+   this width the logo does that faster than a line of 10px mono. */
+@media (max-width: 900px) {
+  .eco__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.75rem, 5vw, 2.5rem);
+    align-items: start;
+  }
+  .eco__text,
+  .eco__figure,
+  .eco__row:nth-child(even) .eco__text,
+  .eco__row:nth-child(even) .eco__figure {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .eco__figure { order: -1; }
+
+  /* Capped, and left-aligned. Run full-width at 3:1 the plate becomes a
+     130px band of white above every entry — more ground than the mark
+     standing on it, and the brightest thing on a dark page. */
+  .eco__plate { max-width: 340px; }
+}
+
+@media (max-width: 560px) {
+  .eco__row { padding: clamp(2.5rem, 9vw, 3.25rem) 0; }
+  .eco__lede { max-width: none; }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────── */
+/* The build is skipped in JS, so the rules are already drawn and the copy
+   is already in place. What is left to withdraw is the hover travel —
+   the colour changes stay, because those are the affordance. */
+@media (prefers-reduced-motion: reduce) {
+  .eco__name,
+  .eco__plate img,
+  .eco__cta-arrow { transition: none; }
+  .eco__row:hover .eco__name,
+  .eco__cta:hover .eco__cta-arrow { transform: none; }
+  .eco__row:hover .eco__plate img { transform: none; }
+}

@@ -116,8 +116,10 @@ class EnquirySerializer(serializers.ModelSerializer):
     class Meta:
         model = Enquiry
         fields = (
-            'id', 'name', 'email', 'phone', 'enquiry_type', 'system', 'variant',
-            'message', 'source_path', 'website', 'created_at',
+            'id', 'name', 'email', 'phone', 'enquiry_type', 'system', 'systems',
+            'variant', 'message', 'country', 'city', 'state', 'openings', 'timeline',
+            'budget', 'contact_method', 'contact_time',
+            'source_path', 'website', 'created_at',
         )
         read_only_fields = ('id', 'created_at')
 

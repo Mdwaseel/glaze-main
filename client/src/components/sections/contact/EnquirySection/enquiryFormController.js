@@ -106,13 +106,28 @@ const API_ENQUIRY_URL = `${BASE_URL}/enquiries/`
  *  opens on step 01. Values are matched case/punctuation-
  *  insensitively, so ?system=Lift-And-Slide works too.
  * ═════════════════════════════════════════════════ */
+/* WARNING: KEYS ARE MATCHED AFTER normalise(), so they are lower-case and
+   letters-only — "independent-house", "Independent House" and
+   "independenthouse" all arrive here as the same key.
+
+   The two showroom entries are gone with the option itself; a stale link
+   would otherwise select nothing and open the form on a blank step 01
+   rather than failing visibly. "builder" and "architect" are short
+   aliases for the two long labels, because those are what a campaign URL
+   will actually be written with. */
 const TYPE_MAP = {
   villa: 'Villa',
   apartment: 'Apartment',
+  independenthouse: 'Independent House',
   commercial: 'Commercial',
   renovation: 'Renovation',
-  showroom: 'Showroom visit',
-  showroomvisit: 'Showroom visit',
+  hospitality: 'Hospitality',
+  builder: 'Builder / Developer',
+  builderdeveloper: 'Builder / Developer',
+  developer: 'Builder / Developer',
+  architect: 'Architect / Interior Designer',
+  architectinteriordesigner: 'Architect / Interior Designer',
+  interiordesigner: 'Architect / Interior Designer',
 }
 
 function pad(n) {
@@ -136,10 +151,10 @@ export function initEnquiryForm(section) {
 
   const steps = [].slice.call(form.querySelectorAll('.msf__step'))
   const fill = section.querySelector('#msfFill')
+  const segs = [].slice.call(section.querySelectorAll('.msf__seg'))
   const count = section.querySelector('#msfCount')
   const backBtn = section.querySelector('#msfBack')
   const nextBtn = section.querySelector('#msfNext')
-  const nextArrow = section.querySelector('#msfNextArrow')
   const submitBtn = section.querySelector('#msfSubmit')
   const statusEl = section.querySelector('#msfStatus')
   const doneEl = section.querySelector('#msfDone')
@@ -150,7 +165,6 @@ export function initEnquiryForm(section) {
 
   const liveEl = section.querySelector('#msfLive')
   const card = form.closest('.enq__card')
-  const pctEl = section.querySelector('#msfPct')
   const mediaImgs = section.querySelectorAll('.enq__media-stack img')
   let transitioning = false
 
@@ -174,13 +188,19 @@ export function initEnquiryForm(section) {
       s.classList.toggle('is-active', idx === current)
     })
     form.classList.toggle('msf--last', current === steps.length - 1)
-    fill.style.width = ((current + 1) / steps.length * 100) + '%'
+    /* Two rails, one source of truth. `--msf-progress` still drives the
+       continuous `.msf__fill` (kept as the fallback if the segments are
+       ever removed); `.is-done` lights the segments the markup actually
+       renders. Both read `current`, so they cannot disagree. */
+    if (fill) fill.style.setProperty('--msf-progress', (current + 1) / steps.length)
+    segs.forEach(function (seg, idx) {
+      seg.classList.toggle('is-done', idx <= current)
+    })
     count.textContent = pad(current + 1) + ' / ' + pad(steps.length)
-    if (pctEl) {
-      pctEl.textContent =
-        Math.round((current + 1) / steps.length * 100) + '%'
-    }
     syncMedia(current)
+    /* Rebuilt on arrival, not once at init: everything it summarises can
+       still change right up until Back is used from here. */
+    if (current === steps.length - 1) buildReview()
     backBtn.style.visibility = current === 0 ? 'hidden' : 'visible'
 
     // announce the step change to screen readers
@@ -290,7 +310,11 @@ export function initEnquiryForm(section) {
   // Choosing a chip clears its step's group error, pops the chip
   // and (for systems) swaps the note and the variant list.
   form.addEventListener('change', function (e) {
-    if (e.target.type !== 'radio') return
+    /* ⚠ CHECKBOXES TOO, NOT JUST RADIOS. Step 02 became multi-select, and
+       this handler is what clears the step's error state and plays the
+       selection settle — gated on `type === 'radio'` it did neither for a
+       system chip, so ticking one left the error showing. */
+    if (e.target.type !== 'radio' && e.target.type !== 'checkbox') return
     const step = e.target.closest('.msf__step')
     if (step) step.classList.remove('has-error')
     if (!reduceMotion) {
@@ -301,11 +325,33 @@ export function initEnquiryForm(section) {
         face.classList.add('chip--settle')
       }
     }
-    if (e.target.name === 'system') {
-      updateSysdesc(e.target)
-      syncVariants(e.target.value)
-    }
+    if (e.target.name === 'systems') syncSystems()
   }, { signal })
+
+  /* ── Step 02's derived state ───────────────────────────────────
+     The note and the variant disclosure both describe ONE system, so both
+     are a function of how many are ticked rather than of the last click.
+
+     ⚠ THE VARIANT IS CLEARED WHEN IT STOPS APPLYING. Selecting Sliding,
+     picking a variant, then also ticking Casement leaves a variant that
+     belongs to neither answer; folding the disclosure away without
+     resetting the select would post it anyway. */
+  function checkedSystems() {
+    return [].slice.call(form.querySelectorAll('input[name="systems"]:checked'))
+  }
+
+  function syncSystems() {
+    const on = checkedSystems()
+    if (on.length === 1) {
+      updateSysdesc(on[0])
+      syncVariants(on[0].value)
+    } else {
+      if (descEl) descEl.textContent = ''
+      if (vSelect) vSelect.value = ''
+      setVariant(false, false)
+      if (vToggle) vToggle.hidden = true
+    }
+  }
 
   // ── Variant disclosure (step 02) ───────────────────
   const vToggle = section.querySelector('#msfVariantToggle')
@@ -378,6 +424,71 @@ export function initEnquiryForm(section) {
     }, { signal })
   }
 
+  /* ═══════════════════════════════════════════════════════════
+   *  COUNTRY → REGION  (step 03)
+   *
+   *  Every country's regions are rendered at once, each option tagged with
+   *  the country it belongs to; this hides the ones that do not apply. Same
+   *  mechanism as the variant select, and for the same reason — it keeps
+   *  both fields uncontrolled, so `new FormData(form)` and the native POST
+   *  fallback see exactly what the visitor chose.
+   *
+   *  ⚠ THE FIELD'S LABEL CHANGES WITH THE COUNTRY. "State" is right in
+   *  India and Australia, wrong in the Emirates. The label text lives on
+   *  the option group's country in the markup, so this reads it off the DOM
+   *  rather than holding a second copy of the country list.
+   * ═══════════════════════════════════════════════════════════ */
+  const countrySel = section.querySelector('#msfCountry')
+  const stateSel = section.querySelector('#msfState')
+  const stateLabel = section.querySelector('#msfStateLabel')
+
+  /* One place the label wording lives on the JS side. Anything not listed
+     falls back to "State", which is right for most of the world and is
+     what the markup ships with. */
+  const REGION_LABELS = {
+    Australia: 'State / Territory',
+    Dubai: 'Emirate',
+  }
+
+  function syncRegions() {
+    if (!countrySel || !stateSel) return
+    const country = countrySel.value
+
+    ;[].slice.call(stateSel.querySelectorAll('option')).forEach(function (option) {
+      if (!option.value) return // the placeholder always stays
+      option.hidden = !country || option.dataset.country !== country
+    })
+    ;[].slice.call(stateSel.querySelectorAll('optgroup')).forEach(function (group) {
+      group.hidden = !country || group.label !== country
+    })
+
+    /* ⚠ A REGION FROM THE PREVIOUS COUNTRY MUST BE CLEARED, NOT JUST
+       HIDDEN. `hidden` removes an option from the dropdown but not from the
+       form: leave it selected and the enquiry posts "Australia / Telangana"
+       — an answer the visitor never gave and nobody would spot. */
+    const chosen = stateSel.selectedOptions[0]
+    if (chosen && chosen.value && chosen.dataset.country !== country) {
+      stateSel.value = ''
+    }
+
+    /* Nothing to choose from until a country is picked. Disabled rather
+       than hidden so the field keeps its place and the form does not
+       reflow the moment the first select is touched. */
+    stateSel.disabled = !country
+    const placeholder = stateSel.querySelector('option[value=""]')
+    if (placeholder) {
+      placeholder.textContent = country
+        ? 'Select ' + (REGION_LABELS[country] || 'state').toLowerCase()
+        : 'Select country first'
+    }
+    if (stateLabel) stateLabel.textContent = REGION_LABELS[country] || 'State'
+  }
+
+  if (countrySel) {
+    countrySel.addEventListener('change', syncRegions, { signal })
+    syncRegions()
+  }
+
   // ── Live character counter (step 03) ───────────────
   const msgInput = section.querySelector('#msfMessage')
   const charCount = section.querySelector('#msfCharCount')
@@ -397,12 +508,13 @@ export function initEnquiryForm(section) {
       return okType
     }
     if (i === 1) {
-      const okSys = chipChosen('system')
+      const okSys = checkedSystems().length > 0
       el.classList.toggle('has-error', !okSys)
       return okSys
     }
     if (i === 2) return true // everything optional
-    // step 4 — contact details
+    if (i === 4) return true // the review holds no inputs
+    // step 04 — contact details. Step 05 is the review and returns above.
     let allOk = true
     let firstBad = null
     Object.keys(contactFields).forEach(function (key) {
@@ -450,7 +562,6 @@ export function initEnquiryForm(section) {
   }
 
   nextBtn.addEventListener('click', goNext, { signal })
-  nextArrow.addEventListener('click', goNext, { signal })
   backBtn.addEventListener('click', function () {
     goTo(current - 1, true)
   }, { signal })
@@ -474,12 +585,16 @@ export function initEnquiryForm(section) {
   const skipBtn = section.querySelector('#msfSkipSystem')
   if (skipBtn) {
     skipBtn.addEventListener('click', function () {
-      const notSure = form.querySelector(
-        'input[name="system"][value="Not sure yet"]'
-      )
-      if (notSure) notSure.checked = true
+      /* ⚠ IT UNTICKS RATHER THAN TICKING A HIDDEN "NOT SURE" OPTION.
+         That option was a screen-reader-only radio in the old
+         single-choice group; with checkboxes there is nothing for it to be
+         mutually exclusive with, so "not sure" is now simply the empty
+         answer — which is also what it means. Anything already ticked is
+         cleared, so the skip cannot leave a half-answer behind. */
+      checkedSystems().forEach(function (input) { input.checked = false })
+      syncSystems()
       skipBtn.closest('.msf__step').classList.remove('has-error')
-      goNext()
+      goTo(current + 1, true)
     }, { signal })
   }
 
@@ -521,7 +636,12 @@ export function initEnquiryForm(section) {
     const wanted = normalise(raw)
     if (!wanted) return null
     let match = null
-    form.querySelectorAll('input[name="system"]').forEach(function (r) {
+    /* WARNING: `systems`, PLURAL. Step 02 became multi-select and the inputs
+       were renamed with it; this selector still said `system` and so matched
+       nothing, which meant every /contact?system=… link — the CTA on all
+       seven product pages — silently opened on a blank step 01 instead of a
+       pre-selected step 02. Nothing threw, so nothing showed it. */
+    form.querySelectorAll('input[name="systems"]').forEach(function (r) {
       if (match) return
       if (normalise(r.dataset.slug) === wanted || normalise(r.value) === wanted) match = r
     })
@@ -537,12 +657,12 @@ export function initEnquiryForm(section) {
   if (typeVal) checkChip('project_type', typeVal)
   if (sysRadio && checkRadio(sysRadio)) {
     startStep = 1
-    updateSysdesc(sysRadio)
   }
 
-  // Always run, chosen system or not: with none it hides the disclosure, and
-  // it is what puts the select in step with the chip on a pre-filled link.
-  syncVariants(sysRadio ? sysRadio.value : '')
+  // Always run, chosen system or not: it derives the note AND the variant
+  // disclosure from how many boxes are ticked, so one call covers the
+  // pre-filled link and the empty case.
+  syncSystems()
 
   if (variantVal && vSelect) {
     // Matched on the name rather than assigned, so `?variant=` can no longer
@@ -583,6 +703,359 @@ export function initEnquiryForm(section) {
       showStep(0, false)
     }, { signal })
   })
+
+  /* ===========================================================
+   *  DRAWINGS  (step 03)
+   *
+   *  WARNING: THE <input type="file"> HOLDS THE TRUTH; this code only ever
+   *  describes it. Files are never copied into a JS array and posted from
+   *  there - the input's own FileList is what `new FormData(form)` reads,
+   *  so what the visitor sees listed and what is uploaded cannot diverge.
+   *  Removing one therefore has to rebuild the input's list, which is what
+   *  DataTransfer is for below.
+   *
+   *  The three limits mirror EnquiryAttachment on the server. They are here
+   *  so a 40 MB drop fails in the same second rather than after uploading;
+   *  the server re-checks all three against the real bytes, because a limit
+   *  enforced only in a browser is not enforced.
+   * =========================================================== */
+  const MAX_FILES = 6
+  const MAX_BYTES = 10 * 1024 * 1024
+  const OK_SUFFIX = ['.pdf', '.png', '.jpg', '.jpeg', '.webp', '.heic', '.heif']
+
+  const fileInput = section.querySelector('#msfFiles')
+  const dropZone = section.querySelector('#msfDrop')
+  const fileList = section.querySelector('#msfFileList')
+  const fileError = section.querySelector('#msfFilesError')
+
+  function prettySize(bytes) {
+    return bytes < 1024 * 1024
+      ? Math.max(1, Math.round(bytes / 1024)) + ' KB'
+      : (bytes / 1048576).toFixed(1) + ' MB'
+  }
+
+  function suffixOf(name) {
+    const dot = (name || '').lastIndexOf('.')
+    return dot < 0 ? '' : name.slice(dot).toLowerCase()
+  }
+
+  /* WARNING: `committed` EXISTS BECAUSE THE INPUT CANNOT BE THE SOLE
+     RECORD, WHICH IS THE OPPOSITE OF WHAT THIS CODE FIRST ASSUMED.
+
+     Choosing files a second time does not append to <input type="file"> —
+     the browser REPLACES its FileList with the new pick. So by the time the
+     change handler runs, the previously attached drawings are already gone
+     from the only place they were being kept, and there is nothing left to
+     merge the new ones with. Worse, if the new pick is then rejected
+     (wrong type, too big), nothing gets written back at all: the input ends
+     up empty while the rendered list still shows the old rows, and the
+     summary and the upload disagree.
+
+     Playwright caught exactly that — two files listed, zero actually
+     attached. `committed` is the record; the input is kept in step with it,
+     and every path through acceptFiles() writes it back. */
+  let committed = []
+
+  /** Writes `files` to both the record and the input, which must agree. */
+  function commitFiles(files) {
+    committed = files
+    const dt = new DataTransfer()
+    files.forEach(function (f) { dt.items.add(f) })
+    fileInput.files = dt.files
+    renderFiles()
+  }
+
+  function renderFiles() {
+    if (!fileList) return
+    const files = committed
+    fileList.textContent = ''
+    files.forEach(function (f, i) {
+      const li = document.createElement('li')
+      li.className = 'msf__file-row'
+
+      const name = document.createElement('span')
+      name.className = 'msf__file-name'
+      /* textContent, not innerHTML: the filename is visitor-supplied and
+         this is the one place it is put back on the page. */
+      name.textContent = f.name
+
+      const size = document.createElement('span')
+      size.className = 'msf__file-size'
+      size.textContent = prettySize(f.size)
+
+      const remove = document.createElement('button')
+      remove.type = 'button'
+      remove.className = 'msf__file-remove'
+      remove.setAttribute('aria-label', 'Remove ' + f.name)
+      remove.textContent = '×'
+      remove.addEventListener('click', function () {
+        const next = committed.slice()
+        next.splice(i, 1)
+        commitFiles(next)
+        if (fileError) fileError.textContent = ''
+        dropZone.focus()
+      }, { signal })
+
+      li.appendChild(name)
+      li.appendChild(size)
+      li.appendChild(remove)
+      fileList.appendChild(li)
+    })
+    if (dropZone) dropZone.classList.toggle('has-files', files.length > 0)
+  }
+
+  /** Accept what is valid, report the first thing that is not. */
+  function acceptFiles(incoming) {
+    if (!fileInput) return
+    const existing = committed.slice()
+    const added = []
+    let problem = ''
+
+    ;[].slice.call(incoming).forEach(function (f) {
+      if (problem) return
+      if (existing.length + added.length >= MAX_FILES) {
+        problem = 'Up to ' + MAX_FILES + ' files. Remove one to add another.'
+        return
+      }
+      if (OK_SUFFIX.indexOf(suffixOf(f.name)) < 0) {
+        problem = '“' + f.name + '” is not a PDF or an image.'
+        return
+      }
+      if (f.size > MAX_BYTES) {
+        problem = '“' + f.name + '” is over ' + (MAX_BYTES / 1048576) + ' MB.'
+        return
+      }
+      // Same name and size twice is a double-drop, not a second drawing.
+      const dupe = existing.concat(added).some(function (e) {
+        return e.name === f.name && e.size === f.size
+      })
+      if (!dupe) added.push(f)
+    })
+
+    if (fileError) fileError.textContent = problem
+    /* WARNING: COMMITTED UNCONDITIONALLY, even when nothing was added. The
+       browser has already replaced the input's FileList with this pick, so
+       a rejected drop leaves the input holding the rejected file — or
+       nothing — while `committed` still holds the real ones. Writing back
+       every time is what puts the input back in step. */
+    commitFiles(existing.concat(added))
+  }
+
+  if (fileInput && dropZone) {
+    fileInput.addEventListener('change', function () {
+      /* The pick is read off the input and then merged against
+         `committed`; acceptFiles writes the result back, so whatever the
+         browser did to the FileList is undone in the same tick. */
+      acceptFiles([].slice.call(fileInput.files || []))
+    }, { signal })
+
+    ;['dragenter', 'dragover'].forEach(function (type) {
+      dropZone.addEventListener(type, function (e) {
+        e.preventDefault()
+        dropZone.classList.add('is-over')
+      }, { signal })
+    })
+    ;['dragleave', 'dragend', 'drop'].forEach(function (type) {
+      dropZone.addEventListener(type, function () {
+        dropZone.classList.remove('is-over')
+      }, { signal })
+    })
+    dropZone.addEventListener('drop', function (e) {
+      e.preventDefault()
+      if (e.dataTransfer && e.dataTransfer.files) acceptFiles(e.dataTransfer.files)
+    }, { signal })
+  }
+
+  /* ===========================================================
+   *  REVIEW  (step 05)
+   *
+   *  WARNING: BUILT FROM `new FormData(form)`, WHICH IS WHAT THE SUBMIT
+   *  POSTS. Reading the same object the request is built from is the only
+   *  way the summary cannot drift from the enquiry - a review assembled
+   *  from remembered state is a second source of truth, and that failure is
+   *  silent and looks like lying to the customer.
+   * =========================================================== */
+  const reviewEl = section.querySelector('#msfReview')
+
+  /* ⚠ THE GLYPHS ARE PATH DATA, NOT COMPONENTS. Everything this module
+     builds is created with document.createElement and inserted by hand —
+     it is a DOM controller, not React — so the review cannot import the
+     JSX icons the steps use. Rather than shipping a second icon system,
+     each row carries the one path it needs; they are the same drawings,
+     at the same 24-grid and stroke, as their counterparts in
+     formIcons.jsx. A row with no path simply renders without a badge. */
+  const REVIEW_ROWS = [
+    ['Project type', 'project_type', 'M4 10.5 12 4l8 6.5M6 9.8V20h12V9.8M10 20v-6h4v6'],
+    ['Systems', 'systems', 'M3.5 3.5h17v17h-17zM12 3.5v17M3.5 12h17'],
+    ['Variant', 'variant', 'M3.5 3.5h17v17h-17zM12 3.5v17'],
+    ['Location', ['city', 'state', 'country'], 'M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z'],
+    ['Openings', 'openings', 'M3.5 3.5h17v17h-17zM12 3.5v17M3.5 12h17'],
+    ['Timeline', 'timeline', 'M3.5 5h17v15h-17zM3.5 9.5h17M8 3.5v3M16 3.5v3'],
+    ['Budget', 'budget', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9 7.5h6M9 10.5h6M13.5 7.5c1.6 0 2.4 1.2 2.4 2.6 0 1.6-1.2 2.7-3.2 2.7H9l5 4'],
+    ['About', 'message', 'M6 2.5h7L19 8v13.5H6zM13 2.5V8h6M9 13h7M9 16.5h5'],
+    ['Name', 'name', 'M12 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 20a7 7 0 0 1 14 0'],
+    ['Phone', 'phone', 'M5 3.5h3.2l1.6 4-2 1.2a12 12 0 0 0 5.5 5.5l1.2-2 4 1.6V17a2.5 2.5 0 0 1-2.7 2.5A15.5 15.5 0 0 1 2.5 6.2 2.5 2.5 0 0 1 5 3.5z'],
+    ['Email', 'email', 'M2.5 5h19v14h-19zM3 6.5 12 13l9-6.5'],
+    ['Contact preference', ['contact_method', 'contact_time'], 'M3.5 5.5h17v11h-9l-5 4v-4h-3z'],
+  ]
+
+  const SVG_NS = 'http://www.w3.org/2000/svg'
+
+  /** A 34px badge holding one line glyph, or null when the row has none. */
+  function reviewBadge(d) {
+    if (!d) return null
+    const wrap = document.createElement('span')
+    wrap.className = 'msf__review-art'
+    const svg = document.createElementNS(SVG_NS, 'svg')
+    svg.setAttribute('viewBox', '0 0 24 24')
+    svg.setAttribute('fill', 'none')
+    svg.setAttribute('stroke', 'currentColor')
+    svg.setAttribute('stroke-width', '1.25')
+    svg.setAttribute('stroke-linecap', 'round')
+    svg.setAttribute('stroke-linejoin', 'round')
+    svg.setAttribute('aria-hidden', 'true')
+    const path = document.createElementNS(SVG_NS, 'path')
+    path.setAttribute('d', d)
+    svg.appendChild(path)
+    wrap.appendChild(svg)
+    return wrap
+  }
+
+  /**
+   * One summary row: badge + label above the value.
+   *
+   * ⚠ THE PAIR IS WRAPPED IN A <div>, AND THAT IS WHAT MAKES THE GRID WORK.
+   * <dt> and <dd> alternate, so a two-column grid laid over them directly
+   * auto-places every dt in column one and every dd in column two — a
+   * label column beside a value column, not the two columns of PAIRS the
+   * design asks for. The HTML spec allows a <div> to group a dt/dd pair
+   * inside a <dl> for exactly this reason, and it keeps the description-list
+   * semantics that make label-and-value a real relationship rather than
+   * two adjacent boxes.
+   */
+  function reviewRow(label, value, glyph) {
+    const row = document.createElement('div')
+    row.className = 'msf__review-row'
+
+    const dt = document.createElement('dt')
+    const badge = reviewBadge(glyph)
+    if (badge) dt.appendChild(badge)
+    const text = document.createElement('span')
+    text.textContent = label
+    dt.appendChild(text)
+
+    const dd = document.createElement('dd')
+    dd.textContent = value
+
+    row.appendChild(dt)
+    row.appendChild(dd)
+    return row
+  }
+
+  function buildReview() {
+    if (!reviewEl) return
+    const data = new FormData(form)
+    reviewEl.textContent = ''
+
+    REVIEW_ROWS.forEach(function (row) {
+      const label = row[0]
+      const keys = row[1]
+      const glyph = row[2]
+      let value
+
+      if (Array.isArray(keys)) {
+        value = keys.map(function (k) { return (data.get(k) || '').trim() })
+          .filter(Boolean).join(' · ')
+      } else {
+        // getAll: `systems` is multi-valued and every other key has one.
+        value = data.getAll(keys).map(function (v) { return String(v).trim() })
+          .filter(Boolean).join(', ')
+      }
+
+      // WARNING: EMPTY ROWS ARE DROPPED, NOT SHOWN BLANK. This is a summary
+      // of what was said, not an audit of what was skipped - and every field
+      // outside step 04 is optional, so a full list would be mostly dashes.
+      if (!value) return
+
+      reviewEl.appendChild(reviewRow(label, value, glyph))
+    })
+
+    const files = committed
+    if (files.length) {
+      reviewEl.appendChild(reviewRow(
+        'Drawings',
+        files.map(function (f) { return f.name }).join(', '),
+        'M6 2.5h7L19 8v13.5H6zM13 2.5V8h6M12 18v-6M9.5 14.5 12 12l2.5 2.5'
+      ))
+    }
+  }
+
+  /* ===========================================================
+   *  THE PAYLOAD
+   *
+   *  Two shapes, one endpoint. With no drawings attached this posts JSON
+   *  exactly as it always has; with drawings it must post multipart, because
+   *  a file cannot travel in a JSON body. Django reads either.
+   *
+   *  WARNING: `system` AND `systems` ARE BOTH SENT, AND THEY ARE NOT THE
+   *  SAME FIELD. Step 02 is multi-select now, so `systems` carries the whole
+   *  answer — but the admin filter, the inbox column and the notification
+   *  routing all key off a single `system`, so the FIRST choice is sent there
+   *  too. Dropping `system` would have meant migrating three consumers to
+   *  parse a list; the column exists server-side for exactly this reason.
+   *
+   *  City, state, openings, timeline and budget are now real columns and are
+   *  posted as themselves. They used to be appended to `message` as
+   *  "City: …\n\nOpenings: …" because there was nowhere else to put them,
+   *  which made them unsearchable and unfilterable. `message` is once again
+   *  only what the visitor actually typed.
+   * =========================================================== */
+  function selectedFiles() {
+    return committed
+  }
+
+  function payloadFields(data) {
+    const systems = data.getAll('systems').map(String).filter(Boolean)
+    return {
+      name: data.get('name') || '',
+      email: data.get('email') || '',
+      phone: data.get('phone') || '',
+      enquiry_type: data.get('project_type') || '',
+      system: systems[0] || '',
+      systems: systems.join(', '),
+      variant: data.get('variant') || '',
+      message: data.get('message') || '',
+      country: data.get('country') || '',
+      city: data.get('city') || '',
+      state: data.get('state') || '',
+      openings: data.get('openings') || '',
+      timeline: data.get('timeline') || '',
+      budget: data.get('budget') || '',
+      contact_method: data.get('contact_method') || '',
+      contact_time: data.get('contact_time') || '',
+      source_path: window.location.pathname,
+      // `_honey` is the original's own honeypot field; the API expects it
+      // under the name `website`.
+      website: data.get('_honey') || '',
+    }
+  }
+
+  function buildPayload(data) {
+    const fields = payloadFields(data)
+    const files = selectedFiles()
+    if (!files.length) return JSON.stringify(fields)
+
+    const body = new FormData()
+    Object.keys(fields).forEach(function (k) { body.append(k, fields[k]) })
+    files.forEach(function (f) { body.append('attachments', f, f.name) })
+    return body
+  }
+
+  function buildHeaders() {
+    return selectedFiles().length
+      ? { Accept: 'application/json' }
+      : { 'Content-Type': 'application/json', Accept: 'application/json' }
+  }
 
   // ── Submit — fetch in place, native POST as fallback ──
   form.addEventListener('submit', function (e) {
@@ -651,30 +1124,14 @@ export function initEnquiryForm(section) {
     // the backend being down, not yet deployed, or unreachable.
     fetch(API_ENQUIRY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      /* WARNING: NO Content-Type WHEN THERE ARE FILES. `fetch` sets
+         multipart/form-data AND its boundary parameter itself; a hand-written
+         header omits the boundary and the server cannot parse a single
+         field. buildPayload decides which shape this is, so the header has
+         to follow it. */
+      headers: buildHeaders(),
       credentials: 'omit',
-      body: JSON.stringify({
-        name: data.get('name') || '',
-        email: data.get('email') || '',
-        phone: data.get('phone') || '',
-        enquiry_type: data.get('project_type') || '',
-        system: data.get('system') || '',
-        variant: data.get('variant') || '',
-        // The three fields with no column of their own are folded into the
-        // message rather than dropped — they are the useful part of an
-        // enquiry and losing them to a schema mismatch would be worse than
-        // an untidy string.
-        message: [
-          data.get('message') || '',
-          data.get('city') ? `City: ${data.get('city')}` : '',
-          data.get('openings') ? `Openings: ${data.get('openings')}` : '',
-          data.get('timeline') ? `Timeline: ${data.get('timeline')}` : '',
-        ].filter(Boolean).join('\n\n'),
-        source_path: window.location.pathname,
-        // `_honey` is the original's own honeypot field; the API expects it
-        // under the name `website`.
-        website: data.get('_honey') || '',
-      }),
+      body: buildPayload(data),
     })
       .then(function (res) {
         if (!res.ok) throw new Error('api rejected')

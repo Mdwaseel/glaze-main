@@ -8,6 +8,9 @@ would turn every one of them into a string the application has to re-parse
 and re-validate by hand.
 """
 
+from pathlib import Path
+from uuid import uuid4
+
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import models
@@ -359,6 +362,46 @@ class Enquiry(models.Model):
     variant = models.CharField(max_length=60, blank=True)
     message = models.TextField(blank=True)
 
+    # ── The consultation form's own answers ───────────────────────────
+    #
+    # ⚠ COLUMNS, NOT PROSE. City, openings and timeline used to be appended
+    # to `message` as "City: Hyderabad\n\nOpenings: 5–15\n\n…", because there
+    # was nowhere else to put them. That was the right call when it was three
+    # optional strings and the alternative was dropping them. It stops being
+    # the right call here: the form now also asks budget, state, preferred
+    # contact method and best time to call, and an enquiry whose budget lives
+    # inside a paragraph cannot be filtered, sorted, counted or routed on.
+    # The dashboard cannot answer "how many ₹10L+ enquiries this month" when
+    # the answer is a substring.
+    #
+    # All blank=True: every one of these is optional on the form, and a
+    # visitor who answers only "villa" and a phone number is still a lead.
+    # WARNING: COUNTRY IS ASKED FIRST AND STORED SEPARATELY because `state`
+    # is only unambiguous inside one. "Victoria" is an Australian state and
+    # a district in several other places; "Selangor" means nothing without
+    # Malaysia beside it. Folding the two into one string would have made
+    # the column unfilterable the moment the second country was added.
+    country = models.CharField(max_length=80, blank=True)
+    city = models.CharField(max_length=120, blank=True)
+    state = models.CharField(max_length=120, blank=True)
+    openings = models.CharField(max_length=40, blank=True)
+    timeline = models.CharField(max_length=40, blank=True)
+    budget = models.CharField(max_length=40, blank=True)
+    contact_method = models.CharField(max_length=20, blank=True)
+    contact_time = models.CharField(max_length=20, blank=True)
+
+    # ⚠ `systems` DOES NOT REPLACE `system`, AND THAT IS DELIBERATE. Step 2
+    # became multi-select, so the full answer is a list. But `system` is a
+    # filter facet in the Django admin, a column in the dashboard inbox and
+    # part of how notifications are routed — all of which expect one value.
+    # So `system` keeps the FIRST choice and carries on working untouched,
+    # and `systems` carries the whole answer. Storing only the list would
+    # have meant migrating three consumers to parse a string.
+    systems = models.CharField(
+        max_length=300, blank=True,
+        help_text='Every system chosen, comma-separated. `system` holds the first.',
+    )
+
     source_path = models.CharField(max_length=300, blank=True)
     category = models.CharField(
         max_length=20, choices=CATEGORY_CHOICES, default=CATEGORY_GENERAL, db_index=True,
@@ -398,3 +441,70 @@ class Enquiry(models.Model):
         if path.startswith('/contact'):
             return cls.CATEGORY_CONTACT
         return cls.CATEGORY_GENERAL
+
+
+def enquiry_attachment_path(instance, filename):
+    """Where an uploaded drawing lands on disk.
+
+    Foldered by enquiry id so one lead's files stay together and deleting the
+    row can take its directory with it.
+
+    ⚠ THE STORED NAME IS NOT THE UPLOADED NAME. Django will suffix a
+    collision, but that is not what this is for: the uploaded name is
+    attacker-controlled on a public endpoint, and it reaches a filesystem.
+    `Path(filename).suffix` throws away any directory component — so
+    "../../settings.py" arrives as ".py" — and the stem is replaced with a
+    random token rather than sanitised, because sanitising means enumerating
+    what is dangerous and the list is longer than it looks (NUL bytes,
+    trailing dots and reserved device names on Windows, unicode
+    right-to-left overrides that disguise the real extension).
+
+    The visitor's own filename is still kept — in `original_name`, a database
+    column, where it is data rather than a path.
+    """
+    suffix = Path(filename or '').suffix.lower()[:12]
+    return f'enquiries/{instance.enquiry_id or "unfiled"}/{uuid4().hex}{suffix}'
+
+
+class EnquiryAttachment(models.Model):
+    """One drawing, plan or sketch attached to an enquiry.
+
+    ⚠ THIS IS AN UNAUTHENTICATED UPLOAD ENDPOINT, which is the only fact that
+    matters about it. Anyone on the internet can post here, so the limits are
+    enforced server-side in the view (count, size, extension) and NOT trusted
+    from the browser — the client-side checks in the form exist to give a
+    visitor a fast, kind error, not to keep anything out.
+
+    The three limits live here as constants so the serializer, the view and
+    the admin all read the same numbers, and so the form's copy can be
+    generated from them rather than repeating them by hand.
+    """
+
+    #: Per enquiry. Enough for a plan set; not enough to be storage.
+    MAX_FILES = 6
+    #: Per file. A scanned A1 elevation is comfortably under this.
+    MAX_BYTES = 10 * 1024 * 1024
+
+    #: ⚠ EXTENSION ALLOW-LIST, NOT A BLOCK-LIST. A block-list is a guess about
+    #: what is dangerous; this is a statement about what a drawing is. SVG is
+    #: absent on purpose — it is an image everywhere else on this site, but it
+    #: is also a document that can carry script, and it would be served from
+    #: our own origin.
+    ALLOWED_SUFFIXES = ('.pdf', '.png', '.jpg', '.jpeg', '.webp', '.heic', '.heif')
+
+    enquiry = models.ForeignKey(
+        Enquiry, related_name='attachments', on_delete=models.CASCADE,
+    )
+    file = models.FileField(upload_to=enquiry_attachment_path)
+    #: What the visitor called it. Display only — never used to build a path.
+    original_name = models.CharField(max_length=255, blank=True)
+    size = models.PositiveIntegerField(default=0)
+    content_type = models.CharField(max_length=100, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'siteconfig_enquiry_attachment'
+        ordering = ('id',)
+
+    def __str__(self):
+        return self.original_name or self.file.name

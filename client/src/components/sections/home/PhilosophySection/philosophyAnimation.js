@@ -8,9 +8,16 @@ import { readCountTarget, readDecimals, setFinalCount } from '@/utils/counters'
  * Every duration, easing, position parameter and stagger below is copied
  * from the original. The position strings ('<', '-=0.3', '-=0.95') are
  * what make the steps overlap; changing one changes the whole rhythm.
- * The one departure: the original opened on an eyebrow tween the headline
- * hung off at '-=0.4'. The eyebrow is gone, so the headline opens the
- * timeline outright.
+ *
+ * Two departures from hero.html:
+ *
+ *   · The original opened on an eyebrow tween the headline hung off at
+ *     '-=0.4'. The eyebrow is gone, so the headline opens the timeline
+ *     outright.
+ *   · The whole sequence is played at 1.55x — see the note on
+ *     `tl.timeScale` below. The composed rhythm is untouched; only the
+ *     rate it runs at changed, because 3.2s was long enough that a
+ *     visitor scrolling normally never saw the end of it.
  *
  * Deliberately NOT using useCountUp here: the base script excludes
  * `.philosophy` from its IntersectionObserver count-up precisely because
@@ -56,6 +63,30 @@ export function buildPhilosophyAnimation(section) {
       introDone = true
     },
   })
+
+  /* ⚠ THE RHYTHM IS SCALED, NOT REWRITTEN, AND THAT IS THE WHOLE REASON
+     THIS IS ONE LINE INSTEAD OF TEN EDITS.
+
+     As authored the sequence ran 3.20s from trigger to last label — long
+     enough that a visitor scrolling at any normal speed met it still in
+     flight, which is what reads as "slow". It needed to come down, but
+     every duration below is entangled with a position string ('-=0.3',
+     '-=0.2', '-=0.95') and those strings are ABSOLUTE seconds, not
+     fractions. Halving the durations by hand while leaving them alone
+     would leave a 0.95s overlap sitting on a 0.6s tween — the labels
+     would start before the counters, and the steps would collapse into
+     each other rather than following one another.
+
+     timeScale multiplies the durations AND the offsets by the same
+     factor, so every overlap keeps its proportion and the choreography
+     is exactly the one that was authored, just played faster. The
+     numbers written below stay honest as the composed rhythm; this is
+     the playback rate.
+
+     1.55 puts the sequence at ~2.06s: the counters land in 0.77s, which
+     still reads as counting rather than as a number appearing. Past
+     about 1.8 they stop counting and start flickering. */
+  tl.timeScale(1.55)
 
   // 1 — Headline fades up. It opens the timeline now that the eyebrow is
   // gone; leaving the old tween in place with a null target would have kept

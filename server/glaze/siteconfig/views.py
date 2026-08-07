@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
@@ -10,7 +13,7 @@ from account.security import client_ip, record_audit
 
 from .defaults import DEFAULT_AUTO_REPLY_HTML, PLACEHOLDERS
 from .mailer import send_enquiry_emails, send_test_auto_reply, send_test_notification
-from .models import ContactSettings, Enquiry, SiteSettings
+from .models import ContactSettings, Enquiry, EnquiryAttachment, SiteSettings
 from .serializers import (
     AdminEnquirySerializer,
     AdminSiteSettingsSerializer,
@@ -153,6 +156,47 @@ class AdminTestAutoReplyView(APIView):
         return Response({'detail': f'Test auto-reply sent to {to_email}.'})
 
 
+def _clean_attachments(uploads):
+    """Validate the uploaded drawings, or raise with something readable.
+
+    ⚠ THIS IS THE ONLY PLACE THE LIMITS ARE ENFORCED. The endpoint is
+    unauthenticated and rate-limited but otherwise open, so every rule the
+    browser applies is re-applied here against the real bytes. The three
+    numbers come off the model so the form's copy, the serializer and this
+    function cannot drift apart.
+
+    Checked in the order that fails cheapest: count before size before
+    extension, so a bot posting fifty files is rejected without the suffix of
+    each one being parsed.
+    """
+    if not uploads:
+        return []
+
+    if len(uploads) > EnquiryAttachment.MAX_FILES:
+        raise DjangoValidationError(
+            f'Please attach no more than {EnquiryAttachment.MAX_FILES} files.'
+        )
+
+    limit_mb = EnquiryAttachment.MAX_BYTES // (1024 * 1024)
+    for upload in uploads:
+        if (upload.size or 0) > EnquiryAttachment.MAX_BYTES:
+            raise DjangoValidationError(
+                f'“{upload.name}” is larger than {limit_mb} MB.'
+            )
+        # ⚠ THE SUFFIX, NOT THE CONTENT TYPE. `upload.content_type` is sent by
+        # the client and is trivially forged; the suffix is what decides how
+        # the file is stored and later served, so the suffix is what is
+        # checked. Content type is recorded for the inbox, never trusted.
+        suffix = Path(upload.name or '').suffix.lower()
+        if suffix not in EnquiryAttachment.ALLOWED_SUFFIXES:
+            allowed = ', '.join(s.lstrip('.').upper() for s in EnquiryAttachment.ALLOWED_SUFFIXES)
+            raise DjangoValidationError(
+                f'“{upload.name}” is not a supported file type. Please attach {allowed}.'
+            )
+
+    return uploads
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @throttle_classes([ScopedRateThrottle])
@@ -165,6 +209,15 @@ def submit_enquiry(request):
     """
     serializer = EnquirySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+
+    # ⚠ FILES ARE VALIDATED BEFORE THE ROW IS WRITTEN, so a rejected upload
+    # cannot leave a half-saved enquiry with no drawings and no explanation.
+    # The browser checks the same three rules first — that is for the
+    # visitor's benefit, not ours; nothing here trusts it.
+    try:
+        uploads = _clean_attachments(request.FILES.getlist('attachments'))
+    except DjangoValidationError as exc:
+        return Response({'attachments': exc.messages}, status=status.HTTP_400_BAD_REQUEST)
 
     honeypot = serializer.validated_data.pop('website', '')
     enquiry = Enquiry(**serializer.validated_data)
@@ -179,9 +232,24 @@ def submit_enquiry(request):
         # password manager that autofills hidden fields.
         enquiry.status = Enquiry.STATUS_SPAM
         enquiry.save()
+        # ⚠ SPAM KEEPS ITS ROW BUT NOT ITS FILES. The row is a few hundred
+        # bytes and is worth having to audit the honeypot; the uploads are
+        # up to 60 MB of attacker-chosen content, and writing them to disk
+        # for a submission we have already judged to be a bot is the whole
+        # attack. They are dropped without ever being saved.
         return Response({'detail': 'Thank you. We will be in touch shortly.'}, status=status.HTTP_201_CREATED)
 
     enquiry.save()
+
+    for upload in uploads:
+        EnquiryAttachment.objects.create(
+            enquiry=enquiry,
+            file=upload,
+            original_name=(upload.name or '')[:255],
+            size=upload.size or 0,
+            content_type=(getattr(upload, 'content_type', '') or '')[:100],
+        )
+
     send_enquiry_emails(enquiry)
 
     return Response(

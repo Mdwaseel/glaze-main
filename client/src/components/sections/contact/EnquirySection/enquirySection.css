@@ -93,10 +93,18 @@
      this the fill never painted at all */
   display: block;
   height: 100%;
-  width: 25%;
+  /* ⚠ FULL WIDTH, SCALED — NOT A WIDTH THAT GROWS. This animated `width`
+     from 25% to 100%, which lays out the track on every frame of a 0.6s
+     transition, four times per form. `transform: scaleX()` is composited:
+     same movement, no layout, and it is the one property a progress bar
+     actually wants. The controller sets `--msf-progress` (0–1); nothing
+     else touches this element. */
+  width: 100%;
+  transform: scaleX(var(--msf-progress, 0.25));
+  transform-origin: left center;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--champagne), var(--bronze));
-  transition: width 0.6s var(--ease-snap);
+  transition: transform 0.6s var(--ease-snap);
 }
 
 .msf__pct {
@@ -213,20 +221,29 @@
     transform 0.35s var(--ease-snap), box-shadow 0.35s var(--ease-snap);
 }
 
-/* check mark, drawn with a mask so it inherits the chip's text
-   colour; zero-width until checked so unselected chips keep their
-   exact size */
+/* Check mark, drawn with a mask so it inherits the chip's text colour.
+ *
+ * ⚠ THE SPACE IS RESERVED, NOT GROWN, AND THIS WAS A REAL BUG. It used to
+ * go from `width: 0` to `0.8em` with a matching margin over 0.3s, which is
+ * two layout properties animating on the element that starts a flex row —
+ * so every frame of every selection re-laid-out the whole chip group and
+ * the chips after the tapped one visibly slid sideways. On step 2, where
+ * several can be on at once, that happened on every toggle.
+ *
+ * Reserving the 0.8em permanently costs ~12px inside a pill that is
+ * already 1.3rem-padded — invisible — and makes selection cost nothing but
+ * a composited fade and scale. Nothing moves except the mark itself. */
 .chip__face::before {
   content: '';
-  width: 0;
+  width: 0.8em;
   height: 0.72em;
-  margin-right: 0;
+  margin-right: 0.45em;
   opacity: 0;
+  transform: scale(0.55);
   background-color: currentColor;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5.5l3.2 3L11 1.5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5.5l3.2 3L11 1.5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E") center / contain no-repeat;
-  transition: width 0.3s var(--ease-snap),
-    margin-right 0.3s var(--ease-snap), opacity 0.25s ease;
+  transition: opacity 0.25s ease, transform 0.3s var(--ease-snap);
 }
 
 .chip:hover .chip__face {
@@ -244,9 +261,8 @@
 }
 
 .chip input:checked + .chip__face::before {
-  width: 0.8em;
-  margin-right: 0.45em;
   opacity: 1;
+  transform: scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -305,23 +321,49 @@
   transition: color 0.25s ease;
 }
 
-.msf__skip::after {
+/* ⚠ THE RULE UNDERLINES THE WORDS, NOT THE BUTTON. It used to be a
+   `width: 100%` bar on `.msf__skip` itself, which meant it ran the full
+   width of the control — including the arrow — so on hover a line grew
+   out from under the last letter and kept going under a glyph that is not
+   type. Anchored to the label instead, it stops where the sentence stops,
+   and the arrow is free to move on its own. */
+.msf__skip-text {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.3rem;
+}
+.msf__skip-text::after {
   content: '';
   position: absolute;
   left: 0;
-  bottom: 0.15rem;
-  width: 100%;
+  right: 0;
+  bottom: 0;
   height: 1px;
   background: var(--bronze);
   transform: scaleX(0);
-  transform-origin: right;
+  transform-origin: right center;
+  transition: transform 0.45s var(--ease-snap);
+}
+
+.msf__skip-arrow {
+  display: inline-block;
   transition: transform 0.45s var(--ease-snap);
 }
 
 .msf__skip:hover { color: var(--arch-black); }
-.msf__skip:hover::after {
+.msf__skip:hover .msf__skip-text::after,
+.msf__skip:focus-visible .msf__skip-text::after {
   transform: scaleX(1);
-  transform-origin: left;
+  transform-origin: left center;
+}
+/* The arrow carries the movement the underline used to fake by growing
+   past the text. */
+.msf__skip:hover .msf__skip-arrow,
+.msf__skip:focus-visible .msf__skip-arrow { transform: translateX(4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .msf__skip-text::after, .msf__skip-arrow { transition: none; }
+  .msf__skip:hover .msf__skip-arrow { transform: none; }
 }
 
 /* ── Step 02: one-line system note, swapped on selection.
@@ -367,6 +409,14 @@
 }
 
 .msf--stepped .msf__vtoggle { display: block; }
+/* ⚠ `hidden` LOSES TO `display` WITHOUT THIS, and it did. The controller
+   sets `vToggle.hidden = true` whenever the variant question stops
+   applying — zero systems chosen, or two or more — and the rule above
+   quietly outranked the attribute, so the disclosure stayed on screen
+   offering a format that belongs to neither answer. The property read
+   `true` the whole time, which is why it passed a scripted check and only
+   a screenshot caught it. */
+.msf--stepped .msf__vtoggle[hidden] { display: none; }
 
 .msf__vtoggle:hover { color: var(--arch-black); }
 
@@ -778,6 +828,823 @@ textarea.msf__input {
 
 @media (max-width: 960px) {
   .enq__inner { grid-template-columns: 1fr; }
-  /* image second on mobile — source order already does this */
+
+  /* ⚠ THE PICTURE LEADS ON A PHONE, AND ONLY VISUALLY. Source order is
+     card-then-figure so the form — the thing the visitor came to do — is
+     the first thing a screen reader and the tab key reach. `order` moves
+     the photograph above it for the eye without touching that: the figure
+     is `role="img"` with a description and holds no focusable content, so
+     there is nothing in it for the reading order to lose.
+
+     It leads because a consultation form landing cold, with no picture of
+     what is being consulted about, opens on a legend and a row of chips —
+     the page's least persuasive 200px. */
+  .enq__media { order: -1; }
+
+  /* ⚠ AND IT GETS SHORTER TO EARN THE PLACE. At its desktop 4:5 a
+     390px-wide phone spends ~490px — most of the fold — on the picture
+     before the form's first question, which trades one problem for a
+     worse one. 16:10 keeps it a header rather than a hero. */
+  .enq__media { aspect-ratio: 16 / 10; }
+
   .msf__grid { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE CONSULTATION REDESIGN — step blocks, drawings, review.
+
+   Everything below is additive: no rule here changes an existing one, so
+   the no-JS stacked form and the four original steps are untouched. The
+   type scale, the hairline and the radius family are the card's own.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Helper copy under a legend ──────────────────────────────── */
+.msf__help {
+  margin-top: 0.7rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(27, 27, 27, 0.55);
+}
+/* The "multiple allowed" aside sits on its own line rather than in
+   brackets — it is an instruction, and an instruction in parentheses at
+   the end of a sentence is read last or not at all. */
+.msf__help-note {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+/* ── One question per block ──────────────────────────────────────
+   ⚠ THE RULE IS ON `+ .msf__block`, NOT ON EVERY BLOCK. A border-top on
+   each one draws a line immediately under the legend as well, which reads
+   as the heading being boxed rather than as the questions being
+   separated. Only the gaps BETWEEN questions are drawn. */
+.msf__block { margin-top: clamp(1.75rem, 4vw, 2.5rem); }
+.msf__block + .msf__block {
+  padding-top: clamp(1.75rem, 4vw, 2.5rem);
+  border-top: 1px solid rgba(27, 27, 27, 0.08);
+}
+
+.msf__block-title {
+  display: block;
+  margin-bottom: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.72);
+}
+.msf__block-title small {
+  font-size: inherit;
+  letter-spacing: inherit;
+  color: rgba(27, 27, 27, 0.4);
+}
+
+.msf__textarea {
+  min-height: 7.5rem;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+
+/* ── Drawings ────────────────────────────────────────────────────
+   ⚠ THE ZONE IS A <label> WRAPPING THE REAL <input type="file">, so click,
+   tap, Enter and Space all reach the input with no JS at all and the
+   keyboard path is the browser's own. The input is visually hidden but NOT
+   `display: none` — that would take it out of the accessibility tree and
+   off the tab order, which is the usual way a custom drop zone becomes
+   unusable without a mouse. */
+.msf__drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+  border: 1px dashed rgba(27, 27, 27, 0.22);
+  border-radius: 14px;
+  background: rgba(27, 27, 27, 0.015);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.35s var(--ease-snap),
+    background-color 0.35s var(--ease-snap);
+}
+.msf__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.msf__drop-lead {
+  font-size: 0.95rem;
+  color: rgba(27, 27, 27, 0.72);
+}
+.msf__drop-lead b {
+  font-weight: 500;
+  color: var(--arch-black);
+  border-bottom: 1px solid var(--bronze);
+}
+.msf__drop-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.6;
+  color: rgba(27, 27, 27, 0.42);
+}
+
+/* Dragging over, and keyboard focus, get the same treatment — the zone is
+   one control and it should look live for whichever way it was reached. */
+.msf__drop.is-over,
+.msf__drop:focus-within {
+  border-color: var(--bronze);
+  background: rgba(114, 102, 85, 0.05);
+}
+.msf__drop:focus-within {
+  outline: 2px solid var(--bronze);
+  outline-offset: 3px;
+}
+/* Once something is attached the dashes have done their job; the zone
+   becomes a quiet "add another" rather than an empty invitation. */
+.msf__drop.has-files { border-style: solid; }
+
+.msf__files {
+  margin-top: 0.75rem;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.msf__file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(27, 27, 27, 0.1);
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+.msf__file-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(27, 27, 27, 0.8);
+}
+.msf__file-size {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(27, 27, 27, 0.45);
+}
+.msf__file-remove {
+  flex: none;
+  /* 44px of hit area on a 20px glyph — the smallest control in the form
+     and the one most likely to be tapped by mistake. */
+  width: 44px;
+  height: 44px;
+  margin: -0.6rem -0.75rem -0.6rem 0;
+  border: 0;
+  background: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: rgba(27, 27, 27, 0.45);
+  cursor: pointer;
+  transition: color 0.25s var(--ease-snap);
+}
+.msf__file-remove:hover,
+.msf__file-remove:focus-visible { color: var(--arch-black); }
+
+.msf__error--files {
+  display: block;
+  min-height: 0;
+}
+.msf__error--files:empty { display: none; }
+
+/* ── The review ──────────────────────────────────────────────────
+   A description list, because that is what it is: labels bound to the
+   values they describe. Two columns on a card wide enough to hold them,
+   stacked below — never a table, which would need a header row saying
+   nothing. */
+.msf__review {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, auto) 1fr;
+  gap: 0.9rem clamp(1rem, 3vw, 2rem);
+  margin-top: clamp(1.5rem, 4vw, 2rem);
+}
+.msf__review dt {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(27, 27, 27, 0.45);
+  padding-top: 0.2em;
+}
+.msf__review dd {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--arch-black);
+  /* A long "about the project" answer must wrap inside its cell rather
+     than stretching the grid column past the card. */
+  overflow-wrap: anywhere;
+}
+.msf__review dt + dd { margin: 0; }
+
+@media (max-width: 560px) {
+  .msf__review { grid-template-columns: 1fr; gap: 0.25rem; }
+  .msf__review dd { margin-bottom: 0.9rem; }
+}
+
+/* The arrow now lives inside the one remaining primary button. */
+.btn-pill__arrow {
+  display: inline-block;
+  margin-left: 0.55rem;
+  transition: transform 0.4s var(--ease-snap);
+}
+@media (hover: hover) {
+  .btn-pill:hover .btn-pill__arrow { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-pill__arrow,
+  .msf__drop { transition: none; }
+  .btn-pill:hover .btn-pill__arrow { transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE COMPED CONSULTATION — option cards, segmented rail, review grid.
+
+   Additive. Nothing above is redefined, so the no-JS stacked form still
+   renders and still posts. Every colour, face and radius is the card's
+   own; the one thing introduced is the option card, and it replaces the
+   pill only where the answer is a THING (a building, a window system, a
+   way of being contacted) rather than a value on a scale.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── The rail, in segments ───────────────────────────────────────
+   ⚠ SEGMENTS, NOT A FILL. One bar answers "how far along?"; five marks
+   answer "how many left?", which is the question someone decides whether
+   to start on. The old `.msf__fill` scaleX rule is left in place and
+   simply unused by this markup — it is still the fallback the stylesheet
+   ships if the segments are ever removed. */
+.msf__track {
+  display: flex;
+  gap: 6px;
+  background: none;
+  overflow: visible;
+}
+.msf__seg {
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(27, 27, 27, 0.12);
+  transition: background-color 0.45s var(--ease-snap);
+}
+.msf__seg.is-done { background: var(--bronze); }
+
+/* ── The option card ─────────────────────────────────────────────
+   One component, three sizes. The <input> stays a real radio/checkbox —
+   visually transparent but IN the tab order and on top of the face — so
+   arrow keys walk a group and Space toggles, all from the browser with
+   no key handling of our own. */
+.msf__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  clear: both;
+}
+.msf__cards--sys { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.msf__cards--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.ocard { position: relative; display: block; cursor: pointer; }
+
+/* WARNING: THE INPUT IS HIDDEN, NOT STRETCHED OVER THE CARD. It was an
+   inset:0 overlay so the whole card was the hit target — and that only
+   worked until the face was given a hover transform, because a transform
+   creates a stacking context and paints the face ABOVE the absolutely
+   positioned input beneath it. Playwright caught it as "ocard__label
+   intercepts pointer events".
+
+   Stretching it and adding a z-index would have worked too, and would have
+   left a control whose clickability depends on a z-index nobody would
+   think to check when adding the next hover effect. The label already
+   wraps the input, so a click anywhere in the card reaches it through the
+   label — which is the browser own mechanism and cannot be broken by a
+   later style. 1px and not display:none, so it keeps its place in the tab
+   order and its focus ring. */
+.ocard input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ocard__face {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  /* 44px is the floor; these run well past it, which is the point of a
+     card over a pill on a step this early. */
+  min-height: 64px;
+  height: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(27, 27, 27, 0.14);
+  border-radius: 12px;
+  background: var(--arch-white);
+  transition: border-color 0.35s var(--ease-snap),
+    background-color 0.35s var(--ease-snap),
+    color 0.35s var(--ease-snap),
+    transform 0.35s var(--ease-snap);
+}
+
+.ocard__art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: rgba(27, 27, 27, 0.6);
+  transition: color 0.35s var(--ease-snap);
+}
+.ocard__art svg { width: 100%; height: 100%; display: block; }
+
+.ocard__label {
+  flex: 1 1 auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: rgba(27, 27, 27, 0.78);
+}
+
+.ocard__stack { flex: 1 1 auto; min-width: 0; }
+.ocard__hint {
+  display: block;
+  margin-top: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: rgba(27, 27, 27, 0.42);
+}
+
+/* The mark. Reserved space, never grown — the same rule the chips
+   learned: a card that resizes on selection reflows the whole grid. */
+.ocard__tick {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(27, 27, 27, 0.2);
+  color: transparent;
+  background: transparent;
+  transition: background-color 0.3s var(--ease-snap),
+    border-color 0.3s var(--ease-snap), color 0.3s var(--ease-snap);
+}
+.ocard__tick svg { width: 11px; height: 11px; display: block; }
+
+@media (hover: hover) {
+  .ocard:hover .ocard__face {
+    border-color: rgba(27, 27, 27, 0.34);
+    transform: translateY(-1px);
+  }
+}
+
+/* Selected. Bronze edge and a filled mark rather than a black flood —
+   the flood belongs to the primary button, and two black blocks in one
+   view stop either reading as the action. */
+.ocard input:checked + .ocard__face {
+  border-color: var(--bronze);
+  background: rgba(114, 102, 85, 0.05);
+}
+.ocard input:checked + .ocard__face .ocard__art,
+.ocard input:checked + .ocard__face .ocard__label { color: var(--arch-black); }
+.ocard input:checked + .ocard__face .ocard__tick {
+  background: var(--arch-black);
+  border-color: var(--arch-black);
+  color: var(--arch-bone);
+}
+
+.ocard input:focus-visible + .ocard__face {
+  outline: 2px solid var(--bronze);
+  outline-offset: 3px;
+}
+
+/* The system cards stack art over name — eight of them need the drawing
+   to be the thing that is scanned, not the caption. */
+.ocard--sys .ocard__face {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.1rem 0.75rem 0.9rem;
+  text-align: center;
+}
+.ocard__art--lg { width: 48px; height: 48px; }
+
+/* ⚠ A FIXED 4:3 BOX, NOT THE IMAGE'S OWN RATIO. These are first frames of
+   eight different clips — different crops, different framing, different
+   exposures. Left to size themselves they make eight cards of eight
+   heights and the grid goes ragged. One box, `object-fit: cover`, and the
+   set reads as a set. */
+.ocard__shot {
+  display: block;
+  width: 100%;
+  /* Squarer and smaller than the 4:3 it started at: at four across the
+     card is ~140px, and a wide box spent that width on ground rather than
+     on the product now that it is contained rather than cropped. */
+  aspect-ratio: 5 / 4;
+  border-radius: 8px;
+  overflow: hidden;
+  /* WARNING: TRANSPARENT, NOT A TINT. With `cover` the image filled this
+     box and the ground never showed. `contain` letterboxes — and the
+     renders are wider than 5:4 — so a 5% grey turned into two grey bars
+     down either side of every product, which reads as a broken image
+     rather than as breathing room. The card face behind is already white,
+     which is the same ground the renders were shot on. */
+  background: transparent;
+}
+.ocard__shot img {
+  width: 100%;
+  height: 100%;
+  /* WARNING: `contain`, NOT `cover`. These are product renders — the
+     whole frame IS the subject, and `cover` filled the box by cropping
+     the sash and the handle straight off the edge, which is the one part
+     that tells a sliding door from a lift-and-slide. Letterboxing inside
+     a fixed box costs a little white and shows the entire product. */
+  object-fit: contain;
+  display: block;
+  transition: transform 0.6s var(--ease-snap);
+}
+@media (hover: hover) {
+  .ocard:hover .ocard__shot img { transform: scale(1.04); }
+}
+.ocard--sys .ocard__face { padding: 0.7rem 0.7rem 0.9rem; }
+.ocard--sys .ocard__label { flex: none; }
+.ocard--sys .ocard__tick { position: absolute; top: 0.6rem; right: 0.6rem; }
+
+/* ── "Not sure yet?" ─────────────────────────────────────────────
+   Beside the question rather than under the grid: it is the answer for
+   the visitor least able to answer this step, and below eight cards it
+   arrives after the hesitation it exists to relieve. */
+.msf__unsure {
+  margin-top: 1.25rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(114, 102, 85, 0.06);
+}
+
+/* Full width, under the grid. See the note at its markup for why it
+   stopped being floated beside the heading. */
+.msf--stepped .msf__unsure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  margin-top: clamp(1.75rem, 4vw, 2.25rem);
+}
+.msf__unsure-art { margin-bottom: 0; }
+.msf__unsure-title { flex: none; }
+.msf__unsure-copy { flex: 1 1 14rem; margin-top: 0; }
+.msf--stepped .msf__unsure .msf__skip { flex: none; margin-top: 0; }
+.msf__unsure-art {
+  display: block;
+  width: 22px;
+  height: 22px;
+  margin-bottom: 0.6rem;
+  color: var(--bronze);
+}
+.msf__unsure-art svg { width: 100%; height: 100%; display: block; }
+.msf__unsure-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--arch-black);
+}
+.msf__unsure-copy {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(27, 27, 27, 0.58);
+}
+/* ⚠ THE PADDING IS KEPT, NOT ZEROED, AND ZEROING IT IS WHAT BROKE THE
+   UNDERLINE. `.msf__skip` draws its rule as an ::after at
+   `bottom: 0.15rem`, which is measured from the button's PADDING edge —
+   so the 0.35rem of vertical padding is what holds the rule clear of the
+   baseline. Setting `padding: 0` here pulled it up into the type, where
+   it struck the descenders and read as a strikethrough that had slipped. */
+.msf--stepped .msf__unsure .msf__skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  text-align: left;
+}
+
+/* ── Numbered sub-sections ───────────────────────────────────────
+   Step 03 asks six things. Numbering them turns a wall of controls into
+   a list with a visible end — the same reason the steps are numbered. */
+.msf__block-num {
+  display: inline-block;
+  margin-right: 0.75rem;
+  color: var(--bronze);
+}
+.msf__block-hint {
+  margin: -0.5rem 0 0.9rem;
+  font-size: 0.9rem;
+  color: rgba(27, 27, 27, 0.55);
+}
+
+/* ── Inputs with a leading glyph ─────────────────────────────────
+   ⚠ THE PADDING IS ON THE INPUT, THE ICON IS ABSOLUTE. The alternative —
+   a flex row with the icon as a sibling — puts the border on the wrapper
+   and loses the input's own focus ring, which is the one piece of state
+   that must not be reimplemented. */
+.msf__input-wrap { position: relative; display: block; }
+.msf__input-art {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  color: rgba(27, 27, 27, 0.4);
+  pointer-events: none;
+}
+.msf__input-art svg { width: 100%; height: 100%; display: block; }
+.msf__input--art { padding-left: 2.75rem; }
+
+/* A caret in the hairline language, drawn rather than left to the
+   platform's own chrome. */
+.msf__select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2.5rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(27, 27, 27, 0.55) 50%),
+    linear-gradient(135deg, rgba(27, 27, 27, 0.55) 50%, transparent 50%);
+  background-position: calc(100% - 1.15rem) 55%, calc(100% - 0.8rem) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* ── The drop zone glyph ─────────────────────────────────────────── */
+.msf__drop-art {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: 0 auto 0.5rem;
+  color: var(--bronze);
+}
+.msf__drop-art svg { width: 100%; height: 100%; display: block; }
+
+/* ── The assurance ──────────────────────────────────────────────── */
+.msf__assure {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  margin-top: clamp(1.75rem, 4vw, 2.25rem);
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(27, 27, 27, 0.035);
+  text-align: left;
+}
+.msf__assure-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--arch-white);
+  color: var(--bronze);
+}
+.msf__assure-art svg { width: 17px; height: 17px; display: block; }
+.msf__assure-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--arch-black);
+}
+.msf__assure-copy {
+  margin-top: 0.15rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(27, 27, 27, 0.55);
+}
+
+/* ── The review, as a two-column ledger ──────────────────────────
+   ⚠ STILL A <dl>. The comp draws rows with an icon badge; the SEMANTICS
+   are unchanged, because label-and-value is exactly what a description
+   list is, and swapping it for divs to get a grid would trade a real
+   relationship for a layout. The badge is generated per row by the
+   controller and sits inside the <dt>. */
+.msf__review {
+  display: grid;
+  /* The cells are ROWS now — see `reviewRow` in the controller for why the
+     pair has to be wrapped before a grid can be laid over it. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(1.5rem, 4vw, 2.75rem);
+  margin-top: clamp(1.5rem, 4vw, 2rem);
+}
+.msf__review-row {
+  display: block;
+  border-bottom: 1px solid rgba(27, 27, 27, 0.08);
+}
+.msf__review dt {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.05rem 1.25rem 0.2rem 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+.msf__review dd {
+  /* Indented to clear the badge, so label and value share one left edge
+     and the column reads as a list rather than as two ragged ones. */
+  padding: 0 0 1.05rem 3.1rem;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--arch-black);
+  overflow-wrap: anywhere;
+}
+.msf__review-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(114, 102, 85, 0.08);
+  color: var(--bronze);
+}
+.msf__review-art svg { width: 17px; height: 17px; display: block; }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  /* WARNING: SCOPED WITH :not(), NOT LEFT TO SOURCE ORDER. Written as a
+   bare `.msf__cards` this sat at the END of the file with the same
+   specificity as `.msf__cards--sys` above it — so it won on order alone
+   and quietly dropped the systems grid from four columns to two. The
+   modifiers are excluded by name here, which cannot be broken by anything
+   appended later. */
+.msf__cards:not(.msf__cards--sys):not(.msf__cards--three) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+  .msf__cards--sys { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  /* ⚠ ONE COLUMN FOR THE LABELLED CARDS, TWO FOR THE SYSTEMS. The long
+     answers ("Architect / Interior Designer") wrap to three lines in a
+     half-width card and the grid goes ragged; a system card is a drawing
+     over one short word and stays square at two across. */
+  .msf__cards { grid-template-columns: minmax(0, 1fr); }
+  .msf__cards--sys { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .msf__cards--three { grid-template-columns: minmax(0, 1fr); }
+
+  .msf__review { grid-template-columns: minmax(0, 1fr); }
+  .msf__block-num { display: block; margin: 0 0 0.3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ocard__face, .ocard__art, .ocard__tick, .msf__seg { transition: none; }
+  .ocard:hover .ocard__face { transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE VERTICAL RHYTHM.
+
+   ⚠ MEASURED, NOT EYEBALLED — and the measuring is what found the bug.
+   Walking the step with getBoundingClientRect gave:
+
+       title    → progress    22px
+       progress → legend      35px
+       legend   → help        24px
+       help     → cards        0px   ←
+       cards    → nav         24px
+
+   The description sat FLUSH against the options it introduces, so the
+   sentence and the first row of cards read as one block with a stray line
+   of grey on top of it. Nothing declared that gap: `.msf__help` had a
+   margin-top and no margin-bottom, and every control group below it —
+   chips, cards, grids — begins at margin-top 0. It was zero by omission.
+
+   So the spacing is now a scale rather than a set of local guesses, and
+   the two relationships it encodes are:
+
+     · A HELP LINE BELONGS TO ITS HEADING. Half a step above, a full step
+       below — so it reads as part of the question, not as the first item
+       of the answer.
+     · A CONTROL GROUP IS A BLOCK. It gets the full step from whatever
+       introduces it, and the nav rail gets more again, because "Continue"
+       must never look like the last option in the list.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* WARNING: DECLARED ON THE CARD, NOT ON `.msf`. There is no `msf` class —
+   the form carries `id="enquiryForm"` and the controller adds only
+   `msf--stepped`. Hung on `.msf` these three resolved to nothing, every
+   `var()` below became invalid-at-computed-value-time, and each margin
+   fell back to 0 — which measured as a form with NO spacing at all rather
+   than as a rule that quietly did not apply. `.enq__card` is the one
+   ancestor present in both the stacked and the stepped form. */
+.enq__card {
+  --msf-tight: 0.75rem;
+  --msf-step: clamp(1.5rem, 3.2vw, 2rem);
+  --msf-block: clamp(2.25rem, 4.5vw, 3rem);
+}
+
+/* The heading holds its help line close. `:has()` so the gap only
+   tightens where a help line actually follows — steps 03 and 04 go
+   straight from legend to controls and still want the full step. */
+.msf__legend:has(+ .msf__help) { margin-bottom: var(--msf-tight); }
+
+.msf__help {
+  margin-top: 0;
+  /* The gap that was zero. */
+  margin-bottom: var(--msf-step);
+}
+.msf__help-note { margin-top: 0.4rem; }
+
+/* Every control group is introduced by something, and takes a full step
+   from it. Declared on the groups rather than on what precedes them, so a
+   new question inherits the rhythm without being told about it. */
+.msf__cards,
+.msf--stepped .msf__chips { margin-top: 0; }
+
+/* The error line is a response to the group above it, not a new block. */
+.msf--stepped .msf__error { margin-top: var(--msf-tight); }
+
+/* ⚠ THE RAIL GETS THE BLOCK GAP, NOT THE STEP GAP. At 24px "Continue"
+   sat one row-gap below the last card and read as a ninth option. */
+.msf--stepped .msf__nav { margin-top: var(--msf-block); }
+
+/* Step 03's sub-sections, on the same scale. */
+.msf__block { margin-top: var(--msf-block); }
+.msf__block + .msf__block { padding-top: var(--msf-block); }
+.msf__block-title { margin-bottom: var(--msf-step); }
+/* A hint sits between the title and its controls, so the title's step
+   belongs to the hint and the hint keeps the step to the controls. */
+.msf__block-title:has(+ .msf__block-hint) { margin-bottom: var(--msf-tight); }
+.msf__block-hint { margin: 0 0 var(--msf-step); }
+
+/* The two full-width asides. */
+.msf--stepped .msf__unsure,
+.msf__assure { margin-top: var(--msf-block); }
+
+/* The review's own rhythm — the summary is dense by design, so it takes
+   the step rather than the block. */
+.msf__review { margin-top: var(--msf-step); }
+
+/* The character counter belongs to the textarea above it. */
+.msf__charcount { margin-top: 0.5rem; }
+
+/* The stand-in for a system with no still yet — same frame, same ground,
+   so eight cards stay eight identical shapes. */
+.ocard__shot-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(27, 27, 27, 0.45);
+}
+.ocard__shot-fallback svg { width: 46px; height: 46px; display: block; }
+
+/* ⚠ BALANCED, AND THE SLASH IS GLUED TO WHAT PRECEDES IT. "Architect /
+   Interior Designer" broke as "ARCHITECT" / "/" / "INTERIOR DESIGNER" —
+   three lines, the middle one a single stroke — because a space either
+   side of the slash gives the line breaker two legal breaks and it took
+   both. `text-wrap: balance` evens the remaining lines; the non-breaking
+   space in the markup is what stops the slash ever leading a line. */
+.ocard__label { text-wrap: balance; }
+
+/* ⚠ TWO ACROSS FOR THE LABELLED CARDS, NOT THREE. The comp sets these
+   three-up, and does so in a card that has the page to itself. Here the
+   form shares its row with the photograph — 58% of 1180px — so a third
+   column leaves each label about 90px, and "Architect / Interior
+   Designer" breaks over three lines while its neighbours use one. Two
+   columns give every answer in the set a single wrap at most, which is
+   what the comp actually looks like even though the number differs.
+
+   The systems grid and the three-up contact rows are unaffected: their
+   labels are one short word each and were never the constraint. */
+/* WARNING: SCOPED WITH :not(), NOT LEFT TO SOURCE ORDER. Written as a
+   bare `.msf__cards` this sat at the END of the file with the same
+   specificity as `.msf__cards--sys` above it — so it won on order alone
+   and quietly dropped the systems grid from four columns to two. The
+   modifiers are excluded by name here, which cannot be broken by anything
+   appended later. */
+.msf__cards:not(.msf__cards--sys):not(.msf__cards--three) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }

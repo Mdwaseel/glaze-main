@@ -1,0 +1,660 @@
+/* Products §04 Variants — THE PHONE LAYOUT.
+   Everything in this file is inside `@media (max-width: 768px)`.
+
+   ── WHY THIS FILE EXISTS ────────────────────────────────────────
+   variantsSection.css draws a cinematic reel: a full-viewport sticky
+   stage, a glass HUD panel floating over the clip, a segmented selector
+   wheel. The SCROLL MECHANISM of that is kept on a phone — the stage
+   pins, scrolling walks the variants, and §05 only arrives once the last
+   one has been passed. The COMPOSITION is not: at 390px the panel covers
+   the picture it describes, and the wheel has nowhere to sit that is not
+   on top of the panel.
+
+   So the phone stage holds a vertical, editorial page instead. Picture,
+   controls on the picture, name, sentence, figures, button — in that
+   order, with air between them. The reference points are the pages this
+   section competes with on a phone, which are Apple's and Polestar's, not
+   this site's own desktop.
+
+   ⚠ NOT ONE LINE OF THIS FILE APPLIES ABOVE 768px, and the component it
+   styles is not rendered above 768px either (VariantsSection swaps on the
+   same query). Desktop and tablet are untouched by construction — there is
+   no shared rule to regress.
+
+   ── THE TWO MODES ───────────────────────────────────────────────
+   `.vrtm--pinned`  the normal case: one stage, one viewport, scrubbed.
+   `.vrtm--flow`    reduced motion, or a system with a single variant.
+                    Nothing pins, the page simply scrolls, and the frame
+                    keeps its full 4:5 with the controls under it and the
+                    button docked to the foot of the screen. This is the
+                    layout as it was drawn before the pin was asked for,
+                    and it is still the right one when there is nothing
+                    to scrub.
+
+   ── WHAT THE PIN COSTS ──────────────────────────────────────────
+   One viewport cannot hold a 4:5 picture AND 38px of heading AND a
+   sentence AND four figures AND a 58px button on a 745px-tall phone. Two
+   things give, and both are noted where they happen below: the frame's
+   height becomes FLEXIBLE (near 4:5 on a tall phone, nearer 4:3 on a
+   short one — and the clips are natively 16:9, so a shorter frame shows
+   MORE of each), and the arrows and dots sit ON the picture rather than
+   under it. Everything else is unchanged.
+
+   ── WHAT IT BORROWS ─────────────────────────────────────────────
+   Every colour, face and curve is the section's own, read off `.vrt`:
+
+     ground #070A0C, --vrt-ink / --vrt-ink-body /
+     --vrt-label / --vrt-hair                    ← .vrt
+     20px radius family                          ← --vrt-radius
+     champagne fill + --arch-black label on the
+     primary button                              ← .hero__btn / .sysm__cta
+     0.35s + 0.7s on var(--ease-snap)            ← --vrt-fast / --vrt-slow
+     scale settle out of a crossfade             ← .vrt__layer
+     sticky stage over a JS-sized track          ← .vrt__scroll / .vrt__stage
+
+   No new colour, no new typeface, no second radius family.
+
+   ── THE TYPE SCALE (the brief's, and it is the whole design) ────
+     heading  clamp(2.05rem, 8.4vw, 2.38rem)  → 33–38px
+     lede     1rem                            → 16px
+     labels   11px, uppercase, 0.24em
+     values   1.25rem                         → 20px
+     button   0.9375rem, 600                  → 15px
+
+   ⚠ IN PINNED MODE EVERY ONE OF THOSE IS RE-EXPRESSED AGAINST `svh`
+   RATHER THAN AGAINST WIDTH, with the same numbers as the ceiling. A
+   932px-tall phone gets the scale above exactly; a 667px one gets a
+   compact version of the same layout rather than a clipped one. Width
+   tells you how long a line is; on a pinned stage it is HEIGHT that is
+   scarce, so height is what the scale has to answer to.
+*/
+
+@media (max-width: 768px) {
+  .vrtm {
+    /* One gutter for the whole layout. Wider than the reel's, because
+       here the type sits ON the ground rather than on a card that was
+       already inset from it. */
+    --vrtm-gutter: clamp(1.25rem, 6vw, 1.75rem);
+    /* The rhythm. One number for the space between blocks; everything
+       below is that or a fraction of it. */
+    --vrtm-block: clamp(2.25rem, 8vw, 2.9rem);
+    --vrtm-radius: 22px;
+    --vrtm-fade: 0.45s;
+    /* The control row's own height, needed as a number because the row
+       is pulled up onto the picture by exactly this much. */
+    --vrtm-ctl: 44px;
+
+    position: relative;
+    color: var(--vrt-ink, var(--arch-bone));
+  }
+
+  .vrtm__scroll { position: relative; }
+
+  .vrtm__stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(3.5rem, 11vh, 5rem) var(--vrtm-gutter)
+      clamp(1.5rem, 5vh, 2.25rem);
+  }
+
+  /* ── The pinned stage ──────────────────────────────────────────
+     Exactly one viewport, held while the track underneath it scrolls
+     past. `svh` and not `vh`: on mobile Safari `vh` is the LARGE
+     viewport — the height the page has only once the URL bar has
+     collapsed — so a `100vh` stage is taller than the screen for the
+     first flick of every visit, and the button at its foot starts off
+     under the browser chrome. */
+  .vrtm--pinned .vrtm__stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+    padding-top: calc(var(--sys-nav-h, 68px) + clamp(0.4rem, 1.4svh, 1rem));
+    padding-bottom: max(0.9rem, env(safe-area-inset-bottom, 0px));
+    /* The rhythm, re-expressed against the scarce axis. */
+    --vrtm-block: clamp(0.75rem, 2.1svh, 1.6rem);
+  }
+
+  /* The section heading. Present for the document outline and for
+     `aria-labelledby` on the <section>; the picture is what the eye is
+     meant to meet first. Same recipe as the site's other visually
+     hidden text. */
+  .vrtm__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .vrtm__kicker {
+    margin: 0 0 1.1rem;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--vrt-label, rgba(167, 154, 135, 0.82));
+  }
+
+  /* ── The picture ─────────────────────────────────────────────
+     Full width, edge to edge inside the gutter, and the biggest thing on
+     the screen by a wide margin — on a phone the product IS the page.
+
+     ⚠ `touch-action: pan-y` IS LOAD-BEARING. It hands the browser the
+     vertical axis and keeps the horizontal for the swipe handler, which
+     is what lets a diagonal drag scroll the page — and therefore walk
+     the variants — while a sideways one changes the slide, with no
+     preventDefault() anywhere in the gesture path. */
+  .vrtm__frame {
+    --vrtm-drag: 0px;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--vrtm-radius);
+    background: #0B0E10;
+    touch-action: pan-y;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .vrtm__frame:focus-visible {
+    outline: 1px solid var(--champagne);
+    outline-offset: 3px;
+  }
+
+  /* ⚠ THE ONE RULE THE WHOLE PINNED LAYOUT TURNS ON. The frame is the
+     only flexible item in the column: every block below it is `flex:
+     none` and keeps its natural height, and the picture takes whatever
+     is left. Its 4:5 above is now a STARTING SIZE rather than a
+     contract — a tall phone leaves enough room to honour it, a short one
+     shrinks it toward the clips' native 16:9. Setting a fixed ratio here
+     instead would overflow the stage on every phone under about 850px
+     and clip the button off the bottom of the screen. */
+  .vrtm--pinned .vrtm__frame {
+    flex: 1 1 auto;
+    min-height: 20svh;
+  }
+  .vrtm--pinned .vrtm__copy,
+  .vrtm--pinned .vrtm__nav,
+  .vrtm--pinned .vrtm__dock { flex: 0 0 auto; }
+
+  .vrtm__stack { position: absolute; inset: 0; }
+
+  /* The crossfade. Opacity plus a settle out of scale(1.02) — the frame
+     arrives already in motion rather than cutting in at rest. Both
+     properties are composited, which is what lets a full-width clip
+     dissolve on a mid-range phone without dropping the frame rate.
+
+     ⚠ NO `filter:` ON THIS LAYER, EVER. The desktop file carries the
+     same warning for the same reason: a filter over playing video
+     re-renders the whole frame every tick. */
+  .vrtm__layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateX(var(--vrtm-drag)) scale(1.02);
+    transition: opacity var(--vrtm-fade) ease,
+      transform 0.9s var(--ease-snap);
+  }
+  .vrtm__layer.is-live {
+    opacity: 1;
+    transform: translateX(var(--vrtm-drag)) scale(1);
+  }
+
+  /* While the finger is down the live frame tracks it instead of easing
+     — a 900ms transition on a live drag reads as lag, not as grace. */
+  .vrtm__frame.is-dragging .vrtm__layer.is-live { transition: opacity var(--vrtm-fade) ease; }
+
+  .vrtm__layer video,
+  .vrtm__layer img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Shadow in the top-left corner to carry the counter, and — in pinned
+     mode only, where the controls sit on the picture — a short lift
+     along the bottom edge to carry those. Nothing in between: the
+     picture is not being darkened to make type readable, because there
+     is no type over it beyond four glyphs and a row of marks. */
+  .vrtm__frame-scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      156deg,
+      rgba(6, 8, 10, 0.5) 0%,
+      rgba(6, 8, 10, 0.16) 22%,
+      rgba(6, 8, 10, 0) 40%
+    );
+  }
+  .vrtm--pinned .vrtm__frame-scrim {
+    background:
+      linear-gradient(
+        156deg,
+        rgba(6, 8, 10, 0.5) 0%,
+        rgba(6, 8, 10, 0.16) 22%,
+        rgba(6, 8, 10, 0) 40%
+      ),
+      linear-gradient(
+        to top,
+        rgba(6, 8, 10, 0.62) 0%,
+        rgba(6, 8, 10, 0.24) 9%,
+        rgba(6, 8, 10, 0) 20%
+      );
+  }
+
+  .vrtm__counter {
+    position: absolute;
+    top: 1rem;
+    left: 1.1rem;
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    font-variant-numeric: tabular-nums;
+    color: rgba(245, 245, 243, 0.55);
+  }
+  .vrtm__counter-now { color: var(--arch-bone); }
+  .vrtm__counter-sep { opacity: 0.45; }
+
+  /* ── The copy ────────────────────────────────────────────────
+     Every variant occupies the same grid cell, so the block is as tall
+     as the longest of them and nothing moves as the scroll walks them —
+     the one thing that would give this away as a gallery rather than as
+     a page about one product. */
+  .vrtm__copy {
+    display: grid;
+    margin-top: var(--vrtm-block);
+  }
+  .vrtm__copy-item {
+    grid-area: 1 / 1;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .vrtm__copy-item.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .vrtm__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--vrt-label, rgba(167, 154, 135, 0.82));
+  }
+
+  .vrtm__name {
+    /* 33–38px. The largest type in the section and the only display
+       face on the phone layout. */
+    margin: 1.1rem 0 0;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(2.05rem, 8.4vw, 2.38rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--vrt-ink, var(--arch-bone));
+  }
+
+  .vrtm__lede {
+    margin: 1.15rem 0 0;
+    max-width: 34ch;
+    font-size: 1rem;
+    line-height: 1.72;
+    color: var(--vrt-ink-body, rgba(245, 245, 243, 0.72));
+  }
+
+  /* The one label the desktop panel does not carry. On glass beside the
+     picture the four rows are self-evidently the specification; on a
+     page that has scrolled the picture out of sight they need naming. */
+  .vrtm__specs-label {
+    margin: var(--vrtm-block) 0 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(245, 245, 243, 0.42);
+  }
+
+  /* ── Specifications ──────────────────────────────────────────
+     Label left, figure right, one row each, on hairlines. In flow mode
+     the phone has the width for a full row per figure and nothing to
+     gain by halving it — a 20px value with its label on the same
+     baseline reads as a specification sheet, and two 9.5px columns read
+     as a table.
+
+     No box, no fill, no card: the dividers are the only lines in the
+     whole layout. */
+  .vrtm__specs {
+    margin: 1.35rem 0 0;
+    border-top: 1px solid var(--vrt-hair, rgba(245, 245, 243, 0.1));
+  }
+  .vrtm__spec {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid rgba(245, 245, 243, 0.06);
+  }
+  .vrtm__spec:last-child { border-bottom: none; }
+
+  .vrtm__spec-key {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--vrt-label, rgba(167, 154, 135, 0.82));
+  }
+  .vrtm__spec-val {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--vrt-ink, var(--arch-bone));
+    text-align: right;
+  }
+
+  /* ── Navigation ──────────────────────────────────────────────
+     Two outline circles and one dot per variant. The dots are the
+     picture of where you are; the arrows are the control. Both write the
+     same state the swipe and the scroll do, so they can never disagree.
+
+     44px is the touch target, and it is the reason the buttons are this
+     size and not the 32px the drawing would suggest.
+
+     The row is a sibling of the frame and sits DIRECTLY UNDER IT in the
+     markup, because pinned mode pulls it up onto the picture and a
+     control cannot be pulled onto something it is not next to. In flow
+     mode that leaves the controls between the picture and the copy
+     rather than after the specification — which is where they want to be
+     anyway when they are not on the picture, next to the thing they
+     change. `order:` was the alternative and it was not worth divorcing
+     the focus order from the visual one to save one scroll of the eye. */
+  .vrtm__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: var(--vrtm-block);
+  }
+
+  .vrtm__arrow {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: var(--vrtm-ctl);
+    height: var(--vrtm-ctl);
+    padding: 0;
+    border: 1px solid rgba(245, 245, 243, 0.24);
+    border-radius: 50%;
+    background: none;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--vrt-ink, var(--arch-bone));
+    cursor: pointer;
+    transition: border-color var(--vrt-fast, 0.35s) var(--ease-snap),
+      color var(--vrt-fast, 0.35s) var(--ease-snap),
+      opacity var(--vrt-fast, 0.35s) var(--ease-snap),
+      background-color var(--vrt-fast, 0.35s) var(--ease-snap);
+  }
+  .vrtm__arrow:active:not(:disabled) {
+    border-color: var(--champagne);
+    background: rgba(167, 154, 135, 0.12);
+  }
+  /* An end of the range is said rather than hidden: a control that
+     disappears at the edge of a set makes the set feel broken. */
+  .vrtm__arrow:disabled {
+    opacity: 0.28;
+    cursor: default;
+  }
+  .vrtm__arrow:focus-visible {
+    outline: 1px solid var(--champagne);
+    outline-offset: 3px;
+  }
+
+  /* The dots. Each is a 28px-tall hit area with a 6px mark drawn in the
+     middle of it, so eleven variants stay separately tappable without
+     eleven 28px circles being drawn on the page.
+
+     ⚠ THE HIT AREA SHRINKS, THE MARK DOES NOT. Casement has eleven
+     variants, and eleven 20px targets plus two 44px arrows do not fit
+     across a 320px screen — so the buttons are allowed to compress
+     (default flex-shrink) down to a floor that is still tappable, while
+     the mark inside each one stays the size it was. */
+  .vrtm__dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+  .vrtm__dot {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    min-width: 15px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .vrtm__dot > span {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(245, 245, 243, 0.26);
+    transition: transform var(--vrtm-fade) var(--ease-snap),
+      background-color var(--vrtm-fade) var(--ease-snap);
+  }
+  /* Filled champagne and a third larger — colour ALONE is not a state a
+     6px mark can carry at arm's length, so the size says it too.
+
+     ⚠ transform, NOT width. Growing the mark from 6px to 18px was tried
+     and it is wrong twice over: it lays out the row on every frame of the
+     transition, and because `.vrtm__dots` is the centred middle child of
+     a space-between row, the whole group slides sideways as the mark
+     grows. A scale is composited, and the row's geometry never moves. */
+  .vrtm__dot.is-current > span {
+    background: var(--champagne);
+    transform: scale(1.35);
+  }
+  .vrtm__dot:focus-visible {
+    outline: 1px solid var(--champagne);
+    outline-offset: 0;
+    border-radius: 999px;
+  }
+
+  /* ── The controls, on the picture ────────────────────────────
+     Pinned only. The row is pulled up by exactly its own height plus its
+     gap, so it lands inside the frame's lower edge and costs the layout
+     nothing — which is the ~58px the frame needs to stay a picture
+     rather than a strip. The arrows take a dark glass fill because they
+     now sit over footage rather than over the ground; the dots take a
+     shadow for the same reason. */
+  .vrtm--pinned .vrtm__nav {
+    --vrtm-ctl-gap: clamp(0.6rem, 1.8svh, 1rem);
+    position: relative;
+    z-index: 2;
+    /* ⚠ BOTH MARGINS, AND THEY HAVE TO CANCEL. The top margin lifts the
+       row by its own height plus the gap, which lands it that gap above
+       the picture's bottom edge; the bottom margin gives the gap back, so
+       the row's NET contribution to the column is exactly zero and the
+       copy below starts where the frame ends. With only the negative
+       margin the copy climbed one gap into the picture. */
+    margin-top: calc(-1 * (var(--vrtm-ctl) + var(--vrtm-ctl-gap)));
+    margin-bottom: var(--vrtm-ctl-gap);
+    padding: 0 0.7rem;
+  }
+  .vrtm--pinned .vrtm__arrow {
+    border-color: rgba(245, 245, 243, 0.34);
+    background: rgba(10, 13, 15, 0.34);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+  }
+  .vrtm--pinned .vrtm__dot > span { box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5); }
+
+  /* ── Pinned type: the same scale, measured against height ────
+     Same ceilings as the flow layout — a 932px phone gets the design as
+     drawn. Below that every step comes down together, so what a short
+     screen loses is air and a couple of points of type, not a block. */
+  .vrtm--pinned .vrtm__copy { margin-top: clamp(0.9rem, 2.6svh, 1.9rem); }
+  .vrtm--pinned .vrtm__name {
+    margin-top: clamp(0.45rem, 1.4svh, 1.1rem);
+    font-size: clamp(1.7rem, 4.4svh, 2.38rem);
+  }
+  .vrtm--pinned .vrtm__lede {
+    margin-top: clamp(0.5rem, 1.5svh, 1.15rem);
+    font-size: clamp(0.875rem, 2.05svh, 1rem);
+    line-height: 1.6;
+  }
+  /* The one line the pinned stage cannot afford. Under the picture the
+     figures need naming; here they are three inches from a photograph of
+     the thing they describe and the label is the least of what is on
+     screen. */
+  .vrtm--pinned .vrtm__specs-label { display: none; }
+
+  /* ⚠ TWO UP, NOT FOUR DOWN. Four full-width rows are ~180px of a
+     745px stage — a quarter of the screen for four short figures, taken
+     straight out of the picture. Two columns of stacked label-over-value
+     is the desktop panel's own arrangement and costs half as much. */
+  .vrtm--pinned .vrtm__specs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.5rem;
+    margin-top: clamp(0.9rem, 2.4svh, 1.6rem);
+  }
+  .vrtm--pinned .vrtm__spec {
+    display: block;
+    padding: clamp(0.5rem, 1.35svh, 1rem) 0;
+  }
+  .vrtm--pinned .vrtm__spec:nth-last-child(-n + 2) { border-bottom: none; }
+  .vrtm--pinned .vrtm__spec-val {
+    margin-top: 0.4rem;
+    font-size: clamp(1.05rem, 2.5svh, 1.25rem);
+    text-align: left;
+  }
+
+  /* ── CTA ─────────────────────────────────────────────────────
+     Full width, 58px, champagne, black label — the site's primary
+     button, at the size a thumb wants it. In the pinned stage it is
+     simply the last block, sitting at the foot of the screen for as long
+     as the section holds it. */
+  .vrtm__dock {
+    position: sticky;
+    bottom: max(0.9rem, env(safe-area-inset-bottom, 0px));
+    z-index: 6;
+    margin-top: var(--vrtm-block);
+    padding-top: 0.25rem;
+  }
+  .vrtm--pinned .vrtm__dock {
+    position: static;
+    margin-top: clamp(0.8rem, 2.2svh, 1.7rem);
+    padding-top: 0;
+  }
+
+  /* The ground the button is docked on — FLOW MODE ONLY. A stuck element
+     keeps its place in flow, so the specification rows travel UNDER it;
+     without this ramp a 20px figure passes half-behind an opaque beige
+     bar and the two read as one broken line. In pinned mode the button
+     is a block at the foot of a stage with nothing behind it, so there is
+     nothing to cover. */
+  .vrtm--flow .vrtm__dock::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--vrtm-gutter) * -1);
+    right: calc(var(--vrtm-gutter) * -1);
+    top: -2.25rem;
+    bottom: calc(-1 * (max(0.9rem, env(safe-area-inset-bottom, 0px)) + 1rem));
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(7, 10, 12, 0) 0%,
+      rgba(7, 10, 12, 0.72) 34%,
+      #070A0C 62%
+    );
+  }
+
+  .vrtm__cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    width: 100%;
+    min-height: 58px;
+    padding: 0 1.5rem;
+    border-radius: 16px;
+    background: var(--champagne);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--arch-black);
+    box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.9);
+    transition: background-color var(--vrt-fast, 0.35s) var(--ease-snap),
+      transform var(--vrt-fast, 0.35s) var(--ease-snap);
+  }
+  .vrtm--pinned .vrtm__cta { min-height: clamp(52px, 7.4svh, 58px); }
+  .vrtm__cta:active { transform: scale(0.985); background: #B7AA96; }
+  .vrtm__cta:focus-visible {
+    outline: 1px solid var(--arch-bone);
+    outline-offset: 3px;
+  }
+  .vrtm__cta-arrow { font-size: 1rem; line-height: 1; }
+
+  /* ⚠ THE CHAT LAUNCHER IS FIXED IN THIS EXACT CORNER ON EVERY PAGE —
+     a 52px circle at a 1rem inset, i.e. directly on top of the enquiry
+     button's right end. While that button is on screen the launcher steps
+     up above it. The flag is set by an IntersectionObserver on the button
+     (VariantsMobile.jsx); the widget itself knows nothing about this
+     section, which is why the rule lives here and not in
+     chatWidget.css. */
+  body.vrtm-dock-on .glz-chat__launcher {
+    transform: translateY(calc(-58px - 1.1rem));
+  }
+}
+
+/* ⚠ THERE IS NO SHORT-VIEWPORT BLOCK HERE, DELIBERATELY. A stage under
+   about 560px tall cannot hold this layout at any scale, and un-pinning
+   it in CSS alone would leave the component's injected track height and
+   its ScrollTrigger in place — several screens of empty scroll under a
+   section that had already finished. So the same `(max-height: 560px)`
+   query is read in VariantsMobile.jsx, where it turns the driver off and
+   renders `.vrtm--flow`; everything a landscape phone needs is already in
+   the flow rules above. */
+
+/* Honour the OS setting even if JS never runs — the transforms are reset
+   as well as the transitions, because a layer parked at scale(1.02) with
+   its transition removed would simply stay there. (The pin is already
+   withdrawn under reduced motion by the component, which renders
+   `.vrtm--flow`.) */
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .vrtm__layer,
+  .vrtm__dot > span,
+  .vrtm__arrow,
+  .vrtm__cta {
+    transition: none !important;
+  }
+  .vrtm__layer { transform: none !important; }
+  .vrtm__cta:active { transform: none !important; }
+  body.vrtm-dock-on .glz-chat__launcher { transition: none !important; }
+}

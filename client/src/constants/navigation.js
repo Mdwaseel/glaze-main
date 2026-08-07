@@ -37,8 +37,18 @@
  *
  * The bar is back to five items, which clears the 769–1024px squeeze the
  * seven-item row used to have.
+ *
+ * ⚠ "HOME" IS THE ONE ITEM THE STATIC SITE NEVER HAD (requested). Its
+ * logo was the way back, which is the convention on a one-page hero site
+ * and stops being obvious once About, Contact, Systems and the Journal are
+ * real pages you can land on from search. It is written as `hero.html` —
+ * the same legacy filename every other back-to-Home link uses — so
+ * resolveHref() renders it as a router <Link> to '/' rather than a
+ * document reload. On Home itself it is marked current; on the inner
+ * pages RootLayout recomputes `current` per item, so it is not.
  */
 export const NAV_LINKS = [
+  { label: 'Home', href: 'hero.html', current: true },
   { label: 'Systems', href: '/systems' },
   { label: 'Journal', href: '/blog' },
   { label: 'About', href: 'about.html' },
@@ -51,6 +61,7 @@ export const NAV_LINKS = [
  * `data-magnetic` hooks (passed as Navbar props).
  */
 export const NAV_LINKS_INNER = [
+  { label: 'Home', href: 'hero.html' },
   { label: 'Systems', href: '/systems' },
   { label: 'Journal', href: '/blog' },
   { label: 'About', href: 'about.html' },
@@ -63,6 +74,7 @@ export const NAV_LINKS_INNER = [
  * section on the page itself, rather than contact.html.
  */
 export const NAV_LINKS_SYSTEM = [
+  { label: 'Home', href: 'hero.html' },
   { label: 'Systems', href: '/systems', current: true },
   { label: 'Journal', href: '/blog' },
   { label: 'About', href: 'about.html' },
@@ -87,6 +99,7 @@ export const NAV_LINKS_SYSTEM = [
  * is added and marked current.
  */
 export const NAV_LINKS_BLOG = [
+  { label: 'Home', href: 'hero.html' },
   { label: 'Systems', href: '/systems' },
   { label: 'Journal', href: '/blog', current: true },
   { label: 'About', href: 'about.html' },

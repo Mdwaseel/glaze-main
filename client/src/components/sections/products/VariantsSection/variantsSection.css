@@ -1050,7 +1050,14 @@
   }
 }
 
-/* ── Mobile: the panel takes the width, the specs stay two-up ── */
+/* ── Mobile: the panel takes the width, the specs stay two-up ──
+   ⚠ THIS BLOCK NO LONGER HAS ANYTHING TO STYLE ON A PHONE, and it is kept
+   rather than deleted because it is the reel's own small-screen state, not
+   the site's. Below 768px VariantsSection renders VariantsMobile instead —
+   a different layout with its own `.vrtm*` classes and its own stylesheet
+   — so none of the `.vrt__*` elements below exist there. What survives on
+   is the range this file still owns down to 769px, where the reel is
+   drawn; these values apply to nothing until that changes. */
 @media (max-width: 640px) {
   .vrt__inner { padding-bottom: clamp(15rem, 40vh, 21rem); }
   .vrt__title { font-size: clamp(1.7rem, 7vw, 2.2rem); }

@@ -307,6 +307,22 @@ body.nav-open {
   overflow: hidden;
 }
 
+/* ── Five items, not four ──────────────────────────────────────
+   "Home" was added to every nav variant (constants/navigation.js), and a
+   3rem gap between five 0.3em-tracked labels plus the logo and the CTA
+   runs the bar out of width at the bottom of the desktop range — worst on
+   a system page, which keeps the full row all the way down to 900px.
+   Tightening the gap below 1200px is the whole fix; nothing else about
+   the bar changes.
+
+   ⚠ DELIBERATELY ABOVE THE SCOPED BLOCK BELOW. `:where()` scores zero, so
+   `:where(body:not(.page-products)) .nav__links` and `.nav__links` have
+   the SAME specificity and order decides. The non-products 2rem at ≤1024px
+   has to keep winning, so this rule has to come first. */
+@media (max-width: 1200px) {
+  .nav__links { gap: 2.1rem; }
+}
+
 /* ⚠ SCOPED — the responsive block is the ONE part of this component that
    the products/*.html system pages do not share. hero.html, about.html
    and contact.html step the nav down at 1024px and collapse it to the

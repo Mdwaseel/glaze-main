@@ -1,10 +1,11 @@
 import { Fragment, useRef } from 'react'
 import { useGSAP } from '@gsap/react'
-import { useReducedMotion, useScrollTriggerRefresh } from '@/hooks'
+import { useMediaQuery, useReducedMotion, useScrollTriggerRefresh } from '@/hooks'
 import { keepMuted } from '@/utils/media'
 import { setSpec } from '@/utils/glz'
 import { countWord } from '@/utils/format'
 import { buildVariants, initVariantsStatic } from './variantsSequence'
+import VariantsMobile from './VariantsMobile'
 import './variantsSection.css'
 
 /**
@@ -17,11 +18,17 @@ import './variantsSection.css'
  * scroll. See the header of variantsSection.css for the rule-by-rule
  * provenance, and data/variants.js for where the clips come from.
  *
+ * ⚠ ALL OF THIS IS THE 769px-AND-UP SECTION. Below that the whole subtree
+ * is replaced by VariantsMobile — a vertical editorial layout with a
+ * swipeable picture, a spec list and a docked button, which is a different
+ * composition rather than this one made narrow. See its header for why,
+ * and the `isMobile` note in the body for how the swap is kept safe.
+ *
  * One variant fills one viewport. Its clip is the background; the glass
  * panel on the right carries the name, one sentence and four rows of
  * specification; the selector wheel in the lower left says where you are
  * and lets you jump — a segmented ring on desktop, the same numbers on a
- * flat rail on tablet and mobile, where the panel has taken the foot of
+ * flat rail on tablet, where the panel has taken the foot of
  * the screen. Reaching the section walks the variants; passing the last
  * one carries straight on into the Series grid, because the scroll is
  * never taken over — it is a sticky element over a taller track, which is
@@ -183,6 +190,18 @@ export default function VariantsSection({ system }) {
 
   const reduceMotion = useReducedMotion()
 
+  /* ⚠ THE PHONE GETS A DIFFERENT SECTION, NOT A NARROWER ONE. Below 768px
+     everything from `.vrt__scroll` down is replaced by VariantsMobile — a
+     vertical, editorial layout with a swipeable picture, a spec list and a
+     docked button. See the header of VariantsMobile.jsx for why, and
+     variantsMobile.css for what it borrows.
+
+     ⚠ IT IS A SWAP, NOT AN OVERLAY. Neither tree is rendered hidden behind
+     the other: the pinned stage, the injected track height and the two
+     ScrollTriggers below simply do not exist on a phone, and nothing about
+     the desktop path changed to make room for this. */
+  const isMobile = useMediaQuery('(max-width: 768px)')
+
   /* ⚠ THE LIST COMES OFF THE SYSTEM RECORD, not from a module. This is the
      section the brief is really about: a variant added in the admin panel
      lands here — clip, panel, spec rows and its place on the rail — with
@@ -231,10 +250,31 @@ export default function VariantsSection({ system }) {
 
       return buildVariants(section, scrollEl, refs)
     },
-    { scope: sectionRef, dependencies: [signature] }
+    /* ⚠ `isMobile` IS A DEPENDENCY, NOT JUST A RENDER FLAG. Crossing 768px
+       swaps the whole subtree; without it here the desktop controller would
+       keep the killed elements it captured, and the track height it injected
+       would be left on a node that no longer exists. Listing it runs the
+       context's cleanup on the way across in both directions. */
+    { scope: sectionRef, dependencies: [signature, isMobile] }
   )
 
   if (!n) return null
+
+  /* The shell is the same element either way — same id, same label, same
+     ground and the same ink tokens, which is what the phone layout reads
+     its colours from. Only what is inside it changes. */
+  if (isMobile) {
+    return (
+      <section
+        className={n === 1 ? 'vrt vrt--single' : 'vrt'}
+        id="sys-variants"
+        aria-labelledby="vrt-title"
+        ref={sectionRef}
+      >
+        <VariantsMobile system={system} variants={variants} />
+      </section>
+    )
+  }
 
   return (
     <section

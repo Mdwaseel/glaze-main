@@ -20,8 +20,7 @@
   margin: 0 auto;
   padding: 0 clamp(1.25rem, 5vw, 4rem);
 }
-.hw .eyebrow { color: var(--champagne); }
-.hw__title { margin-top: 1.5rem; max-width: 18ch; }
+.hw__title { max-width: 18ch; } /* margin-top dropped with the eyebrow */
 .hw__title em { color: var(--champagne); }
 .hw__marques {
   margin-top: 1.8rem;

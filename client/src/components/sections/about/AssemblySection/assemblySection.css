@@ -52,16 +52,6 @@
   text-align: center;
 }
 
-.asm__label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--bronze);
-  margin-bottom: 1.5rem;
-}
-
 .asm__heading {
   font-family: var(--font-display);
   font-weight: 500;

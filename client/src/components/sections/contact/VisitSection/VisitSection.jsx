@@ -3,7 +3,7 @@ import './visitSection.css'
 /**
  * VisitSection — port of contact.html lines 2128-2172.
  *
- * The dark full-width band before the map: eyebrow pill, the recurring
+ * The dark full-width band before the map: the recurring
  * Playfair/Bodoni title, one line of copy, and an underline-wipe link
  * that returns to the form with "Showroom visit" already chosen. On the
  * right, two offset vertical images on their own parallax planes.
@@ -37,7 +37,6 @@ export default function VisitSection() {
       <div className="visit__inner">
 
         <div className="visit__text">
-          <span className="visit__eyebrow fade-up">Visit Us</span>
           <h2 className="visit__title js-word-reveal" id="visit-title">
             Experience Glaze<br /><em>in person.</em>
           </h2>

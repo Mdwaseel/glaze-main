@@ -24,24 +24,6 @@
   margin: 0 auto;
 }
 
-/* Same eyebrow treatment as "What We Build On" in Values. */
-.ptr__label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--bronze);
-  margin-bottom: 1.5rem;
-}
-.ptr__label::after {
-  content: '';
-  display: block;
-  width: 2.5rem;
-  height: 1px;
-  margin-top: 0.9rem;
-  background: rgba(114, 102, 85, 0.4);
-}
-
 .ptr__heading {
   font-family: var(--font-display);
   font-weight: 500;

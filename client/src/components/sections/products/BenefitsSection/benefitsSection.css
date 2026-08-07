@@ -16,8 +16,7 @@
   border-top: 1px solid rgba(245, 245, 243, 0.06);
 }
 .plab__inner { max-width: 1440px; margin: 0 auto; }
-.plab .eyebrow { color: var(--champagne); }
-.plab__title { margin-top: 1.4rem; }
+/* margin-top dropped with the eyebrow above it. */
 .plab__title em { color: var(--champagne); }
 
 .plab__strip {

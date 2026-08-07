@@ -16,7 +16,6 @@
   overflow: clip;
 }
 .fin__inner { max-width: 1280px; margin: 0 auto; }
-.fin .eyebrow { color: var(--champagne); }
 
 .fin__grid {
   display: grid;
@@ -58,7 +57,7 @@
   color: rgba(245, 245, 243, 0.85);
 }
 
-.fin__title { margin-top: 1.4rem; }
+/* margin-top dropped with the eyebrow above it. */
 .fin__title em { color: var(--champagne); }
 .fin__lede {
   margin-top: 1.2rem;

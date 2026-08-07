@@ -137,7 +137,6 @@ export default function SystemsSection() {
 
       {/* Intro header */}
       <header className="sysm__intro">
-        <span className="sysm__eyebrow">The Collection</span>
         {/* "Six" in the original, "Seven" once Tilt & Turn was added — and
             now whatever the catalogue holds, because the count is a thing
             an editor can change. */}

@@ -39,7 +39,6 @@ export default function SeriesSection({ system }) {
   return (
     <section className="ser" id="sys-series" aria-labelledby="ser-title" ref={sectionRef}>
       <div className="ser__inner">
-        <p className="eyebrow">The Profile Series</p>
 
         <div className="ser__head">
           <h2 className="sec-title" id="ser-title" data-curtain>

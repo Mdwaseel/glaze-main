@@ -107,7 +107,6 @@ export default function GlassSection() {
 
       <div className="gls__inner">
         <div className="gls__head">
-          <p className="eyebrow">The Pane</p>
           <h2 className="gls__title" id="gls-title" data-curtain>
             Experience <em>every glass.</em>
           </h2>

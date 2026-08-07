@@ -205,7 +205,6 @@
    hardest thing on the page to read; short ones with air are the
    easiest. */
 .vrt__head { position: relative; max-width: 30ch; }
-.vrt .eyebrow { color: var(--champagne); }
 
 /* The local scrim. A soft ellipse sized to the type and bled well past
    it on every side, so there is no edge anywhere near the words and
@@ -236,7 +235,7 @@
 }
 
 .vrt__title {
-  margin-top: 1.6rem;
+  /* margin-top dropped with the eyebrow above it. */
   max-width: 14ch;
   font-family: var(--font-display);
   font-weight: 500;

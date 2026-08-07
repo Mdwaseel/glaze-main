@@ -269,7 +269,6 @@ export default function VariantsSection({ system }) {
 
           <div className="vrt__inner">
             <header className="vrt__head">
-              <p className="eyebrow">The Variants</p>
               <h2 className="vrt__title" id="vrt-title" data-curtain>
                 {/* The break is authored, as it is on Home's "Six
                     systems. / One philosophy." — left to wrap, a long

@@ -33,7 +33,6 @@ export default function PartnersSection() {
     <section id="about-partners" className="ptr" aria-labelledby="ptr-heading">
       <div className="ptr__inner">
 
-        <p className="ptr__label fade-up">Our Support System</p>
         <h2 className="ptr__heading js-word-reveal" id="ptr-heading">
           Built with the <em>best in the world.</em>
         </h2>

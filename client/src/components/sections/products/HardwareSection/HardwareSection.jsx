@@ -21,7 +21,6 @@ export default function HardwareSection() {
   return (
     <section className="hw" id="sys-hardware" aria-labelledby="hw-title">
       <div className="hw__head">
-        <p className="eyebrow">The Working Parts</p>
         <h2 className="sec-title hw__title" id="hw-title" data-curtain>
           Engineered in Germany. <em>Every piece.</em>
         </h2>

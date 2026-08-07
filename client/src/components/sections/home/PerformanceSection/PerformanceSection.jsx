@@ -56,7 +56,6 @@ export default function PerformanceSection() {
 
         {/* Heading + layer index (left) */}
         <div className="eng__head">
-          <span className="eng__eyebrow">Engineering Excellence</span>
           <h2 id="eng-title" className="eng__title">Precision,<br />Layer by Layer.</h2>
           <p className="eng__intro">
             Every Glaze system is engineered as a complete assembly, where every

@@ -28,25 +28,6 @@
   text-align: center;
 }
 
-.sysm__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--champagne);
-}
-
-.sysm__eyebrow::before,
-.sysm__eyebrow::after {
-  content: '';
-  width: 2.4rem;
-  height: 1px;
-  background: rgba(167, 154, 135, 0.35);
-}
-
 .sysm__heading {
   margin-top: 1.4rem;
   font-family: var(--font-display);

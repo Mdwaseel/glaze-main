@@ -33,7 +33,6 @@ export default function OverviewSection({ system }) {
   return (
     <section className="ovw" id="sys-overview" aria-labelledby="ovw-title">
       <div className="ovw__inner">
-        <p className="eyebrow">The System</p>
 
         <div className="ovw__grid">
           <div className="ovw__lead">

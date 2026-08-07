@@ -44,7 +44,6 @@ export default function PeopleSection() {
   return (
     <section id="about-people" className="ppl" aria-labelledby="ppl-heading" hidden ref={sectionRef}>
       <div className="ppl__inner">
-        <p className="ppl__label fade-up">Our People</p>
         <h2 className="ppl__heading js-word-reveal" id="ppl-heading">
           Meet the<br /><em>hands behind.</em>
         </h2>

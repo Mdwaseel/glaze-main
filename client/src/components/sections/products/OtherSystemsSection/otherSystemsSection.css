@@ -14,7 +14,7 @@
   padding: clamp(4.5rem, 12vh, 7rem) clamp(1.25rem, 5vw, 4rem);
 }
 .oth__inner { max-width: 1280px; margin: 0 auto; }
-.oth__title { margin-top: 1.4rem; max-width: 18ch; }
+.oth__title { max-width: 18ch; } /* margin-top dropped with the eyebrow */
 
 .oth__grid {
   display: grid;

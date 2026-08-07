@@ -5,9 +5,10 @@ import './valuesSection.css'
 /**
  * ValuesSection — port of about.html lines 3767-3852.
  *
- * Four dark cards on bone, one per value: mono index, the value set huge
- * in Playfair with a Bodoni-italic accent, one plain line, and a
- * full-height photograph.
+ * Four dark cards on bone, one per value: the value set huge in Playfair
+ * with a Bodoni-italic accent, one plain line, and a full-height
+ * photograph. (The mono 01-04 index and the section label above the deck
+ * went with the site-wide eyebrow removal.)
  *
  * This markup IS the finished static state — all four cards stacked in
  * normal flow, fully readable — so touch, no-JS and reduced motion lose
@@ -25,8 +26,8 @@ import './valuesSection.css'
  * photographs and only then swap it.
  *
  * The page-level About hooks handle the rest with no wiring here:
- * `.fade-up` on the label, the four indices and the four bodies
- * (useAboutFadeReveal), and `js-word-reveal` on `#values-heading` plus
+ * `.fade-up` on the four bodies (useAboutFadeReveal), and
+ * `js-word-reveal` on `#values-heading` plus
  * all four `.vcard__name` headings (useAboutWordReveal).
  */
 export default function ValuesSection() {
@@ -41,7 +42,6 @@ export default function ValuesSection() {
   return (
     <section id="about-values" className="values" aria-labelledby="values-heading" ref={sectionRef}>
       <div className="values__inner">
-        <p className="values__label fade-up">What We Build On</p>
         <h2 className="values__heading js-word-reveal" id="values-heading">
           Built on <em>four values.</em>
         </h2>
@@ -52,7 +52,6 @@ export default function ValuesSection() {
 
           <li className="vcard">
             <div className="vcard__text">
-              <span className="vcard__index fade-up">01</span>
               <h3 className="vcard__name js-word-reveal">
                 Durability that <em>endures.</em>
               </h3>
@@ -70,7 +69,6 @@ export default function ValuesSection() {
 
           <li className="vcard" style={{ '--peek': '1.3rem' }}>
             <div className="vcard__text">
-              <span className="vcard__index fade-up">02</span>
               <h3 className="vcard__name js-word-reveal">
                 Low-maintenance <em>living.</em>
               </h3>
@@ -88,7 +86,6 @@ export default function ValuesSection() {
 
           <li className="vcard" style={{ '--peek': '2.6rem' }}>
             <div className="vcard__text">
-              <span className="vcard__index fade-up">03</span>
               <h3 className="vcard__name js-word-reveal">
                 Design <em>versatility.</em>
               </h3>
@@ -109,7 +106,6 @@ export default function ValuesSection() {
 
           <li className="vcard" style={{ '--peek': '3.9rem' }}>
             <div className="vcard__text">
-              <span className="vcard__index fade-up">04</span>
               <h3 className="vcard__name js-word-reveal">
                 Eco-smart <em>engineering.</em>
               </h3>

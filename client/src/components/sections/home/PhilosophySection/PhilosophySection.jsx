@@ -49,7 +49,6 @@ export default function PhilosophySection() {
   return (
     <section id="philosophy" className="philosophy" ref={sectionRef}>
       <div className="philosophy__inner">
-        <p className="philosophy__label" data-anim="eyebrow">The Glaze Philosophy</p>
         <h2 className="philosophy__heading" data-anim="headline">
           {/* ⚠ The trailing space lives INSIDE the string literal, not as a
               separate {' '}. hero.html line 1513 puts this whole run in one

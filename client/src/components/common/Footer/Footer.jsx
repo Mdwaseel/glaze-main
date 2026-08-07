@@ -190,7 +190,6 @@ export default function Footer({
         {/* ── Closing CTA ─────────────────────────────────────────── */}
         <div className="footer__cta">
           <div className="footer__cta-copy">
-            <span className="footer__cta-eyebrow">Start a project</span>
             <p className="footer__cta-line">
               Let&rsquo;s design something that <em>disappears.</em>
             </p>

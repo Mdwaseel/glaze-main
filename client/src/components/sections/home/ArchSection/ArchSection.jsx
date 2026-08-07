@@ -67,7 +67,6 @@ export default function ArchSection() {
   const sectionRef = useRef(null)
   const trackRef = useRef(null)
   const progressRef = useRef(null)
-  const ghostRef = useRef(null)
   const countRef = useRef(null)
   const catRef = useRef(null)
   const lineRef = useRef(null)
@@ -96,7 +95,6 @@ export default function ArchSection() {
       if (reduceMotion) return
 
       return buildArchAnimation(section, track, progressRef.current, {
-        ghost: ghostRef.current,
         countEl: countRef.current,
         catEl: catRef.current,
         lineEl: lineRef.current,
@@ -122,7 +120,6 @@ export default function ArchSection() {
           {/* Header row */}
           <div className="arch__header">
             <div>
-              <span className="arch__label fade-up"> Architectural Freedom</span>
               <h2 className="arch__heading js-word-reveal">
                 {' '}
                 Tailored for
@@ -144,7 +141,6 @@ export default function ArchSection() {
 
           {/* Card track */}
           <div id="track-wrapper" className="arch__track-wrapper">
-            <div className="arch__ghost" id="archGhost" aria-hidden="true" ref={ghostRef}>every context</div>
             <div id="card-track" className="arch__track" ref={trackRef}>
 
               {ARCH_CARDS.map((card) => (

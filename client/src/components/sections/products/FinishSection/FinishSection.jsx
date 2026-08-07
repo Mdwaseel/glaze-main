@@ -63,7 +63,6 @@ export default function FinishSection() {
           </div>
 
           <div>
-            <p className="eyebrow">Make It Yours</p>
             <h2 className="sec-title fin__title" id="fin-title" data-curtain>
               Hover a finish. <em>Watch it settle.</em>
             </h2>

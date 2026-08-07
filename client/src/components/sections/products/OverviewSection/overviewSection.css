@@ -33,7 +33,7 @@
   grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
   gap: clamp(2.5rem, 6vw, 6rem);
   align-items: start;
-  margin-top: clamp(1.8rem, 4vh, 2.6rem);
+  /* margin-top dropped with the eyebrow that used to sit above. */
 }
 
 /* The lead column carries the claim and who it is for; the body

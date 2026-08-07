@@ -178,7 +178,6 @@ export default function AssemblySection() {
       ref={sectionRef}
     >
       <div className="asm__intro">
-        <span className="asm__label fade-up">The Build</span>
         <h2 id="asm-heading" className="asm__heading js-word-reveal">
           Assembled,
           <br />

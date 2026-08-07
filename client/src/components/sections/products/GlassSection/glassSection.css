@@ -52,9 +52,8 @@
 }
 
 .gls__head { max-width: 40ch; }
-.gls .eyebrow { color: var(--champagne); }
 .gls__title {
-  margin-top: 1.3rem;
+  /* margin-top dropped with the eyebrow above it. */
   font-family: var(--font-display);
   font-weight: 500;
   font-size: clamp(2rem, 4vw, 3.6rem);

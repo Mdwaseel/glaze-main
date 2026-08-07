@@ -47,7 +47,6 @@ export default function SystemEnquirySection({ system }) {
   return (
     <section className="enq" id="contact" aria-labelledby="enq-title" ref={sectionRef}>
       <div className="enq__inner">
-        <p className="eyebrow">Start The Conversation</p>
         <h2 className="sec-title enq__title" id="enq-title" data-curtain>
           Tell us what you are <em>building.</em>
         </h2>

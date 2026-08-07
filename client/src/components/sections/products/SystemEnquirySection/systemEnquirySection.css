@@ -19,11 +19,8 @@
    `:where()` contributes ZERO specificity, so every scoped rule scores
    exactly what the original bare selector scored.
 
-   `.enq .eyebrow` needs no scope of its own: `.enq` appears there only as
-   an ANCESTOR, and the subject `.eyebrow` is a products-only class that
-   never renders inside Contact's `.enq`. Every other selector in this
-   file is `.enq__*`-prefixed with a name Contact does not have, and stays
-   verbatim. */
+   Every other selector in this file is `.enq__*`-prefixed with a name
+   Contact does not have, and stays verbatim. */
 
 /* ══════════════════════════════════════════════════════════════
    11 · MULTI-STEP ENQUIRY
@@ -47,8 +44,9 @@
   background: radial-gradient(80% 60% at 78% 0%, rgba(114, 102, 85, 0.16), transparent 62%);
 }
 :where(.page-products) .enq__inner { position: relative; max-width: 1240px; margin: 0 auto; }
-.enq .eyebrow { color: var(--champagne); }
-.enq__title { margin-top: 1.5rem; max-width: 16ch; }
+/* margin-top dropped with the eyebrow it used to clear — the title now
+   opens the block and takes its spacing from .enq's own padding. */
+.enq__title { max-width: 16ch; }
 .enq__title em { color: var(--champagne); }
 .enq__sub {
   margin-top: 1.4rem;

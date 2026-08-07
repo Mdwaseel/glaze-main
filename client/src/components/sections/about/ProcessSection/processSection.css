@@ -54,24 +54,6 @@
   text-align: center;
 }
 
-.proc__label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--bronze);
-  margin-bottom: 1.5rem;
-}
-
-.proc__label::after {
-  content: '';
-  display: block;
-  width: 2.5rem;
-  height: 1px;
-  margin: 0.9rem auto 0;
-  background: rgba(114, 102, 85, 0.4);
-}
-
 .proc__heading {
   font-family: var(--font-display);
   font-weight: 500;
@@ -248,18 +230,6 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-
-/* Process indicator — "Step 01 / 06"; the run total recedes. */
-.proc__stepnum {
-  margin-top: clamp(1.6rem, 3.5vh, 2.4rem);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--bronze);
-}
-
-.proc__stepnum span { color: rgba(27, 27, 27, 0.38); }
 
 /* The heading is the hero of the panel — display serif,
    sentence case, ~54px at full width. */

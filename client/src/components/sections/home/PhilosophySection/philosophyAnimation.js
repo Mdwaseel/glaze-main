@@ -6,8 +6,11 @@ import { readCountTarget, readDecimals, setFinalCount } from '@/utils/counters'
  * hero.html (lines 4534-4656).
  *
  * Every duration, easing, position parameter and stagger below is copied
- * from the original. The position strings ('-=0.4', '<', '-=0.95') are
+ * from the original. The position strings ('<', '-=0.3', '-=0.95') are
  * what make the steps overlap; changing one changes the whole rhythm.
+ * The one departure: the original opened on an eyebrow tween the headline
+ * hung off at '-=0.4'. The eyebrow is gone, so the headline opens the
+ * timeline outright.
  *
  * Deliberately NOT using useCountUp here: the base script excludes
  * `.philosophy` from its IntersectionObserver count-up precisely because
@@ -32,7 +35,6 @@ export function setFinalNumbers(section) {
 export function buildPhilosophyAnimation(section) {
   const values = section.querySelectorAll('.philosophy__stat-value')
 
-  const eyebrow = section.querySelector('[data-anim="eyebrow"]')
   const headline = section.querySelector('[data-anim="headline"]')
   const accent = section.querySelector('[data-anim="accent"]')
   const para = section.querySelector('[data-anim="para"]')
@@ -55,26 +57,26 @@ export function buildPhilosophyAnimation(section) {
     },
   })
 
-  // 1 — Eyebrow (with its bronze rule) fades in
-  tl.from(eyebrow, { y: 20, opacity: 0, duration: 0.8, ease: 'power2.out' })
+  // 1 — Headline fades up. It opens the timeline now that the eyebrow is
+  // gone; leaving the old tween in place with a null target would have kept
+  // its 0.8s slot on the timeline (a no-target tween still holds its
+  // duration), so the '-=0.4' below would have opened on 0.4s of nothing.
+  tl.from(headline, { y: 40, opacity: 0, duration: 1 })
 
-  // 2 — Headline fades up
-  tl.from(headline, { y: 40, opacity: 0, duration: 1 }, '-=0.4')
-
-  // 3 — The word "disappear." lifts in 0.2s after the headline starts
+  // 2 — The word "disappear." lifts in 0.2s after the headline starts
   tl.from(
     accent,
     { y: 10, opacity: 0, duration: 0.8, ease: 'power2.out', delay: 0.2 },
     '<'
   )
 
-  // 4 — Supporting paragraph
+  // 3 — Supporting paragraph
   tl.from(para, { y: 20, opacity: 0, duration: 0.8 }, '-=0.3')
 
-  // 5 — Divider grows from left to right
+  // 4 — Divider grows from left to right
   tl.from(divider, { scaleX: 0, duration: 0.8, ease: 'power2.out' }, '-=0.2')
 
-  // 6 — Performance numbers count up together (1.2s)
+  // 5 — Performance numbers count up together (1.2s)
   Array.prototype.forEach.call(values, function (el, i) {
     const to = readCountTarget(el)
     const dec = readDecimals(el)
@@ -93,7 +95,7 @@ export function buildPhilosophyAnimation(section) {
     )
   })
 
-  // 7 — Metric labels fade in one after another (0.1s stagger)
+  // 6 — Metric labels fade in one after another (0.1s stagger)
   tl.from(
     labels,
     { y: 10, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out' },

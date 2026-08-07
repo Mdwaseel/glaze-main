@@ -146,14 +146,10 @@ export function useProductsEntrance() {
           })
         }
 
-        /* The eyebrow's leading rule draws itself in. */
-        gsap.utils.toArray('.eyebrow').forEach(function (el) {
-          gsap.fromTo(el, { '--eyebrow-scale': 0 }, {
-            '--eyebrow-scale': 1, duration: 0.9, ease: 'power3.out',
-            scrollTrigger: { trigger: el, start: 'top 92%', once: true },
-          })
-        })
-
+        /* The section eyebrows and their leading rules are gone from the
+           Products markup, so the tween that drew those rules in went with
+           them. `[data-rule]` below is a different thing — the standalone
+           divider rules — and still runs. */
         document.querySelectorAll('[data-rule]').forEach(function (rule) {
           rule.classList.add('rule--armed')
           gsap.fromTo(rule, { scaleX: 0 }, {

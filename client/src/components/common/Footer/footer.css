@@ -87,16 +87,6 @@
   border-bottom: 1px solid rgba(245, 245, 243, 0.08);
 }
 
-.footer__cta-eyebrow {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--champagne);
-  margin-bottom: 0.9rem;
-}
-
 .footer__cta-line {
   font-family: var(--font-display);
   font-size: clamp(1.6rem, 3.6vw, 2.65rem);

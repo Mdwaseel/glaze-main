@@ -36,7 +36,6 @@ export default function BenefitsSection() {
   return (
     <section className="plab" id="sys-benefits" aria-labelledby="plab-title">
       <div className="plab__inner">
-        <p className="eyebrow">Proven, Not Promised</p>
         <h2 className="sec-title plab__title" id="plab-title" data-curtain>
           The Performance Lab. <em>Every claim, tested.</em>
         </h2>

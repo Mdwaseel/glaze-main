@@ -52,9 +52,10 @@
    scoped rule scores exactly what the original bare selector scored.
 
    Everything below the scoped block — the shared editorial primitives —
-   is verbatim. Those class names (`.eyebrow`, `.sec-title`, `.wc__*`,
-   `.clip--armed`, `.rule*`) appear nowhere else in src/; checked against
-   the full-bundle collision scan run when these pages landed.
+   is verbatim apart from `.eyebrow`, which is deleted (see below). Those
+   class names (`.sec-title`, `.wc__*`, `.clip--armed`, `.rule*`) appear
+   nowhere else in src/; checked against the full-bundle collision scan
+   run when these pages landed.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Additive token ─────────────────────────────────────────────
@@ -103,25 +104,10 @@ body:where(.page-products) {
 /* ── Verbatim from products/sliding.html below this line ───────── */
 
 /* ── Shared editorial primitives ─────────────────────────────── */
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--bronze);
-}
-.eyebrow::before {
-  content: '';
-  width: 26px;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.6;
-  transform: scaleX(var(--eyebrow-scale, 1));
-  transform-origin: left center;
-}
+/* The `.eyebrow` primitive (mono 10px, 0.34em tracking, bronze, with the
+   26px leading rule it grew in via --eyebrow-scale) is deleted along with
+   the ten section eyebrows that used it. `--eyebrow-scale` and its tween
+   in hooks/products/useProductsEntrance.js went with it. */
 
 .sec-title {
   font-family: var(--font-display);

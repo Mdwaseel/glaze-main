@@ -139,7 +139,6 @@ export default function BlogIndex() {
       />
       <div className="bl-shell">
         <header className="bl-masthead">
-          <p className="bl-eyebrow">Journal</p>
           <h1 className="bl-title">
             Notes on glass, <em>aluminium and light.</em>
           </h1>

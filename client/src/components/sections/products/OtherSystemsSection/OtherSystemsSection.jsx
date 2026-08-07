@@ -68,7 +68,6 @@ export default function OtherSystemsSection({ system }) {
   return (
     <section className="oth" id="other-systems" aria-labelledby="oth-title">
       <div className="oth__inner">
-        <p className="eyebrow">Keep Looking</p>
         <h2 className="sec-title oth__title" id="oth-title" data-curtain>
           {countWord(others.length)} more ways to <em>open a wall.</em>
         </h2>

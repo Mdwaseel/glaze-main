@@ -3,9 +3,10 @@ import { gsap, ScrollTrigger } from '@/utils/gsap'
 /**
  * Architectural Freedom — GSAP horizontal gallery.
  *
- * Verbatim port of the script in hero.html (lines 4344-4530): scrubbed
- * track with velocity skew, ghost-word parallax, per-card unfold + image
- * parallax, live header counter.
+ * Port of the script in hero.html (lines 4344-4530): scrubbed track with
+ * velocity skew, per-card unfold + image parallax, live header counter.
+ * The original's ghost-word parallax is the one omission — the outlined
+ * word it moved has been removed from the markup.
  *
  * Every number, easing, start/end string and toggleActions value below is
  * copied from the original. The per-card triggers all ride
@@ -18,7 +19,7 @@ import { gsap, ScrollTrigger } from '@/utils/gsap'
  * ScrollTrigger 'refreshInit' listener and the injected section height.
  */
 export function buildArchAnimation(section, track, progressBar, els) {
-  const { ghost, countEl, catEl, lineEl } = els
+  const { countEl, catEl, lineEl } = els
 
   const cards = gsap.utils.toArray('.arch__card', track)
 
@@ -77,24 +78,8 @@ export function buildArchAnimation(section, track, progressBar, els) {
     },
   })
 
-  // ── Ghost word drifts on its own, slower plane ──
-  if (ghost) {
-    gsap.fromTo(
-      ghost,
-      { xPercent: 6, yPercent: -50 },
-      {
-        xPercent: -48,
-        yPercent: -50,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: true,
-        },
-      }
-    )
-  }
+  // (The outlined ghost word that drifted behind the cards on its own
+  // slower plane is gone, and its parallax tween with it.)
 
   // ── Live header counter / category readout ──
   let current = -1

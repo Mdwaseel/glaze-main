@@ -15,27 +15,6 @@
   margin: 0 auto;
 }
 
-.philosophy__label {
-  position: relative;
-  display: inline-block;
-  margin-bottom: 2.75rem;
-  font-size: 12px;
-  letter-spacing: 0.45em;
-  color: #A79A87;
-  opacity: 0.72;
-  text-transform: uppercase;
-}
-
-/* Thin bronze rule beneath the eyebrow — understated, fades in with it */
-.philosophy__label::after {
-  content: '';
-  display: block;
-  width: 48px;
-  height: 1px;
-  margin-top: 1.1rem;
-  background-color: #A79A87;
-}
-
 .philosophy__heading {
   max-width: 60rem;
   /* ~5% smaller than before, with a more editorial line-height */

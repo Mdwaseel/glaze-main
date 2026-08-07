@@ -35,7 +35,6 @@ export default function PartnersMarqueeSection() {
   return (
     <section className="ptn" id="sys-partners" aria-labelledby="ptn-title" ref={sectionRef}>
       <div className="ptn__head">
-        <p className="eyebrow">The Company We Keep</p>
         <h2 className="sec-title ptn__title" id="ptn-title" data-curtain>
           Built with the <em>best in the trade.</em>
         </h2>

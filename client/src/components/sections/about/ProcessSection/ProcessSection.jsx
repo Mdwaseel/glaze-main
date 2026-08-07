@@ -60,7 +60,6 @@ export default function ProcessSection() {
   return (
     <section id="about-process" className="proc" aria-labelledby="proc-heading" ref={sectionRef}>
       <div className="proc__intro">
-        <p className="proc__label fade-up">How We Work</p>
         <h2 className="proc__heading js-word-reveal" id="proc-heading">
           Six steps,<br /><em>start to finish.</em>
         </h2>
@@ -87,7 +86,6 @@ export default function ProcessSection() {
               {/* Conversation, not a document — this step is now the meeting. */}
               <svg viewBox="0 0 24 24"><path d="M4 4.5h16v12H9.5L5 20.5v-4H4z" /><path d="M8 9h8M8 12.5h5" /></svg>
             </span>
-            <p className="proc__stepnum fade-up" style={{ '--reveal-delay': '0.06s' }}>Step 01 <span>/ 06</span></p>
             <h3 className="proc__title fade-up" style={{ '--reveal-delay': '0.12s' }}>Consultation</h3>
             <span className="proc__rule fade-up" style={{ '--reveal-delay': '0.18s' }} aria-hidden="true"></span>
             <p className="proc__lede fade-up" style={{ '--reveal-delay': '0.22s' }}>
@@ -122,7 +120,6 @@ export default function ProcessSection() {
                   measuring step. */}
               <svg viewBox="0 0 24 24"><circle cx="12" cy="4.6" r="1.6" /><path d="M11.2 6.1 6 20M12.8 6.1 18 20" /><path d="M8.4 14.6a7.6 7.6 0 0 0 7.2 0" /></svg>
             </span>
-            <p className="proc__stepnum fade-up" style={{ '--reveal-delay': '0.06s' }}>Step 02 <span>/ 06</span></p>
             <h3 className="proc__title fade-up" style={{ '--reveal-delay': '0.12s' }}>Site Survey</h3>
             <span className="proc__rule fade-up" style={{ '--reveal-delay': '0.18s' }} aria-hidden="true"></span>
             <p className="proc__lede fade-up" style={{ '--reveal-delay': '0.22s' }}>
@@ -155,7 +152,6 @@ export default function ProcessSection() {
                   layers that belonged to the old material-selection step. */}
               <svg viewBox="0 0 24 24"><path d="M5 3.5h9l5 5v12H5z" /><path d="M14 3.5v5h5" /><path d="M8 17.5 15.5 10" /><path d="M8 13.5v4h4" /></svg>
             </span>
-            <p className="proc__stepnum fade-up" style={{ '--reveal-delay': '0.06s' }}>Step 03 <span>/ 06</span></p>
             <h3 className="proc__title fade-up" style={{ '--reveal-delay': '0.12s' }}>Design &amp; Drawings</h3>
             <span className="proc__rule fade-up" style={{ '--reveal-delay': '0.18s' }} aria-hidden="true"></span>
             <p className="proc__lede fade-up" style={{ '--reveal-delay': '0.22s' }}>
@@ -193,7 +189,6 @@ export default function ProcessSection() {
                   verification step. */}
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1" /><path d="M12 4v2.4M12 17.6V20M4 12h2.4M17.6 12H20M6.3 6.3 8 8M16 16l1.7 1.7M17.7 6.3 16 8M8 16l-1.7 1.7" /></svg>
             </span>
-            <p className="proc__stepnum fade-up" style={{ '--reveal-delay': '0.06s' }}>Step 04 <span>/ 06</span></p>
             <h3 className="proc__title fade-up" style={{ '--reveal-delay': '0.12s' }}>Fabrication</h3>
             <span className="proc__rule fade-up" style={{ '--reveal-delay': '0.18s' }} aria-hidden="true"></span>
             <p className="proc__lede fade-up" style={{ '--reveal-delay': '0.22s' }}>
@@ -223,7 +218,6 @@ export default function ProcessSection() {
             <span className="proc__icon fade-up" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z" /><path d="M12 5v14M5 12h14" /></svg>
             </span>
-            <p className="proc__stepnum fade-up" style={{ '--reveal-delay': '0.06s' }}>Step 05 <span>/ 06</span></p>
             <h3 className="proc__title fade-up" style={{ '--reveal-delay': '0.12s' }}>Installation</h3>
             <span className="proc__rule fade-up" style={{ '--reveal-delay': '0.18s' }} aria-hidden="true"></span>
             <p className="proc__lede fade-up" style={{ '--reveal-delay': '0.22s' }}>
@@ -254,7 +248,6 @@ export default function ProcessSection() {
             <span className="proc__icon fade-up" aria-hidden="true">
               <svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="3.2" /><path d="M11.2 12H20M16.8 12v3M19.4 12v2.2" /></svg>
             </span>
-            <p className="proc__stepnum fade-up" style={{ '--reveal-delay': '0.06s' }}>Step 06 <span>/ 06</span></p>
             <h3 className="proc__title fade-up" style={{ '--reveal-delay': '0.12s' }}>Handover</h3>
             <span className="proc__rule fade-up" style={{ '--reveal-delay': '0.18s' }} aria-hidden="true"></span>
             <p className="proc__lede fade-up" style={{ '--reveal-delay': '0.22s' }}>

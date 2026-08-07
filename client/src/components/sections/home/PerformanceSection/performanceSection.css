@@ -49,25 +49,6 @@
 /* ── Heading (left) ── */
 .eng__head { max-width: 500px; }
 
-.eng__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--eng-accent);
-  margin-bottom: 1.25rem;
-}
-.eng__eyebrow::before {
-  content: '';
-  width: 24px;
-  height: 1px;
-  background: var(--eng-accent);
-  opacity: 0.7;
-}
-
 .eng__title {
   font-family: var(--font-display);
   font-style: italic;
@@ -220,7 +201,7 @@
 
 /* Short desktop viewports: the section pins under the fixed nav, so
    clear it explicitly and tighten the left column enough that the
-   eyebrow and the meter both stay inside the pinned frame. */
+   title and the meter both stay inside the pinned frame. */
 @media (min-width: 981px) and (max-height: 800px) {
   .eng__inner  { padding-top: 6.5rem; padding-bottom: 1.75rem; }
   .eng__title  { font-size: clamp(1.9rem, 2.9vw, 2.6rem); }
@@ -238,11 +219,26 @@
     min-height: auto;
     gap: 2rem;
   }
-  .eng__head { max-width: 620px; }
+  /* The heading leads, then the render, then the rest of the copy.
+     `order` only sorts SIBLINGS, and the h2 is nested inside .eng__head —
+     so the head is dissolved with `display: contents`, which promotes its
+     four children to grid items of .eng__inner and lets the title be
+     ordered past the stage on its own. The div carries no semantics, so
+     nothing is lost from the accessibility tree.
+
+     Its max-width: 620px goes with it: .eng__intro keeps its own 500px,
+     .eng__steps is deliberately unbounded just below, .eng__meter is
+     display:none down here, so only the title still needs the cap. */
+  .eng__head { display: contents; }
+  .eng__title { order: -2; max-width: 620px; }
   .eng__steps { max-width: none; }
-  /* Render leads, copy follows. No pin on small screens — the
-     sequence simply scrubs as the section passes. */
+  /* Render leads the copy — but no longer the title. No pin on small
+     screens either; the sequence simply scrubs as the section passes. */
   .eng__stage { order: -1; }
+  /* The 2rem grid gap now separates these four, so their own stacking
+     margins would double it. */
+  .eng__intro { margin-top: 0; }
+  .eng__steps { margin-top: 0; }
   .eng__plate { --plate-h: 200vh; max-width: none; }   /* width = full column */
   /* Every layer reads at once; nothing is scroll-gated. */
   .eng__step { opacity: 1; }

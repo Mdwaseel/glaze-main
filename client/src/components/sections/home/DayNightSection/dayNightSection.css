@@ -36,24 +36,9 @@
 
 .daynight__top { max-width: 42rem; }
 
-.daynight__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 1.3rem;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--champagne);
-}
-.daynight__eyebrow::before {
-  content: '';
-  width: 24px;
-  height: 1px;
-  background: var(--champagne);
-  opacity: 0.7;
-}
+/* `.daynight__eyebrow` and its leading rule were already dead — the
+   component stopped rendering the element at some point and only the CSS
+   was left behind. Removed with the rest of the site's eyebrows. */
 
 .daynight__title {
   font-family: var(--font-display);

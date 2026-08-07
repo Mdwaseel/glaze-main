@@ -41,7 +41,6 @@ export default function OriginSection() {
 
           <div className="origin__inner">
             <div className="origin__text" id="originText" ref={textRef}>
-              <p className="origin__label fade-up">Our Origin</p>
               <h2 className="origin__heading js-word-reveal" id="origin-heading">
                 Thirty-seven years<br /><em>in the metal.</em>
               </h2>

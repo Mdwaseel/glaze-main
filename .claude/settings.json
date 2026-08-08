@@ -217,7 +217,12 @@
       "Bash(node skip.js)",
       "Bash(python \"C:/Users/Mohd/AppData/Local/Temp/claude/d--Projects-glaze-react-glaze-react-migration/fce41b87-62e1-4d1e-b9f1-6ab992550ff7/scratchpad/patch13.py\")",
       "Bash(sed -i \"s|http://localhost/contact|http://localhost:5185/contact|\" country.js)",
-      "Bash(node country.js)"
+      "Bash(node country.js)",
+      "Bash(node overflow.js)",
+      "Bash(sed -i \"s|localhost:5185|localhost:5173|g\" wizard.js)",
+      "Bash(node glass.js)",
+      "Bash(sed -i 's/    await p.waitForTimeout: 0\\\\n//' lab.js)",
+      "Bash(node lab.js)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Mohd\\AppData\\Local\\Temp\\claude\\chrome-prof",

@@ -83,6 +83,12 @@
   line-height: 1.75;
   color: rgba(245, 245, 243, 0.55);
 }
+/* Three elements exist only for the phone composition and are switched on
+   in the ≤768 block below. Declared off here so that every viewport above
+   it renders exactly the markup it rendered before they were added. */
+.gls__foot-copy--touch,
+.gls__grip,
+.gls__cta { display: none; }
 
 /* ── Floating glassmorphism panel ── */
 .gls__panel {
@@ -231,6 +237,261 @@
   .gls__inner { position: relative; }
   .gls__foot { margin-top: 2rem; padding-bottom: 3rem; }
 }
+/* ═══════════════════════════════════════════════════════════════
+   PHONE (≤768px) — the same section, recomposed vertically
+   ───────────────────────────────────────────────────────────────
+   Nothing above this width is touched. The ≥1025 floating panel and
+   the 769–1024 stacked layout are both exactly as they were; this
+   block only overrides the ≤1024 rules for phone widths.
+
+   ⚠ THE SWITCHER IS NOT TOUCHED. glassSwitcher.js finds its samples,
+   layers and spec fields by id and class, all of which survive here —
+   this is layout only, so tap-to-lock, the layer crossfade, the
+   rolling figures, the arrow keys and setSpec() all behave as before.
+
+   ⚠ NO MENU BUTTON IS ADDED. The brief asks for a circular hamburger
+   top-right; the site already has one — <Navbar> from RootLayout sits
+   above every page and this section measures its height through
+   --sys-nav-h. A second one inside a mid-page section would be a
+   duplicate control, so the head simply clears the real nav.
+
+   THE SHAPE
+   .gls becomes a column and .gls__inner becomes `display: contents`,
+   which dissolves the wrapper and lets head / panel / foot be ordered
+   directly against each other. The stage is lifted out of the flow and
+   pinned behind the head, so the title and lede read over the room
+   instead of below it.
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .gls {
+    --gls-hero-h: max(74svh, 460px);
+    --gls-gutter: 1.5rem;      /* 24px, per the brief */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Behind the copy, not above it. Fixed height rather than a share of
+     the section, because the section's height is now the sum of its
+     content and a percentage would chase itself. */
+  .gls__stage {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: var(--gls-hero-h);
+  }
+  .gls__layer img { object-position: 50% 45%; }
+
+  /* ⚠ THE LAST STOP IS THE SECTION'S OWN GROUND COLOUR, NOT TRANSPARENT.
+     The head is min-height'd to the hero, so on a short or landscape
+     viewport long copy can push past the image's bottom edge. Dissolving
+     the photograph into #070A0C means that overrun reads as the image
+     fading out, which is the intended effect anyway — never as a seam. */
+  .gls__veil {
+    background:
+      linear-gradient(to bottom,
+        rgba(6, 8, 10, 0.88) 0%,
+        rgba(6, 8, 10, 0.62) 30%,
+        rgba(6, 8, 10, 0.30) 52%,
+        rgba(7, 10, 12, 0.86) 86%,
+        #070A0C 100%),
+      linear-gradient(to right, rgba(6, 8, 10, 0.5), rgba(6, 8, 10, 0) 72%);
+  }
+
+  /* Dissolved so its three children become siblings of the panel and can
+     be ordered around it. Its padding goes with it — head and foot carry
+     their own gutters from here down. */
+  .gls__inner { display: contents; }
+
+  .gls__head {
+    order: 1;
+    position: relative;
+    z-index: 1;
+    max-width: none;
+    min-height: var(--gls-hero-h);
+    box-sizing: border-box;
+    padding: calc(var(--sys-nav-h, 94px) + 2rem) var(--gls-gutter) 0;
+  }
+  .gls__title {
+    font-size: clamp(2.9rem, 13vw, 3.5rem);
+    line-height: 0.94;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .gls__title em { display: block; font-size: 0.92em; }
+  .gls__lede {
+    margin-top: 1.6rem;
+    /* 88% of a 375px phone is a good measure; 88% of a 768px tablet is a
+       92-character line. The rem term caps it at a readable one. */
+    max-width: min(88%, 30rem);
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: rgba(245, 245, 243, 0.74);
+  }
+
+  /* ── The selector, floated over the foot of the image ── */
+  .gls__panel {
+    order: 2;
+    position: relative;
+    top: auto; right: auto;
+    transform: none;
+    /* ⚠ THE CAP IS WHAT KEEPS THE SWATCHES SWATCH-SIZED. The grid is four
+       columns at every width in this block, so the preview size is just
+       the panel's width divided by four: unbounded, a 768px tablet gives
+       158px tiles and the "selector" reads as a photo gallery. 420px puts
+       them at ~83px there and ~64px on a 375px phone, and above ~450px
+       the panel simply centres as a control card over the image. */
+    width: min(calc(100% - 2rem), 420px);
+    margin: -3.5rem auto 0;
+    padding: 1.75rem 1.25rem 1.5rem;
+    border-radius: 28px;
+    border: 1px solid rgba(245, 245, 243, 0.12);
+    /* Denser than the desktop 0.42: on a phone the panel sits over the
+       brightest part of the photograph, and 10px type needs the ground. */
+    background: rgba(16, 19, 21, 0.66);
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    box-shadow: 0 26px 60px -24px rgba(0, 0, 0, 0.85);
+  }
+
+  .gls__grip {
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin: -0.5rem auto 1.25rem;
+    border-radius: 999px;
+    background: rgba(245, 245, 243, 0.16);
+  }
+
+  /* Only the selector's own title centres — the specifications header
+     below stays left, where it reads as a section rule. */
+  .gls__panel > .gls__panel-label {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.34em;
+    color: rgba(245, 245, 243, 0.55);
+  }
+
+  .gls__samples {
+    /* Four columns is a hard requirement of the brief at every phone
+       width, so the label below scales instead of the grid. */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem 1rem;
+    margin-top: 1.5rem;
+  }
+  .gls__sample-img { border-radius: 8px; overflow: hidden; }
+  /* No hover on a phone, so the locked sample has to be legible without
+     one. A hairline ring, offset — not a glow and not a plate. */
+  .gls__sample.is-active .gls__sample-img {
+    outline: 1px solid rgba(245, 245, 243, 0.5);
+    outline-offset: 2px;
+  }
+  .gls__sample-name {
+    padding: 0.55rem 0 0.5rem;
+    /* ⚠ CAPPED AT THE COLUMN, NOT AT A POINT SIZE. "REFLECTIVE" is ten
+       mono glyphs; at the brief's 10px/2px it measures ~74px against a
+       ~64px column at 375px and bleeds into its neighbour's gap. The vw
+       term keeps the longest label inside its own column at every phone
+       width and the 10px cap stops it growing past the desktop size. */
+    font-size: min(10px, 2.45vw);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Specifications: connected to the panel, distinct within it ── */
+  .gls__spec {
+    margin-top: 2rem;
+    padding: 1.25rem 1.1rem 1.2rem;
+    border: 1px solid rgba(245, 245, 243, 0.08);
+    border-radius: 18px;
+    background: rgba(245, 245, 243, 0.028);
+  }
+  .gls__spec-desc {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .gls__rows { margin-top: 1.1rem; }
+  .gls__row {
+    padding: 0.66rem 0;
+    border-bottom: 1px solid rgba(245, 245, 243, 0.07);
+  }
+  .gls__row dt { font-size: 10px; letter-spacing: 0.18em; }
+  .gls__row dd { font-size: 0.95rem; }
+  .gls__fine {
+    margin-top: 1.1rem;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+  }
+
+  .gls__cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    width: 100%;
+    min-height: 58px;
+    margin-top: 1.5rem;
+    padding: 0 1rem;
+    border-radius: 17px;
+    background: var(--champagne);
+    color: #12140F;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s var(--ease-snap);
+  }
+  .gls__cta-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+  }
+  .gls__cta-arrow { transition: transform 0.3s var(--ease-snap); }
+  .gls__cta:active {
+    background: #B9AC98;
+    transform: scale(0.985);
+  }
+  .gls__cta:active .gls__cta-arrow { transform: translateX(3px); }
+
+  /* ── The instruction, now below the control it describes ── */
+  .gls__foot {
+    order: 3;
+    max-width: none;
+    margin: 0;
+    padding: 2.25rem var(--gls-gutter) 3rem;
+  }
+  .gls__foot-copy--hover { display: none; }
+  .gls__foot-copy--touch { display: block; }
+  .gls__foot p { font-size: 0.82rem; line-height: 1.7; }
+}
+
+/* Once the viewport is wider than the panel's 420px cap, the panel starts
+   centring while the copy stays pinned to the left gutter, and the two
+   stop looking like one composition. Capping the text column at the
+   panel's width plus its gutters lines their left edges up exactly. */
+@media (min-width: 600px) and (max-width: 768px) {
+  .gls__head,
+  .gls__foot {
+    max-width: calc(420px + 2 * var(--gls-gutter));
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 @media (max-width: 480px) {
-  .gls__samples { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; }
+  .gls {
+    --gls-hero-h: max(72svh, 440px);
+    --gls-gutter: 1.25rem;
+  }
+  .gls__title { font-size: clamp(2.5rem, 12.6vw, 3rem); }
+  .gls__lede { margin-top: 1.3rem; font-size: 1.0625rem; }
+  .gls__panel {
+    margin-top: -3rem;
+    padding: 1.5rem 1rem 1.25rem;
+    border-radius: 24px;
+  }
+  /* Four columns holds — only the space between them gives. */
+  .gls__samples { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem 0.7rem; }
+  .gls__spec { margin-top: 1.6rem; padding: 1.1rem 0.9rem; }
+  .gls__cta { min-height: 54px; font-size: 10px; letter-spacing: 0.16em; }
 }

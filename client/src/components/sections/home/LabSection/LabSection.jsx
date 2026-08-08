@@ -1,27 +1,52 @@
-import { useRef } from 'react'
-import { useGSAP } from '@gsap/react'
-import { useReducedMotion } from '@/hooks'
-import { buildLabAnimation, initLabStatic } from './labAnimation'
-import { keepMuted } from '@/utils/media'
+import LabExperience from './LabExperience'
 import './labSection.css'
 
 /**
- * LabSection — port of hero.html lines 2731-2902 ("The Performance Lab").
+ * LabSection — "The Performance Lab", hero.html lines 2731-2902.
  *
- * Five filmed tests. In the animated experience a tall .lab__scroll track
- * (560vh, from CSS under .lab--anim) drives a sticky stage: one panel at a
- * time, an iris-open film reveal, a character cascade on the title, and a
- * gauge arc that fills and locks gold as each test resolves.
+ * Five filmed tests. This file owns the data and the section element;
+ * LabExperience renders and drives them. See its header for how the
+ * scroll works and why it is a sticky track rather than a GSAP pin.
  *
- * All animation lives in labAnimation.js.
+ * ⚠ THE ORIGINAL 560vh MACHINE IS GONE, at every width. What shipped
+ * before was a tall track pinning a full-height stage while an
+ * instrument dial turned behind the films: five and a half screens of
+ * scroll, one test per screen-and-a-bit, no way to reach a test out of
+ * order, and — because the panels were absolutely stacked — nothing to
+ * look at between them. It has been replaced by one held screen with a
+ * control bar, and the same composition now serves phones and desktops
+ * alike rather than two separate trees.
+ *
+ * That removed `labAnimation.js` (the dial, the gauge arc, the character
+ * cascade, the iris-open reveal and the skew-on-velocity) and all but the
+ * ground rules of `labSection.css`.
+ *
+ * ⚠ ONE <section> ELEMENT, OWNED HERE. Home renders its sections as
+ * direct children of <body> (there is no <main> — see Home.jsx), and the
+ * next one, PerformanceSection, pins with ScrollTrigger, which re-parents
+ * #performance into a generated `pin-spacer` div. Anything that replaces
+ * #lab as a whole node makes React insert the replacement *before
+ * #performance in <body>*, where #performance no longer is, and the
+ * commit throws NotFoundError. Nothing here re-renders the shell, and
+ * LabExperience deliberately creates no pin of its own, so neither half
+ * of that hazard exists any more.
  */
 
 /** The five tests, transcribed from the original markup. */
 const LAB_PANELS = [
   {
-    aura: 'rgba(96, 126, 160, 0.17)',
     num: '01',
+    /* `short` is the label the control bar prints in a fifth of the
+       page's width; `title` is the sentence-cased name used everywhere
+       else, including the film's own caption. */
+    short: 'Rain',
     title: 'Driving rain',
+    /* ⚠ `copy`, `status`, `value`, `unit` and `metric` ARE NOT RENDERED.
+       The intro paragraphs, the per-test description and the measured
+       result were all cut from the composition on request. They are kept
+       here because they are the section's actual test data and nothing is
+       gained by deleting them — restoring any of them is a markup change
+       in LabExperience, not a research exercise. */
     copy: 'Water is thrown at the closed sash for hours, at pressures well beyond a monsoon squall. Double gaskets and concealed drainage keep the inner face of the frame completely dry.',
     status: 'Sealed',
     value: '750',
@@ -30,8 +55,8 @@ const LAB_PANELS = [
     video: '/videos/Performance%20lab/Rain%20Test.mp4',
   },
   {
-    aura: 'rgba(141, 149, 158, 0.13)',
     num: '02',
+    short: 'Wind',
     title: 'Gale-force wind',
     copy: 'The sash is flexed under gusting loads to make sure nothing racks, whistles or works loose. Reinforced profiles hold their line on exposed and high-rise sites.',
     status: 'Held firm',
@@ -41,8 +66,8 @@ const LAB_PANELS = [
     video: '/videos/Performance%20lab/Wind%20Test.mp4',
   },
   {
-    aura: 'rgba(126, 106, 148, 0.15)',
     num: '03',
+    short: 'Street noise',
     title: 'Street noise',
     copy: 'A calibrated speaker plays traffic on one side of the glass while microphones listen on the other. Laminated acoustic panes bring the street down to a murmur.',
     status: 'Quieted',
@@ -52,8 +77,8 @@ const LAB_PANELS = [
     video: '/videos/Performance%20lab/Sound%20Test.mp4',
   },
   {
-    aura: 'rgba(191, 116, 66, 0.15)',
     num: '04',
+    short: 'Heat',
     title: 'Heat and cold',
     copy: 'One face of the unit is heated while the other is chilled, and thermal cameras watch where energy tries to escape. The polyamide break keeps the indoor surface near room temperature.',
     status: 'Insulated',
@@ -63,8 +88,8 @@ const LAB_PANELS = [
     video: '/videos/Performance%20lab/thermal%20test.mp4',
   },
   {
-    aura: 'rgba(170, 88, 74, 0.15)',
     num: '05',
+    short: 'Break-in',
     title: 'Break-in attempt',
     copy: 'Multi-point locks and laminated glass are worked over with the tools burglars actually carry. The sash stays shut long after the attempt has been given up.',
     status: 'Secured',
@@ -76,121 +101,9 @@ const LAB_PANELS = [
 ]
 
 export default function LabSection() {
-  const sectionRef = useRef(null)
-  const scrollRef = useRef(null)
-  const dialRef = useRef(null)
-  const ticksRef = useRef(null)
-  const gaugeRef = useRef(null)
-  const meterFillRef = useRef(null)
-  const panelsRef = useRef(null)
-
-  const reduceMotion = useReducedMotion()
-
-  useGSAP(
-    () => {
-      const section = sectionRef.current
-      const scrollEl = scrollRef.current
-      if (!section || !scrollEl) return
-
-      const panels = [].slice.call(section.querySelectorAll('.lab__panel'))
-      if (!panels.length) return
-      const videos = panels.map((p) => p.querySelector('video'))
-
-      /* Static experience: five films in a column, play on view.
-         (The original also took this path when GSAP failed to load from
-         the CDN; it is bundled here, so only the motion check remains.) */
-      if (reduceMotion) {
-        return initLabStatic(videos, true)
-      }
-
-      return buildLabAnimation(section, scrollEl, {
-        panels,
-        videos,
-        dialBox: dialRef.current,
-        ticks: ticksRef.current,
-        gauge: gaugeRef.current,
-        meterFill: meterFillRef.current,
-        panelsWrap: panelsRef.current,
-      })
-    },
-    { scope: sectionRef }
-  )
-
   return (
-    <section id="lab" className="lab" aria-labelledby="lab-title" ref={sectionRef}>
-      <header className="lab__head">
-        <h2 id="lab-title" className="lab__title">The Performance <em>Lab.</em></h2>
-        <p className="lab__intro">
-          Every system we sell goes through the lab before it goes near a
-          home. Five of those tests, filmed as they ran: rain, wind,
-          street noise, heat and a break-in attempt.
-        </p>
-      </header>
-
-      <div className="lab__scroll" id="labScroll" ref={scrollRef}>
-        <div className="lab__stage">
-
-          {/* Instrument dial: the ticks turn with scroll; the gauge arc
-              fills as each test runs and locks gold when it resolves. */}
-          <div className="lab__dial" id="labDial" aria-hidden="true" ref={dialRef}>
-            <svg viewBox="0 0 100 100" focusable="false">
-              <circle cx="50" cy="50" r="48.5" fill="none"
-                      stroke="rgba(167, 154, 135, 0.14)" strokeWidth="0.2" />
-              <circle className="lab__ticks" cx="50" cy="50" r="48.5" fill="none"
-                      stroke="rgba(167, 154, 135, 0.4)" strokeWidth="1.4"
-                      strokeDasharray="0.3 7.315" ref={ticksRef} />
-              <circle className="lab__gauge" cx="50" cy="50" r="48.5" fill="none"
-                      stroke="#A79A87" strokeOpacity="0.85" strokeWidth="1.6"
-                      strokeLinecap="round" pathLength="1"
-                      strokeDasharray="1" strokeDashoffset="1"
-                      transform="rotate(-90 50 50)" ref={gaugeRef} />
-            </svg>
-          </div>
-
-          <div className="lab__panels" id="labPanels" ref={panelsRef}>
-
-            {LAB_PANELS.map((panel) => (
-              <article className="lab__panel" key={panel.num}>
-                <div className="lab__panel-aura" style={{ '--aura': panel.aura }} aria-hidden="true"></div>
-                <div className="lab__info">
-                  <span className="lab__num">{panel.num}</span>
-                  <h3 className="lab__panel-title">{panel.title}</h3>
-                  <p>
-                    {panel.copy}
-                  </p>
-                  <div className="lab__result">
-                    <span className="lab__result-status">{panel.status}</span>
-                    <span className="lab__result-stat"><span className="lab__result-value">{panel.value}</span><span className="lab__result-unit">{panel.unit}</span></span>
-                    <span className="lab__result-metric">{panel.metric}</span>
-                  </div>
-                </div>
-                <div className="lab__frame">
-                  <video src={panel.video} muted ref={keepMuted} loop playsInline preload="metadata"></video>
-                  <div className="lab__tele" aria-hidden="true">
-                    <span className="lab__tele-dot"></span>
-                    {/* ⚠ One template literal, not `Test {panel.num} · running`.
-                        Interpolating mid-sentence makes React emit THREE text
-                        nodes ("Test ", "01", " · running"); hero.html's parser
-                        produces one. Chrome shapes each text node as its own
-                        run, so with `letter-spacing: 0.24em` the split version
-                        measures 128.438px against the original's 128.420px and
-                        drags .lab__tele's shrink-to-fit width with it. */}
-                    <span className="lab__tele-run">{`Test ${panel.num} · running`}</span>
-                    <span className="lab__tele-pass">{`Test ${panel.num} · passed`}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
-
-          </div>
-
-          {/* Progress meter (animated experience only) */}
-          <div className="lab__meter" aria-hidden="true">
-            <div className="lab__meter-fill" id="labMeterFill" ref={meterFillRef}></div>
-          </div>
-
-        </div>
-      </div>
+    <section id="lab" className="lab labd" aria-labelledby="lab-title">
+      <LabExperience tests={LAB_PANELS} />
     </section>
   )
 }

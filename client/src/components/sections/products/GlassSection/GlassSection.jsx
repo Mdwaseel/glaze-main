@@ -119,16 +119,30 @@ export default function GlassSection() {
 
         <div className="gls__foot">
           <p className="gls__foot-title">Live preview</p>
-          <p>
+          {/* ⚠ TWO WORDINGS OF THE SAME INSTRUCTION, one shown at a time by
+              CSS. The desktop sentence is built on hover, which does not
+              exist on a phone — leaving it there would describe an
+              interaction the visitor cannot perform. Rendering both and
+              swapping in the ≤768 block keeps the copy honest without
+              duplicating the section or reaching for a media-query hook. */}
+          <p className="gls__foot-copy gls__foot-copy--hover">
             Hover a sample to swap the glazing in place — tint,
             transparency, reflection and daylight all update with it.
             Click to lock your choice; it travels with your enquiry.
+          </p>
+          <p className="gls__foot-copy gls__foot-copy--touch">
+            Tap a sample to swap the glazing in place — tint, transparency,
+            reflection and daylight all update with it. Your choice is
+            remembered and travels with your enquiry.
           </p>
         </div>
       </div>
 
       {/* Floating selector */}
       <div className="gls__panel" id="glsPanel">
+        {/* Decorative grip mark, mobile only. It reads as the top edge of a
+            sheet; the panel is not draggable and nothing here claims it is. */}
+        <span className="gls__grip" aria-hidden="true"></span>
         <p className="gls__panel-label">Glass selection</p>
 
         <div className="gls__samples" id="glsSamples" role="radiogroup" aria-label="Glass type">
@@ -169,6 +183,23 @@ export default function GlassSection() {
           </dl>
 
           <p className="gls__fine">Indicative values — confirmed per specification</p>
+
+          {/* ⚠ THIS IS THE ONLY NEW BEHAVIOUR IN THE SECTION, and it is a
+              plain in-page anchor rather than invented functionality. The
+              section already commits to "it travels with your enquiry" —
+              `glassSwitcher` writes the locked sample into the shared spec
+              store via setSpec('glass', …) and §11 reads it back — but on
+              desktop the visitor scrolls on to reach that form. On a phone
+              the panel is the end of the screen, so the promise needs a
+              door. #contact is SystemEnquirySection on this same page, and
+              useProductsScrollBridge eases the jump clear of the sticky nav.
+
+              Hidden above 768px: the desktop composition is unchanged. */}
+          <a className="gls__cta" href="#contact">
+            <span className="gls__cta-dot" aria-hidden="true"></span>
+            <span className="gls__cta-text">Enquire with this glass</span>
+            <span className="gls__cta-arrow" aria-hidden="true">→</span>
+          </a>
         </div>
       </div>
     </section>

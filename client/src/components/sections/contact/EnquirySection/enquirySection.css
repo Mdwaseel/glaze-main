@@ -1178,6 +1178,15 @@ textarea.msf__input {
 
 .ocard__label {
   flex: 1 1 auto;
+  /* ⚠ `min-width: 0`, AND THIS IS THE WHOLE OVERFLOW BUG. A flex item
+     defaults to `min-width: auto`, which means it will not shrink below its
+     MIN-CONTENT width — the longest unbreakable word. "INDEPENDENT" set in
+     tracked-out mono is wider than the ~55px this label gets in a 131px
+     card, so the label refused to shrink and shoved the tick 40px clear of
+     the card's own right edge. Nothing was clipped, because nothing here
+     has `overflow: hidden` — the circle simply sat outside the border it
+     belonged to. Zero lets it shrink and wrap instead. */
+  min-width: 0;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.16em;
@@ -1493,14 +1502,20 @@ textarea.msf__input {
 
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  /* WARNING: SCOPED WITH :not(), NOT LEFT TO SOURCE ORDER. Written as a
-   bare `.msf__cards` this sat at the END of the file with the same
-   specificity as `.msf__cards--sys` above it — so it won on order alone
-   and quietly dropped the systems grid from four columns to two. The
-   modifiers are excluded by name here, which cannot be broken by anything
-   appended later. */
-.msf__cards:not(.msf__cards--sys):not(.msf__cards--three) {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* WARNING: SCOPED WITH :not() *AND* GATED ON min-width, and it needed
+   both. The :not() stops it clobbering the systems grid, which it did when
+   it was a bare `.msf__cards` at the end of the file. But raising the
+   specificity to (0,3,0) then made it outrank the `@media (max-width:
+   620px)` single-column rule above — which is a plain `.msf__cards` at
+   (0,1,0) — so phones kept two columns and the labels had ~55px to live
+   in. Specificity does not care which media query you are in.
+
+   Gating it at 621px puts the two rules in disjoint ranges, so neither can
+   reach the other whatever their specificity. */
+@media (min-width: 621px) {
+  .msf__cards:not(.msf__cards--sys):not(.msf__cards--three) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
   .msf__cards--sys { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -1639,12 +1654,18 @@ textarea.msf__input {
 
    The systems grid and the three-up contact rows are unaffected: their
    labels are one short word each and were never the constraint. */
-/* WARNING: SCOPED WITH :not(), NOT LEFT TO SOURCE ORDER. Written as a
-   bare `.msf__cards` this sat at the END of the file with the same
-   specificity as `.msf__cards--sys` above it — so it won on order alone
-   and quietly dropped the systems grid from four columns to two. The
-   modifiers are excluded by name here, which cannot be broken by anything
-   appended later. */
-.msf__cards:not(.msf__cards--sys):not(.msf__cards--three) {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+/* WARNING: SCOPED WITH :not() *AND* GATED ON min-width, and it needed
+   both. The :not() stops it clobbering the systems grid, which it did when
+   it was a bare `.msf__cards` at the end of the file. But raising the
+   specificity to (0,3,0) then made it outrank the `@media (max-width:
+   620px)` single-column rule above — which is a plain `.msf__cards` at
+   (0,1,0) — so phones kept two columns and the labels had ~55px to live
+   in. Specificity does not care which media query you are in.
+
+   Gating it at 621px puts the two rules in disjoint ranges, so neither can
+   reach the other whatever their specificity. */
+@media (min-width: 621px) {
+  .msf__cards:not(.msf__cards--sys):not(.msf__cards--three) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

@@ -1,0 +1,590 @@
+/* The Performance Lab — the whole composition, every width.
+   ───────────────────────────────────────────────────────────────
+   The section element keeps the `lab` class, which is where the ground,
+   the bronze depth wash and the five --lab-* tokens come from
+   (labSection.css). Everything else is here.
+
+   ⚠ `.labd` IS JUST THIS SECTION'S PREFIX. It used to stand for "lab
+   desktop", back when a second tree served phones; there is only one
+   tree now and it serves every width. The prefix stayed to keep the
+   rename off ~40 selectors.
+
+   ── THE SCROLL ──
+   A track taller than the screen, with a sticky child that holds one
+   screenful still while the track passes behind it. ScrollTrigger only
+   reads how far through the track the page is; it moves nothing and
+   pins nothing.
+
+   ⚠ THIS IS DELIBERATELY NOT ScrollTrigger's `pin`. A pin computes its
+   travel as a pixel length and recomputes it on every refresh — and a
+   refresh fires when a lazy image lands above this section, when a font
+   swaps, on resize, and on a phone every time the address bar slides
+   away. Each one moves the range under a visitor already inside it, and
+   a shift of one segment drops them out the bottom: the reported bug was
+   reaching test 02 and being thrown into the next section. A CSS track
+   is recomputed from the same units on every frame and cannot drift.
+
+   svh, not vh: on a phone `vh` is the height with the browser chrome
+   RETRACTED, so a 100vh frame is taller than the screen for as long as
+   the address bar shows — which is exactly when a visitor arrives. */
+
+.lab.labd {
+  /* The track supplies the section's height; the frame supplies its own
+     padding. .lab's own vertical padding would sit outside both. */
+  padding: 0;
+}
+
+.labd__track {
+  /* 5 tests × 75svh of travel each, plus the screen the frame occupies.
+     One number, one place — the segment count the driver derives from
+     `tests.length` is the same five. */
+  --labd-travel: 375svh;
+  position: relative;
+  height: calc(100svh + var(--labd-travel));
+}
+
+/* ⚠ NOT A FLEX CONTAINER. It was, with `flex: 1` on the inner — and
+   `flex: 1` is shorthand for `flex-basis: 0`, which OVERRIDES the
+   inner's own `width: calc(100% - 5rem)`. The inner grew to the full
+   width of the frame, its `margin: 0 auto` had no free space left to
+   centre with, and every gutter collapsed. On desktop `max-width:
+   1360px` capped the growth and hid the bug; on a phone there is no cap
+   below 1360, so the title, the film and the readout all ran to x=0 and
+   the film bled off both edges. A plain block leaves the inner's own
+   width and auto margins in charge, which is all this ever needed. */
+.labd__sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+
+/* ⚠ EVERYTHING MUST FIT IN 100svh. The frame is held still while the
+   five tests pass through it, so anything below the fold is unreachable
+   for the whole of the track. That is why almost every measurement in
+   this file is a viewport-relative clamp: a 1024×768 laptop and a
+   1920×1080 monitor have to hold the same four bands, and each one has
+   to give a little on the short one.
+
+   The top padding is nav clearance — the frame sits under the fixed
+   header for its whole travel. */
+.labd__inner {
+  position: relative;         /* above .lab::before */
+  height: 100%;               /* fills the held frame; auto once it collapses */
+  box-sizing: border-box;
+  width: calc(100% - 5rem);
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: clamp(5.5rem, 10vh, 7rem) 0 clamp(1.75rem, 3.5vh, 3rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(1.75rem, 3.2vh, 3rem);
+}
+
+/* ── The two columns ──
+   Asymmetric on purpose: the film is the evidence, the type is the
+   caption. 0.7fr against 1fr lands at ~39 / 58 of the container once
+   the gap is taken out.
+
+   ⚠ `stretch`, NOT `start`, AND THAT DECIDES THE FILM'S ASPECT. The
+   figure takes the row's height, and the row is as tall as the text
+   column — so the film comes out near-square (~1.05:1 at 1440) rather
+   than the 5:4 the brief quotes. That is the trade made knowingly: with
+   `start` the film would sit at a fixed 5:4 and stop ~120px short of
+   the readout's last line, and the two columns would stop reading as
+   one panel. Aligned bottom edges are what makes this composition hold
+   together, and a near-square film is also what this section had
+   before. To go the other way: `align-items: start` here plus
+   `aspect-ratio: 5 / 4` on .labd__stage. */
+.labd__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+  gap: clamp(3rem, 4.4vw, 4.5rem);
+  align-items: stretch;
+}
+
+.labd__col {
+  display: flex;
+  flex-direction: column;
+  /* Makes the column a query container so the headline below can be sized
+     from the box it actually has to fit inside. `inline-size` only contains
+     the inline axis — the column's height still comes from its content,
+     which is what `margin-top: auto` on the readout depends on. */
+  container-type: inline-size;
+}
+
+/* ⚠ SIZED FROM THE COLUMN (cqi), NOT THE VIEWPORT (vw), BECAUSE THE
+   COLUMN STOPS GROWING AND THE VIEWPORT DOES NOT. .labd__inner is capped
+   at 1360px, so from ~1440 up this column is a fixed ~530px on every
+   monitor; a vw-scaled headline keeps growing past it and drops
+   "Performance" onto a third line at 1920 while looking right at 1440.
+   Measured: "The Performance" sets 7.51em wide in Playfair at this
+   tracking, so anything up to 13.3cqi fits on one line — 12.9 leaves a
+   little room for a font that loads slightly wide. The rem terms are
+   only floors and ceilings for absurd column sizes. */
+.labd__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.9rem, 12.9cqi, 4.35rem);
+  line-height: 0.94;
+  letter-spacing: -0.022em;
+  color: var(--lab-ink);
+}
+/* `block`, so the break between the two lines is the composition's and
+   not the column width's — the reference sets "Lab." on its own line and
+   a soft wrap would move it the moment the copy or the column changed. */
+.labd__title em {
+  display: block;
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--lab-accent-lift);
+}
+
+.labd__rule {
+  display: block;
+  width: 48px;
+  height: 1px;
+  margin: clamp(1.7rem, 2.4vw, 2rem) 0 0;
+  background: var(--lab-accent-lift);
+  opacity: 0.7;
+}
+
+/* ── The running test ──
+   `margin-top: auto` pins the readout to the bottom of the column, so
+   the masthead stays at the top of the row and the changing part sits
+   against the foot of the film. With the intro and the description both
+   cut, this is the only thing holding the bottom of the left column —
+   without it the two blocks would collapse together under the title and
+   leave the whole lower half of the column empty. */
+.labd__read {
+  margin-top: auto;
+  padding-top: clamp(1.9rem, 2.9vw, 2.6rem);
+}
+
+.labd__count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  font-family: var(--font-bodoni);
+  line-height: 0.9;
+}
+/* Outlined, not filled — the figure is scale, not emphasis, and a
+   solid 100px numeral would out-shout the title above it. */
+.labd__count-n {
+  font-size: clamp(4.4rem, 6.4vw, 6.2rem);
+  color: transparent;
+  -webkit-text-stroke: 1px var(--lab-accent-lift);
+}
+.labd__count-of {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  color: rgba(245, 245, 243, 0.34);
+}
+
+.labd__name {
+  margin-top: 0.9rem;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--lab-ink);
+}
+
+/* ═══════════════════════════════════════════════════
+   The film
+   ═══════════════════════════════════════════════════ */
+.labd__stage {
+  position: relative;
+  /* ⚠ THIS IS WHAT SIZES THE WHOLE PINNED FRAME. The left column is only
+     a title and a two-line readout now, so the grid row is as tall as
+     this number and nothing else — which makes it the one dial that
+     decides whether the section fits in a viewport. The vh term is what
+     keeps a 1024×768 laptop inside its own screen; the px cap stops a
+     tall monitor from turning the film into a poster. */
+  min-height: min(600px, 54vh);
+  margin: 0;
+  border: 1px solid var(--lab-line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0C0B0A;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.55);
+}
+
+/* ⚠ ALL FIVE FILMS ARE STACKED AND ALL FIVE ARE VISIBLE TO LAYOUT —
+   only their opacity differs. That is what lets the swap be a true
+   crossfade: GSAP fades one out while the other comes up in the same
+   pixels. Unmounting the outgoing clip instead would restart it from
+   frame zero every time the visitor came back to it. */
+.labd__film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+/* Bronze glaze — the same treatment the film carried before, so the
+   clip sits in the section rather than on top of it. Also darkens
+   the two corners the controls live in. */
+.labd__glaze {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(200deg, rgba(114, 102, 85, 0.16), transparent 42%),
+    linear-gradient(to top, rgba(10, 10, 10, 0.5), transparent 38%);
+}
+
+.labd__tag {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid rgba(245, 245, 243, 0.16);
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.82);
+}
+.labd__tag-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #C9B893;
+  box-shadow: 0 0 8px rgba(201, 184, 147, 0.7);
+}
+
+.labd__advance {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 12px;
+  background: var(--lab-accent-lift);
+  color: #14130F;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s var(--ease-snap);
+}
+.labd__advance svg { transition: transform 0.3s var(--ease-snap); }
+.labd__advance:hover { background: #C4B7A2; }
+.labd__advance:hover svg { transform: translateX(3px); }
+.labd__advance:active { transform: scale(0.97); }
+
+/* ═══════════════════════════════════════════════════
+   The control panel
+   ═══════════════════════════════════════════════════ */
+.labd__bar {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.22fr) minmax(0, 1fr);
+  /* The gap on .labd__inner spaces this now — a margin here would be
+     added on top of it. */
+  border: 1px solid rgba(245, 245, 243, 0.08);
+  border-radius: 16px;
+  background: rgba(245, 245, 243, 0.015);
+  overflow: hidden;
+}
+
+.labd__bar-lead {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: clamp(1.6rem, 2.4vw, 2.1rem);
+  border-right: 1px solid rgba(245, 245, 243, 0.07);
+}
+.labd__bar-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.42);
+}
+.labd__bar-rule {
+  display: block;
+  width: 32px;
+  height: 1px;
+  background: rgba(245, 245, 243, 0.16);
+}
+
+.labd__arrows { display: flex; gap: 0.6rem; margin-top: 0.35rem; }
+.labd__arrow {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(245, 245, 243, 0.14);
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(245, 245, 243, 0.6);
+  cursor: pointer;
+  transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+}
+.labd__arrow:hover {
+  color: var(--lab-ink);
+  border-color: rgba(245, 245, 243, 0.3);
+}
+/* Only the forward control carries the accent — it is the one the
+   section wants you to press, and two accented buttons would say
+   nothing about either. */
+.labd__arrow--lead {
+  border-color: rgba(167, 154, 135, 0.42);
+  background: rgba(167, 154, 135, 0.08);
+  color: var(--lab-accent-lift);
+}
+.labd__arrow--lead:hover {
+  border-color: rgba(167, 154, 135, 0.72);
+  background: rgba(167, 154, 135, 0.14);
+  color: #C9B893;
+}
+
+.labd__tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+/* The hairline lives on the cell and the outlined card on the button
+   inside it, so the active state never has to fight a separator for
+   the same edge. */
+.labd__cell { padding: 0.7rem; }
+.labd__cell + .labd__cell { border-left: 1px solid rgba(245, 245, 243, 0.07); }
+
+.labd__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+  padding: clamp(0.9rem, 1.4vw, 1.25rem);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.35s ease, background-color 0.35s ease, color 0.35s ease;
+}
+.labd__tab-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  color: rgba(245, 245, 243, 0.32);
+  transition: color 0.35s ease;
+}
+.labd__tab-icon {
+  display: block;
+  color: rgba(245, 245, 243, 0.34);
+  transition: color 0.35s ease;
+}
+.labd__tab-icon svg { width: 22px; height: 22px; display: block; }
+.labd__tab-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 243, 0.5);
+  transition: color 0.35s ease;
+  /* "Street noise" and "Break-in" are two words in a fifth of the
+     bar; letting them wrap beats letting them clip. */
+  line-height: 1.45;
+}
+
+.labd__tab:hover { background: rgba(167, 154, 135, 0.04); }
+.labd__tab:hover .labd__tab-icon,
+.labd__tab:hover .labd__tab-name { color: rgba(245, 245, 243, 0.82); }
+
+.labd__tab[aria-current='true'] {
+  border-color: rgba(167, 154, 135, 0.55);
+  background: rgba(167, 154, 135, 0.05);
+}
+.labd__tab[aria-current='true'] .labd__tab-num { color: var(--lab-accent-lift); }
+.labd__tab[aria-current='true'] .labd__tab-icon { color: var(--lab-accent-lift); }
+.labd__tab[aria-current='true'] .labd__tab-name { color: var(--lab-ink); }
+
+/* ── 1024–1279: the same composition, tightened ──
+   Below 1280 the film's column drops under ~640px and the five-cell
+   bar starts crowding, so the type steps down with it rather than
+   the layout changing shape. */
+@media (max-width: 1279px) {
+  .labd__inner { width: calc(100% - 3.5rem); }
+  .labd__grid { gap: 2.5rem; }
+  .labd__stage { min-height: min(520px, 50vh); }
+  .labd__count-n { font-size: 4.4rem; }
+  .labd__bar { grid-template-columns: minmax(160px, 0.24fr) minmax(0, 1fr); }
+  .labd__tab { padding: 0.85rem; gap: 0.6rem; }
+  .labd__tab-name { font-size: 10px; letter-spacing: 0.14em; }
+}
+
+/* ═══════════════════════════════════════════════════
+   ≤1023px — the same experience, stacked
+   ───────────────────────────────────────────────────
+   Not a narrower desktop: the two columns become one, the film moves
+   between the masthead and the readout, and the film is the flexible
+   band so the fixed ones always fit.
+
+   ⚠ .labd__col GOES `display: contents` so its three children become
+   siblings of the figure and can be ordered around it. That dissolves
+   the container query it was carrying, which is why .labd__title gets
+   an ordinary viewport clamp back here — a `cqi` size with no container
+   to measure would fall back to the viewport and read enormous.
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 1023px) {
+  /* A phone thumb covers less ground per gesture than a wheel, so the
+     five tests are given proportionally less scroll. */
+  .labd__track { --labd-travel: 300svh; }
+
+  .labd__inner {
+    width: calc(100% - 2.5rem);
+    padding: clamp(4.75rem, 9svh, 6.25rem) 0 clamp(1.25rem, 3svh, 2rem);
+    gap: clamp(1.25rem, 3svh, 2rem);
+  }
+
+  .labd__grid {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.1rem, 2.6svh, 1.8rem);
+    flex: 1 1 auto;
+    min-height: 0;
+    /* Slack left over after the film hits its ceiling is shared out
+       around the composition rather than pooling under the bar. */
+    justify-content: center;
+  }
+  .labd__col { display: contents; }
+
+  .labd__title {
+    order: -3;
+    font-size: clamp(1.85rem, 7.6vw, 3rem);
+    line-height: 0.98;
+  }
+  .labd__rule { order: -2; margin-top: clamp(0.75rem, 1.8svh, 1.25rem); }
+
+  /* ⚠ THE CEILING IS WHY THE COLUMN BREATHES. With `flex: 1 1 auto` and
+     no maximum, the film absorbed every pixel of slack in the frame —
+     it grew until the title, the readout and the bar were all pressed
+     against their neighbours with nothing but their own gaps between
+     them, which is exactly what "the spacing is not proper" looked
+     like. Bounded, the film takes a sensible share and the rest of the
+     slack is distributed by the two `justify-content: center`s. The
+     floor still lets it shrink on a short phone, where it is the only
+     band that can. */
+  .labd__stage {
+    order: -1;
+    flex: 1 1 auto;
+    min-height: clamp(140px, 24svh, 400px);
+    max-height: 44svh;
+  }
+  .labd__tag { left: 12px; bottom: 12px; padding: 0.4rem 0.7rem; font-size: 9px; letter-spacing: 0.16em; }
+  .labd__advance { right: 12px; bottom: 12px; width: 46px; height: 46px; border-radius: 10px; }
+  .labd__advance svg { width: 18px; height: 18px; }
+
+  /* ⚠ `margin-top: auto` HAS TO GO. On desktop it pins the readout to
+     the bottom of the text column, which is the whole point there; here
+     the readout is a band in a single stack and an auto margin would
+     eat all the slack above it and shove it onto the bar. */
+  .labd__read { order: 0; margin-top: 0; padding-top: 0; }
+  .labd__count-n { font-size: clamp(2.8rem, 13vw, 4.4rem); }
+  .labd__count-of { font-size: 10px; }
+  .labd__name { margin-top: 0.65rem; font-size: 11px; letter-spacing: 0.26em; }
+}
+
+/* ── The control bar, below 720px ──
+   Five names will not cross a phone: "STREET NOISE" alone needs ~72px of
+   a ~67px cell. The lead becomes a single row across the top and the
+   cells drop to number + mark, which is all the bar has to say — the
+   running test's full name is set right above it. */
+@media (max-width: 719px) {
+  .labd__bar { grid-template-columns: minmax(0, 1fr); }
+
+  /* ⚠ THE TWO ROWS ARE SWAPPED HERE, AND IT IS NOT A STYLING WHIM. The
+     site's chat launcher is `position: fixed` at the bottom-right, 52px
+     square, and on a phone it lands exactly on the fifth cell of this
+     bar: elementFromPoint at the centre of tab 05 returned
+     `glz-chat__launcher`, not the tab — Break-in was untappable at 375,
+     390 and 430. Putting the tabs above the lead row moves them clear
+     (measured: launcher top 776 against a tabs row ending at 761 on a
+     390×844 screen) and leaves the launcher sitting over the "TESTS"
+     label, which nothing needs to press. `row-reverse` then sends the
+     two arrows to the left, away from it as well.
+
+     The alternative was ~55px of bottom padding, which the film would
+     have had to give up and which a 320px-wide phone does not have. */
+  .labd__tabs { order: -1; }
+  .labd__bar-lead {
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border-right: none;
+    border-top: 1px solid rgba(245, 245, 243, 0.07);
+  }
+  .labd__bar-rule { display: none; }
+  .labd__arrows { margin-top: 0; }
+  .labd__arrow { width: 36px; height: 36px; }
+
+  .labd__cell { padding: 0.4rem; }
+  .labd__tab {
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.2rem;
+    border-radius: 8px;
+  }
+  .labd__tab-icon svg { width: 19px; height: 19px; }
+  /* ⚠ Hidden, not removed — the button would otherwise have no
+     accessible name but "01". */
+  .labd__tab-name {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* ── Too short to hold a frame ──
+   Landscape phones, mostly. The track collapses and the frame unsticks,
+   so the section becomes an ordinary block that scrolls past like any
+   other and the bar is the only way through the tests.
+
+   ⚠ 560px IS ALSO WRITTEN IN LabExperience.jsx (MIN_HELD_HEIGHT), which
+   is where the scroll driver is switched off. The two are one decision
+   and have to move together — a driver over a collapsed track would
+   divide a zero range and report progress 1 immediately, jumping
+   straight to test 05.
+
+   The same collapse under reduced motion: someone who has asked the
+   browser not to move things at them should not meet a section that
+   holds the page still for three screens. */
+@media (max-height: 559px), (prefers-reduced-motion: reduce) {
+  .labd__track { height: auto; }
+  .labd__sticky { position: static; height: auto; }
+  .labd__inner { padding-top: clamp(3rem, 8vh, 5rem); }
+  .labd__stage { min-height: min(420px, 62svh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .labd__film,
+  .labd__advance,
+  .labd__advance svg,
+  .labd__tab,
+  .labd__arrow { transition: none; }
+}

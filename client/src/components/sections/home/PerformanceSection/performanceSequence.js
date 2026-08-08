@@ -38,6 +38,10 @@ export const PREFIX = 'layer' // layer_000.webp … layer_144.webp
 export const COUNT = 145 // total frames
 export const PAD = 3 // digits in the frame number
 export const PIN_VH = 4.0 // pinned travel (× 100vh). Bigger = slower.
+/* Phones and small tablets pin too, but over a shorter run: the same 145
+   frames on a screen a third the size read faster, and 400vh of thumb on
+   a phone is a long way to travel through one section. */
+export const PIN_VH_MOBILE = 3.0
 export const SCRUB = 0.9 // scroll→frame catch-up easing (seconds)
 export const GROUND = '#E3E2E4' // = --eng-ground; fills the letterbox
 // ╚══════════════════════════════════════════════════════════╝
@@ -170,19 +174,63 @@ export function buildPerformanceSequence(section, refs) {
   const frame = { i: 0 }
   const mm = gsap.matchMedia()
 
+  /* ⚠ THE THIRD CONDITION IS A HEIGHT, NOT A WIDTH, and it is what stops
+     the pin from being a trap. A pinned section is only as usable as the
+     viewport it is held in: everything below the fold is unreachable
+     until the pin releases, and `.eng { overflow: hidden }` means it is
+     cut off rather than scrollable. The layout compresses a long way —
+     measured down to ~535px of content on a 320px-wide screen — but not
+     to a landscape phone's ~390px. Under 560px tall the section keeps the
+     old unpinned behaviour, where the sequence scrubs as the render
+     passes and the page can simply be scrolled.
+
+     560 is the measured floor plus ~25px, and performanceSection.css
+     draws the same line — the two must move together. */
   mm.add(
     {
       isDesktop: '(min-width: 981px)',
-      isMobile: '(max-width: 980px)',
+      isMobile: '(max-width: 980px) and (min-height: 560px)',
+      isShort: '(max-width: 980px) and (max-height: 559px)',
     },
     function (ctx2) {
-      const st = ctx2.conditions.isDesktop
-        ? // Desktop: pinned for the full run of frames, then released.
+      /* ⚠ BOTH BRANCHES PIN NOW, AND BOTH DRIVE THE LAYER INDEX.
+         The mobile branch used to be `trigger: plate, top 85% → bottom
+         25%` with no pin — the assembly came apart as the render drifted
+         up the screen, which meant it was moving away from the reader
+         while it was the thing worth reading, and it never finished on a
+         short screen. It also never called setProgress, so on a phone the
+         five-layer index and the hairline meter below the render were
+         completely inert: every row sat at its dimmed default while the
+         render did its whole run. (CSS papered over the first half of
+         that by force-opening all five rows at ≤980px — which is why
+         those overrides are gone from the stylesheet now.)
+
+         The two branches differ only in how far they travel. Everything
+         that makes the section legible while it is held — the frame it
+         has to fit inside — is the ≤980px block in performanceSection.css.
+
+         matchMedia owns both, and kills and rebuilds (clearing the pin)
+         across the breakpoint. */
+      const st = ctx2.conditions.isShort
+        ? // Too short to hold a pinned frame. The original behaviour:
+          // tied to the render rather than the section, so the whole
+          // sequence plays while the render is actually on screen.
           {
+            trigger: plate,
+            start: 'top 85%',
+            end: 'bottom 25%',
+            scrub: SCRUB,
+            invalidateOnRefresh: true,
+            onUpdate: function (self) {
+              setProgress(self.progress)
+            },
+          }
+        : {
             trigger: section,
             start: 'top top',
             end: function () {
-              return '+=' + PIN_VH * window.innerHeight
+              const vh = ctx2.conditions.isDesktop ? PIN_VH : PIN_VH_MOBILE
+              return '+=' + vh * window.innerHeight
             },
             pin: true,
             scrub: SCRUB,
@@ -191,15 +239,6 @@ export function buildPerformanceSequence(section, refs) {
             onUpdate: function (self) {
               setProgress(self.progress)
             },
-          }
-        : // Mobile: no pin. Tied to the render itself, not the section, so
-          // the whole sequence plays while the render is actually on screen.
-          {
-            trigger: plate,
-            start: 'top 85%',
-            end: 'bottom 25%',
-            scrub: SCRUB,
-            invalidateOnRefresh: true,
           }
 
       frame.i = 0

@@ -37,11 +37,11 @@ export const DIR = '/frames/layers' // frame folder
 export const PREFIX = 'layer' // layer_000.webp … layer_144.webp
 export const COUNT = 145 // total frames
 export const PAD = 3 // digits in the frame number
-export const PIN_VH = 4.0 // pinned travel (× 100vh). Bigger = slower.
-/* Phones and small tablets pin too, but over a shorter run: the same 145
-   frames on a screen a third the size read faster, and 400vh of thumb on
-   a phone is a long way to travel through one section. */
-export const PIN_VH_MOBILE = 3.0
+/* ⚠ THE TRAVEL LIVES IN CSS NOW, on .eng__track's --eng-travel: 400svh
+   on desktop, 300svh on phones. It is not a number this module can hold,
+   because the trigger reads the track's box rather than computing a
+   pixel length — which is the whole point (see the note by the
+   ScrollTrigger config). Change the pacing there. */
 export const SCRUB = 0.9 // scroll→frame catch-up easing (seconds)
 export const GROUND = '#E3E2E4' // = --eng-ground; fills the letterbox
 // ╚══════════════════════════════════════════════════════════╝
@@ -52,7 +52,7 @@ export const GROUND = '#E3E2E4' // = --eng-ground; fills the letterbox
  * @returns {() => void} cleanup
  */
 export function buildPerformanceSequence(section, refs) {
-  const { canvas, plate, steps, fill } = refs
+  const { track, canvas, plate, steps, fill } = refs
   if (!canvas || !plate) return () => {}
 
   const ctx = canvas.getContext('2d')
@@ -211,11 +211,19 @@ export function buildPerformanceSequence(section, refs) {
 
          matchMedia owns both, and kills and rebuilds (clearing the pin)
          across the breakpoint. */
+      /* ⚠ NO `pin`, AND NO PIXEL `end`. Both ends are read off the
+         track's own box, whose height is a CSS calc in svh — see
+         .eng__track in performanceSection.css and the note in the JSX.
+         The travel therefore cannot drift on a refresh, and there is no
+         pin-spacer to leave an empty band above the section when the
+         hold releases.
+
+         The short branch is the one case with no track to read: under
+         560px tall the stylesheet collapses it, so the trigger goes back
+         to the render itself and the sequence simply scrubs as it
+         passes. */
       const st = ctx2.conditions.isShort
-        ? // Too short to hold a pinned frame. The original behaviour:
-          // tied to the render rather than the section, so the whole
-          // sequence plays while the render is actually on screen.
-          {
+        ? {
             trigger: plate,
             start: 'top 85%',
             end: 'bottom 25%',
@@ -226,15 +234,10 @@ export function buildPerformanceSequence(section, refs) {
             },
           }
         : {
-            trigger: section,
+            trigger: track || section,
             start: 'top top',
-            end: function () {
-              const vh = ctx2.conditions.isDesktop ? PIN_VH : PIN_VH_MOBILE
-              return '+=' + vh * window.innerHeight
-            },
-            pin: true,
+            end: 'bottom bottom',
             scrub: SCRUB,
-            anticipatePin: 1,
             invalidateOnRefresh: true,
             onUpdate: function (self) {
               setProgress(self.progress)

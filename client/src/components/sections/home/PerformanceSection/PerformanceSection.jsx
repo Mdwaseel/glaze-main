@@ -26,6 +26,7 @@ const ENG_STEPS = [
 
 export default function PerformanceSection() {
   const sectionRef = useRef(null)
+  const trackRef = useRef(null)
   const canvasRef = useRef(null)
   const plateRef = useRef(null)
   const fillRef = useRef(null)
@@ -41,6 +42,7 @@ export default function PerformanceSection() {
       if (!section) return
       const steps = [].slice.call(section.querySelectorAll('.eng__step'))
       return buildPerformanceSequence(section, {
+        track: trackRef.current,
         canvas: canvasRef.current,
         plate: plateRef.current,
         steps,
@@ -52,6 +54,28 @@ export default function PerformanceSection() {
 
   return (
     <section id="performance" className="eng" aria-labelledby="eng-title" ref={sectionRef}>
+      {/* ⚠ A TALL TRACK WITH A STICKY CHILD, NOT ScrollTrigger's `pin`.
+          Two reasons, both of them reported bugs.
+
+          (1) A pin injects a `pin-spacer` wrapper and, once the pin
+          releases, parks the pinned element at the BOTTOM of that spacer.
+          The spacer's top region is then empty and transparent, so
+          scrolling back up through the section showed a band of bare page
+          above it — the white gap between this section and the near-black
+          Lab above it.
+
+          (2) A pin's travel is a pixel length recomputed on every
+          ScrollTrigger.refresh(), and a refresh fires when a lazy image
+          lands above, when a font swaps, on resize, and on a phone every
+          time the address bar slides away. Each one moves the range under
+          a visitor already inside it.
+
+          A CSS track cannot do either: it has no wrapper to leave behind
+          and the browser recomputes its height from the same units every
+          frame. Same mechanism the About process deck has always used and
+          the Lab now uses. */}
+      <div className="eng__track" ref={trackRef}>
+      <div className="eng__sticky">
       <div className="eng__inner">
 
         {/* Heading + layer index (left) */}
@@ -100,6 +124,8 @@ export default function PerformanceSection() {
           </div>
         </div>
 
+      </div>
+      </div>
       </div>
     </section>
   )

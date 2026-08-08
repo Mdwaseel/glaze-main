@@ -32,6 +32,19 @@ import { prefersReducedMotion } from '@/utils/motion'
    transition owns. 6 slides → track = 100 + 5×STEP_VH vh. */
 const STEP_VH = 90
 
+/* A thumb covers less ground per gesture than a wheel does, so the same
+   six wipes are given proportionally less scroll on a phone. */
+const STEP_VH_MOBILE = 68
+
+/**
+ * Under this the viewport cannot hold a slide — a photograph, a heading,
+ * a lede, a paragraph and a CTA do not fit in a landscape phone's ~390px
+ * however far the type is compressed. There the static six-step spread
+ * stays, which is the authored brochure layout and needs no help.
+ * ⚠ The same number is written in processSection.css.
+ */
+const MIN_HELD_HEIGHT = 560
+
 /**
  * @param {HTMLElement} section  #about-process
  * @param {HTMLElement} runEl    .proc__run
@@ -114,66 +127,94 @@ export function buildProcessStage(section, runEl, onCtaClick) {
     onCtaClick()
   }
 
-  // Desktop only — below 861px the static per-step spread
-  // stays. gsap.matchMedia reverts every tween, trigger and
-  // inline style it created when the query stops matching.
+  // ⚠ THE DECK RUNS ON PHONES NOW TOO. It used to be desktop-only, so a
+  // phone got the six full-height steps as a plain ~4,700px spread and
+  // none of the curtain the section is built around. The mechanism ports
+  // across unchanged — it was already CSS `position: sticky` over a tall
+  // track rather than a GSAP pin, which is exactly what a phone wants:
+  // no pin-spacer, no pixel travel to drift when the address bar moves.
+  // Only the slide's own layout differs, and that is CSS (see the
+  // ≤860px block in processSection.css).
+  //
+  // The height condition is the real gate: a landscape phone cannot hold
+  // a slide, so it keeps the static spread.
+  //
+  // gsap.matchMedia reverts every tween, trigger and inline style it
+  // created when the query stops matching.
   const mm = gsap.matchMedia()
-  mm.add('(min-width: 861px)', function () {
-    buildStage()
-    section.classList.add('proc--anim')
-    run.style.height = 100 + (slides.length - 1) * STEP_VH + 'vh'
+  mm.add(
+    {
+      isWide: '(min-width: 861px)',
+      isPhone: `(max-width: 860px) and (min-height: ${MIN_HELD_HEIGHT}px)`,
+    },
+    function (ctx) {
+      // Neither matches: too short to hold. Nothing is built, and the
+      // authored static spread is what the visitor reads.
+      if (!ctx.conditions.isWide && !ctx.conditions.isPhone) return undefined
 
-    // ── One scrubbed timeline across the whole track. Each
-    // unit of it: a dwell on the settled slide, then the next
-    // slide — photograph and text panel together — wipes up
-    // over it (clip-path inset 100% → 0%, curtain-style), with
-    // a slight settle on the incoming photograph. Image and
-    // text can never drift out of sync: they share the clip.
-    const tl = gsap.timeline({
-      defaults: { ease: 'none' },
-      scrollTrigger: {
-        trigger: run,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: true,
-      },
-    })
+      buildStage()
+      section.classList.add('proc--anim')
+      const stepVh = ctx.conditions.isWide ? STEP_VH : STEP_VH_MOBILE
+      // ⚠ svh on the phone branch. `vh` is the height with the browser
+      // chrome RETRACTED, so a track measured in vh is longer than the
+      // number of screens it is meant to be for as long as the address
+      // bar is showing — the last slide would still be arriving when the
+      // sticky stage has already begun to scroll away.
+      const unit = ctx.conditions.isWide ? 'vh' : 'svh'
+      run.style.height = 100 + (slides.length - 1) * stepVh + unit
 
-    slides.forEach(function (slide, k) {
-      if (!k) return
-      const img = slide.querySelector('.proc__slide-media img')
-      const at = k - 1 + 0.35 // 0.35 dwell, 0.65 wipe per unit
-      tl.fromTo(
-        slide,
-        { clipPath: 'inset(100% 0% 0% 0%)' },
-        { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.65 },
-        at
-      )
-      if (img) {
+      // ── One scrubbed timeline across the whole track. Each
+      // unit of it: a dwell on the settled slide, then the next
+      // slide — photograph and text panel together — wipes up
+      // over it (clip-path inset 100% → 0%, curtain-style), with
+      // a slight settle on the incoming photograph. Image and
+      // text can never drift out of sync: they share the clip.
+      const tl = gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: run,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: true,
+        },
+      })
+
+      slides.forEach(function (slide, k) {
+        if (!k) return
+        const img = slide.querySelector('.proc__slide-media img')
+        const at = k - 1 + 0.35 // 0.35 dwell, 0.65 wipe per unit
         tl.fromTo(
-          img,
-          { yPercent: 7, scale: 1.06 },
-          { yPercent: 0, scale: 1, duration: 0.65 },
+          slide,
+          { clipPath: 'inset(100% 0% 0% 0%)' },
+          { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.65 },
           at
         )
+        if (img) {
+          tl.fromTo(
+            img,
+            { yPercent: 7, scale: 1.06 },
+            { yPercent: 0, scale: 1, duration: 0.65 },
+            at
+          )
+        }
+        // the slide beneath falls into shade as it is covered
+        tl.fromTo(
+          slides[k - 1],
+          { '--veil': 0 },
+          { '--veil': 0.16, duration: 0.65 },
+          at
+        )
+      })
+
+      // Rest on the final slide before the pin releases.
+      tl.to({}, { duration: 0.4 }, '>')
+
+      return function () {
+        section.classList.remove('proc--anim')
+        run.style.height = ''
       }
-      // the slide beneath falls into shade as it is covered
-      tl.fromTo(
-        slides[k - 1],
-        { '--veil': 0 },
-        { '--veil': 0.16, duration: 0.65 },
-        at
-      )
-    })
-
-    // Rest on the final slide before the pin releases.
-    tl.to({}, { duration: 0.4 }, '>')
-
-    return function () {
-      section.classList.remove('proc--anim')
-      run.style.height = ''
     }
-  })
+  )
 
   run.addEventListener('click', onStageClick)
 

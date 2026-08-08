@@ -314,7 +314,68 @@
 
 .proc__cta:hover .proc__cta-arrow { transform: translateX(3px); }
 
+/* ═══════════════════════════════════════════════════════════════
+   ≤860px — the same curtain deck, stacked
+   ───────────────────────────────────────────────────────────────
+   The deck used to be desktop-only: a phone got the six full-height
+   steps as a plain ~4,700px spread and none of the wipe. The
+   mechanism needed no change to come down here — it was already
+   CSS `position: sticky` over a tall track rather than a GSAP pin,
+   which is what a phone wants (no pin-spacer, no pixel travel to
+   drift when the address bar moves). Only the slide's own layout is
+   different, and that is all this block is.
+
+   ⚠ A SLIDE MUST FIT IN 100svh. It is held still while the six wipe
+   through it, so anything past the fold is unreachable — and
+   .proc__stage has `overflow: hidden`, so it is cut off rather than
+   scrollable. The photograph is therefore the flexible row and the
+   panel is sized by its content: `minmax(0, 1fr) auto`. On a 932px
+   phone the photograph gets ~460px, on a 568px one ~190px, and the
+   text never loses a line either way.
+   ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 860px) {
+  /* The stacked deck: photograph above, editorial panel below. */
+  .proc--anim .proc__slide {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  /* ⚠ NO NAV CLEARANCE HERE. The desktop rule pads the panel down by
+     6–8rem because the panel is the full-height right-hand column and
+     its title would otherwise sit under the fixed header. Stacked, the
+     photograph is what meets the nav — and a photograph behind a nav
+     band is fine. Keeping the padding would push the whole editorial
+     column off the bottom of the held frame. */
+  .proc--anim .proc__slide .proc__panel {
+    padding: clamp(1rem, 2.6svh, 1.9rem) clamp(1.25rem, 5vw, 2rem)
+             clamp(1.1rem, 3svh, 2rem);
+  }
+  .proc--anim .proc__slide .proc__heart { padding-top: 0; }
+  /* Two reserved lines is a desktop luxury; here it is 35px of a frame
+     that has none to spare. */
+  .proc--anim .proc__slide .proc__title { min-height: 0; }
+
+  /* The panel's type steps down as a set, so the six bands of a slide
+     total ~380px and leave the photograph the rest. */
+  .proc--anim .proc__slide .proc__icon { width: 30px; height: 30px; }
+  :where(.page-about) .proc--anim .proc__slide .proc__title {
+    margin-top: 0.7rem;
+    font-size: clamp(1.5rem, 6.4vw, 2.1rem);
+  }
+  .proc--anim .proc__slide .proc__rule { margin-top: 0.85rem; }
+  .proc--anim .proc__slide .proc__lede {
+    margin-top: 0.8rem;
+    font-size: clamp(0.95rem, 3.9vw, 1.1rem);
+    line-height: 1.45;
+  }
+  .proc--anim .proc__slide .proc__copy {
+    margin-top: 0.7rem;
+    font-size: clamp(0.85rem, 3.5vw, 0.95rem);
+    line-height: 1.6;
+    max-width: none;
+  }
+  .proc--anim .proc__slide .proc__cta { margin-top: 1rem; }
+
   :where(.page-about) .proc__step {
     grid-template-columns: 1fr;
     min-height: 0;

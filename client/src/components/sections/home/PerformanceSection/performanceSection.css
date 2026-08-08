@@ -19,7 +19,15 @@
   --eng-line: rgba(43, 43, 43, 0.16);
   background: var(--eng-ground);
   color: var(--eng-ink);
-  overflow: hidden;
+  /* ⚠ `clip`, NOT `hidden`, AND THE HOLD DEPENDS ON IT. `overflow:
+     hidden` makes an element a scroll container, and `position: sticky`
+     sticks to its nearest scroll container — so a sticky child of this
+     section stuck to a box that scrolls with the page, which is the same
+     as not sticking at all. Measured: the frame sat at top -60 instead
+     of 0 and the section simply scrolled past with the sequence
+     scrubbing. `overflow: clip` clips exactly the same way without
+     creating a scroll container, so sticky keeps working. */
+  overflow: clip;
 }
 
 /* No graph-paper. Just a whisper-soft warm vignette for depth. */
@@ -33,13 +41,44 @@
     radial-gradient(120% 120% at 18% 95%, rgba(0, 0, 0, 0.035), transparent 60%);
 }
 
+/* ── The hold: a tall track with a sticky child ──
+   ⚠ NOT ScrollTrigger's `pin`, and the reasons are two reported bugs.
+   A pin wraps the section in a generated `pin-spacer` and, when it
+   releases, parks the section at the BOTTOM of that spacer — leaving the
+   spacer's top empty and transparent, which is the band of bare page
+   that appeared above this section on the way back up. A pin's travel is
+   also a pixel length recomputed on every ScrollTrigger.refresh(), and a
+   refresh fires when a lazy image lands above, when a font swaps, on
+   resize, and on a phone every time the address bar slides away.
+
+   A CSS track has no wrapper to leave behind and is recomputed from the
+   same units every frame. The same mechanism the About process deck has
+   always used. Change the pacing here, not in the controller.
+
+   svh, not vh: on a phone `vh` is the height with the browser chrome
+   RETRACTED, so a 100vh frame is taller than the screen for as long as
+   the address bar shows. */
+.eng__track {
+  --eng-travel: 400svh;
+  position: relative;
+  height: calc(100svh + var(--eng-travel));
+}
+
+.eng__sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+
 /* Left = heading · Right = product canvas (profile + leaders + cards). */
 .eng__inner {
+  --eng-pad-x: clamp(1.25rem, 5vw, 4.5rem);
   position: relative;
-  min-height: 100vh;
+  height: 100%;               /* fills the held frame; auto once it collapses */
+  box-sizing: border-box;
   max-width: 1560px;
   margin: 0 auto;
-  padding: clamp(2rem, 5vh, 4rem) clamp(1.25rem, 5vw, 4.5rem);
+  padding: clamp(2rem, 5vh, 4rem) var(--eng-pad-x);
   display: grid;
   grid-template-columns: minmax(270px, 29%) 1fr;
   align-items: center;
@@ -213,14 +252,14 @@
 }
 
 /* ── Phones and small tablets ──────────────────────────────────────
-   ⚠ THIS SECTION IS PINNED HERE TOO NOW. It used to scrub without a
-   pin below 980px — the assembly came apart while the render drifted
+   ⚠ THIS SECTION IS HELD HERE TOO NOW. It used to scrub without being
+   held below 980px — the assembly came apart while the render drifted
    up and off the screen, and the layer index was never driven at all
    (see the note in performanceSequence.js). The scroll behaviour is
    now the desktop one, so the layout has the desktop's obligation:
    EVERYTHING MUST FIT IN ONE VIEWPORT. Nothing below the fold is
-   reachable while the pin holds, and `.eng { overflow: hidden }` means
-   the overrun would be cut off rather than scrolled to.
+   reachable while the frame is held, and `.eng { overflow: clip }`
+   means the overrun would be cut off rather than scrolled to.
 
    That is why almost every measurement in this block is a clamp with
    an svh term. A 375×667 phone and a 430×932 phone have to hold the
@@ -238,10 +277,11 @@
      stage are a single column here, and flex is what lets `order`
      re-sequence them without inventing grid rows for each. */
   .eng__inner {
+    --eng-pad-x: clamp(1.25rem, 5vw, 2rem);
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    padding: clamp(4.75rem, 9svh, 6.25rem) clamp(1.25rem, 5vw, 2rem)
+    padding: clamp(4.75rem, 9svh, 6.25rem) var(--eng-pad-x)
              clamp(1rem, 2.5svh, 1.75rem);
     gap: clamp(0.7rem, 1.8svh, 1.4rem);
   }
@@ -262,8 +302,23 @@
     font-size: clamp(1.6rem, 6.4vw, 2.4rem);
     line-height: 1.06;
   }
-  /* Render leads the copy — but no longer the title. */
-  .eng__stage { order: -1; flex: 0 0 auto; }
+  /* Render leads the copy — but no longer the title.
+
+     ⚠ FULL-BLEED AND FLEXIBLE, which is two changes at once.
+     `margin-inline` pulls it back out through the inner's own side
+     padding so the render spans the whole screen edge to edge instead of
+     sitting in a centred column with gutters either side. `flex: 1 1
+     auto` then makes it the one band that absorbs whatever height the
+     fixed bands above and below it leave — so the composition always
+     fills the frame exactly, on a 568px phone and a 932px one alike,
+     rather than a fixed-height render leaving a gap under the layer
+     index. */
+  .eng__stage {
+    order: -1;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-inline: calc(-1 * var(--eng-pad-x));
+  }
   /* The flex gap separates these now, so their own stacking margins
      would double it. */
   .eng__intro {
@@ -280,21 +335,20 @@
     line-height: 1.5;
   }
 
-  /* ⚠ THE RENDER IS SIZED FROM THE SCREEN'S HEIGHT, NOT ITS WIDTH.
-     It used to be `--plate-h: 200vh`, which is not a height at all —
-     it is a number large enough that `min(100%, --plate-h * 4/3)`
-     always resolved to the column, letting the width lead and the 4:3
-     box take whatever height followed. Inside a pinned frame that is
-     the wrong way round: the render has to take the space the other
-     five bands leave, so the height leads and the width follows it.
-     `max-width` still hands control back to the column on a narrow
-     phone, where the width-derived height is the smaller of the two. */
+  /* ⚠ THE PLATE IS NOW THE STAGE, EXACTLY. No aspect ratio and no
+     computed width: it fills whatever box the flexible stage above
+     resolves to, and the canvas contains the 4:3 render inside that.
+     The letterbox this leaves is invisible — the frames are tone-graded
+     to --eng-ground and drawContainFrame paints the surplus with the
+     same colour, which is the whole reason the render sits on the page
+     without a visible plate. `--plate-h` is dropped rather than set,
+     because nothing here derives from it any more. */
   .eng__plate {
-    --plate-h: clamp(150px, 27svh, 320px);
-    height: var(--plate-h);
-    width: calc(var(--plate-h) * 4 / 3);
-    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    max-width: none;
     aspect-ratio: auto;
+    margin: 0;
   }
 
   /* The layer index and the meter are scroll-gated here exactly as they
@@ -308,12 +362,9 @@
   }
 }
 
-/* ── Tall enough to be held: the pinned frame ──
-   ⚠ 560px IS ALSO WRITTEN IN performanceSequence.js, and the two have
-   to agree — this is the layout half of one decision. Above the line the
-   section fills a viewport and is pinned; below it neither happens. */
-@media (max-width: 980px) and (min-height: 560px) {
-  .eng__inner { min-height: 100svh; }
+/* ── Phones travel less per gesture, so the track is shorter ── */
+@media (max-width: 980px) {
+  .eng__track { --eng-travel: 300svh; }
 }
 
 /* ── Short screens inside the pinned range ──
@@ -331,7 +382,7 @@
   }
   .eng__title { font-size: clamp(1.4rem, 5.6vw, 1.9rem); }
   .eng__intro { font-size: 0.78rem; line-height: 1.45; }
-  .eng__plate { --plate-h: clamp(115px, 21svh, 220px); }
+  .eng__stage { min-height: 110px; }
   .eng__step { padding: 0.25rem 0; }
   .eng__step-title { font-size: 0.82rem; }
   .eng__step-more > p { font-size: 0.72rem; line-height: 1.4; }
@@ -339,17 +390,41 @@
 }
 
 /* ── Too short to be held ──
-   Landscape phones, and anything else under 560px tall. No pin, so the
-   section is an ordinary block again and the old fallback applies: the
-   sequence scrubs as the render passes, every layer reads at once, and
-   the meter has nothing to report. The render goes back to being sized
-   by the column rather than by the screen's height. */
-@media (max-width: 980px) and (max-height: 559px) {
-  .eng__inner { min-height: auto; padding-top: 5rem; gap: 1.25rem; }
+   Landscape phones, and anything else under 560px tall. The track
+   collapses and the frame unsticks, so the section is an ordinary block
+   again and the old fallback applies: the sequence scrubs as the render
+   passes, every layer reads at once, and the meter has nothing to
+   report. The render goes back to being sized by the column.
+
+   ⚠ 560px IS ALSO WRITTEN IN performanceSequence.js, which is where the
+   trigger switches from the track to the render. The two are one
+   decision and have to move together — a track-based trigger over a
+   collapsed track would divide a zero range.
+
+   The same collapse under reduced motion: someone who has asked the
+   browser not to move things at them should not meet a section that
+   holds the page still for three screens. */
+@media (max-width: 980px) and (max-height: 559px),
+       (prefers-reduced-motion: reduce) {
+  .eng__track { height: auto; }
+  .eng__sticky { position: static; height: auto; }
+  .eng__inner { height: auto; }
+}
+
+/* ⚠ THE PLATE HAS TO BE GIVEN ITS SHAPE BACK WHENEVER THE FRAME
+   COLLAPSES. Held, it is `height: 100%` of a flexible stage; once the
+   inner is `height: auto` that percentage resolves against nothing and
+   the plate — whose img and canvas are both absolutely positioned —
+   would compute to zero and disappear. The reduced-motion case needs
+   this as much as the landscape one, which is why it is in the selector
+   here and not only in the block above. */
+@media (max-width: 980px) and (max-height: 559px),
+       (max-width: 980px) and (prefers-reduced-motion: reduce) {
+  .eng__inner { padding-top: 5rem; gap: 1.25rem; }
+  .eng__stage { flex: 0 0 auto; margin-inline: 0; min-height: 0; }
   .eng__plate {
-    --plate-h: 200vh;          /* large enough that max-width always wins */
     height: auto;
-    width: min(100%, calc(var(--plate-h) * 4 / 3));
+    width: 100%;
     max-width: none;
     aspect-ratio: 4 / 3;
   }

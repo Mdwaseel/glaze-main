@@ -91,10 +91,57 @@ export default function RootLayout() {
     )
   const isSystem = pathname.startsWith('/products/')
   const isBlog = pathname === ROUTES.BLOG || pathname.startsWith('/blog/')
+
+  /**
+   * The utility pages: the confirmation and the three policies.
+   *
+   * They have no hero of their own — they are type on a light ground under a
+   * fixed 70px bar — which is the same situation /systems and the blog are
+   * in, and it has the same consequence: the navbar's resting state is white
+   * links on a transparent scrim, so without `alwaysSolid` below the bar is
+   * invisible on every one of them. They also take the INNER link set, so
+   * every section link points back at Home rather than at an anchor on a
+   * document that does not have it.
+   */
+  const isUtility =
+    pathname === ROUTES.FAQ ||
+    pathname === ROUTES.GALLERY ||
+    pathname === ROUTES.THANK_YOU ||
+    pathname === ROUTES.PRIVACY ||
+    pathname === ROUTES.TERMS ||
+    pathname === ROUTES.COOKIES
+
+  /**
+   * "Nothing matched" — the 404, which sits on the bone ground and had the
+   * same invisible-navbar problem as the pages above.
+   *
+   * Determined by elimination because the layout cannot ask the router what
+   * it matched. The list is every public pathname that is not a prefix; the
+   * two prefixes are tested separately above.
+   *
+   * ⚠ THE FAILURE MODE IS DELIBERATELY THE HARMLESS ONE. A route added to
+   * App.jsx and forgotten here is treated as a 404 for this one purpose,
+   * which makes the navbar solid on a page that may not need it. The
+   * opposite default — assume every unknown path is a real page — makes the
+   * bar invisible on the 404 itself, which is where a lost visitor needs it
+   * most.
+   */
+  const isNotFound =
+    !isSystem &&
+    !isBlog &&
+    ![
+      ROUTES.HOME, ROUTES.ABOUT, ROUTES.CONTACT, ROUTES.SYSTEMS, ROUTES.BLOG,
+      ROUTES.FAQ, ROUTES.GALLERY,
+      ROUTES.THANK_YOU, ROUTES.PRIVACY, ROUTES.TERMS, ROUTES.COOKIES,
+    ].includes(pathname)
+
   // /systems is grouped with About and Contact: hero.html-style links back,
   // aria-current on its own nav item, sheen CTAs.
   const isInner =
-    pathname === ROUTES.ABOUT || pathname === ROUTES.CONTACT || pathname === ROUTES.SYSTEMS
+    pathname === ROUTES.ABOUT ||
+    pathname === ROUTES.CONTACT ||
+    pathname === ROUTES.SYSTEMS ||
+    isUtility
 
   // Each static page carried its own <title>; an SPA has one <head>, so
   // index.html can only ship Home's. Applied before paint so the tab label
@@ -129,9 +176,12 @@ export default function RootLayout() {
         ctaMagnetic={isInner}
         ctaHref={isSystem ? '#contact' : 'contact.html#enquiry'}
         scrollThreshold={isSystem ? 40 : 60}
-        // The blog and /systems are the pages with no hero image behind the
-        // bar; the resting transparent scrim would put white links on white.
-        alwaysSolid={isBlog || pathname === ROUTES.SYSTEMS}
+        // The blog, /systems, the 404 and the utility pages are the ones with
+        // no hero image behind the bar; the resting transparent scrim would
+        // put white links on a light ground. (The 404 is not a route this
+        // layout can name — it is whatever did not match — so it is the one
+        // case tested by elimination.)
+        alwaysSolid={isBlog || isUtility || pathname === ROUTES.SYSTEMS || isNotFound}
       />
       <Outlet />
       {isSystem ? (

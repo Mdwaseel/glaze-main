@@ -386,6 +386,41 @@
   background: rgba(245, 245, 243, 0.18);
 }
 
+/* Policy links.
+   `margin-left: auto` pushes them to the right of the base rule on a wide
+   screen and does nothing once the row wraps, so no breakpoint is needed to
+   put them under the copyright on a phone.
+   They are a step brighter than the two static lines beside them — the
+   copyright is a fact, these are links somebody has to be able to find. */
+.footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 1.4rem;
+  margin-left: auto;
+}
+
+.footer__legal a {
+  /* 44px of target on touch. The row's own type is 9px; the padding is
+     what makes these tappable without making the strip taller than it
+     looks, since the base rule is already a wrapping flex row. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: rgba(245, 245, 243, 0.55);
+  transition: color 0.35s var(--ease-snap);
+}
+
+.footer__legal a:hover {
+  color: var(--champagne);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer__legal a {
+    transition: none;
+  }
+}
+
 /* ───────────────────────────────────────────
    Responsive — 1024 / 768 / 640 / 375
 ─────────────────────────────────────────── */

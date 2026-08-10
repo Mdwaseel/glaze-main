@@ -43,6 +43,16 @@ DISALLOWED = [
     ('Uploaded originals, not pages', ['/media/private/']),
 ]
 
+# ⚠ /thank-you IS DELIBERATELY *NOT* DISALLOWED ABOVE, and the reason is the
+# most common own-goal in this file's subject area. The page serves
+# `noindex, follow`, which is the correct way to keep an enquiry confirmation
+# out of the index — but a crawler only learns that by FETCHING the page. A
+# `Disallow` would stop it fetching, the noindex would never be read, and the
+# URL could still surface in results as a bare link with no title. Disallow
+# and noindex are alternatives, not reinforcements; the page is left
+# crawlable so the tag it serves can do its job. It is omitted from
+# sitemap.xml instead — see the note there.
+
 # ⚠ DO NOT ADD /static/ OR /media/ HERE. Google renders the page before it
 # scores it, and a stylesheet or hero image it cannot fetch is a page that
 # looks broken to the crawler — it tanks mobile usability and, with it, the
@@ -136,7 +146,22 @@ def llms_txt(request):
         '## Company',
         '',
         link('/about', 'About', 'The company, its factory, its people and how systems are made'),
+        link('/gallery', 'Gallery', 'Photography and film of completed projects, by system and by building type'),
+        # ⚠ THE FAQ IS THE HIGHEST-VALUE ENTRY IN THIS FILE. An assistant asked
+        # "how large can an aluminium sliding panel be" or "who makes thermally
+        # broken windows in Hyderabad" is answering a question, and this is the
+        # one page on the site written as questions and answers.
+        link('/faq', 'FAQs', 'Sizes, tested standards, finishes, the six-step process and what happens to an enquiry'),
         link('/contact', 'Contact', 'Consultation form, showroom address, map and business hours'),
+        # An assistant asked "what does Glaze do with my details" should be
+        # able to find the answer rather than infer one. /thank-you is not
+        # listed: it is noindex, and a map is of pages worth arriving at.
+        link('/privacy', 'Privacy Policy',
+             'What the enquiry form collects, what the site measures, who sees it and how long it is kept'),
+        link('/terms', 'Terms of Use',
+             'What the published performance figures mean, and what an enquiry does and does not commit to'),
+        link('/cookies', 'Cookie Policy',
+             'The site sets no tracking cookies of its own; what it stores and which optional tags may be active'),
         '',
         '## Systems',
         '',
@@ -211,6 +236,21 @@ STATIC_ROUTES = [
     ('/contact', '0.9', 'monthly'),
     ('/blog', '0.8', 'weekly'),
     ('/about', '0.7', 'monthly'),
+    # The gallery changes whenever somebody uploads a shoot, which is more
+    # often than About does and less often than the journal.
+    ('/gallery', '0.7', 'weekly'),
+    # The FAQ hub. Its answers are the same strings the /systems and /contact
+    # sections show, so it is not a higher priority than either — but it is
+    # the URL that ranks for a question typed as a question.
+    ('/faq', '0.6', 'monthly'),
+    # The policies. Low priority and yearly, because that is what they are —
+    # but LISTED, not omitted. An ad platform reviewing a lead campaign
+    # checks that the privacy policy the form links to actually resolves and
+    # is crawlable, and a page in no sitemap and no navigation but the footer
+    # is a page a crawler may take a long time to reach.
+    ('/privacy', '0.3', 'yearly'),
+    ('/terms', '0.3', 'yearly'),
+    ('/cookies', '0.3', 'yearly'),
 ]
 
 
@@ -246,6 +286,11 @@ def sitemap_xml(request):
     #   /blog?category=…   a filtered view of a page already listed — the
     #                      canonical is /blog and the filtered URLs are
     #                      noindex, so listing them would contradict the page.
+    #   /thank-you         the enquiry confirmation. It serves `noindex`, and
+    #                      a sitemap entry for a noindexed page is the site
+    #                      telling a crawler two different things. Indexing it
+    #                      would also put people on a confirmation page having
+    #                      sent nothing, and count them as conversions.
     #   /admin, /admin/*   staff only, and disallowed in robots.txt.
     #   legacy *.html      301s. A sitemap of redirects wastes crawl budget on
     #                      URLs that resolve to entries already in this file.

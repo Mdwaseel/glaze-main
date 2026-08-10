@@ -11,7 +11,9 @@ import EnquirySection from '@/components/sections/contact/EnquirySection'
 import TrustSection from '@/components/sections/contact/TrustSection'
 import VisitSection from '@/components/sections/contact/VisitSection'
 import MapSection from '@/components/sections/contact/MapSection'
-import SEO, { ORGANIZATION_ID, graph } from '@/components/common/SEO'
+import SEO, { ORGANIZATION_ID, faqSchema, graph } from '@/components/common/SEO'
+import FaqSection from '@/components/common/FaqSection'
+import { CONTACT_FAQS } from '@/data/faqs'
 import '@/styles/contact-global.css'
 
 /**
@@ -93,12 +95,26 @@ export default function Contact() {
             name: 'Contact Glaze Window Systems',
             mainEntity: { '@id': ORGANIZATION_ID },
           },
+          /* Same array <FaqSection> renders below — see faqSchema(). */
+          faqSchema(CONTACT_FAQS),
         ])}
       />
       <HeaderSection />
       <EnquirySection />
       <TrustSection />
       <VisitSection />
+      {/* NEW — not in contact.html. It sits after Visit and before the map
+          because it answers the two things that stop somebody sending the
+          form: how long the reply takes, and what happens to what they send.
+          The last answer links to the Privacy Policy, which is also the only
+          contextual link into it on the site — the footer's is site-wide
+          furniture, this one is where the question is being asked. */}
+      <FaqSection
+        faqs={CONTACT_FAQS}
+        id="contact-faq"
+        heading={{ lead: 'Before you ', em: 'send it.' }}
+        note="How quickly we reply, what to send with an enquiry, and what happens to it afterwards."
+      />
       {/* §05 Map is the last section. The FOOTER that follows it in
           contact.html comes from RootLayout, not from here. */}
       <MapSection />

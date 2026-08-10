@@ -66,6 +66,36 @@ export function breadcrumbSchema(trail) {
   }
 }
 
+/**
+ * FAQPage for a list of [{ q, a }].
+ *
+ * ⚠ SAME RULE AS THE BREADCRUMB ABOVE, and it is the rule people break with
+ * FAQ markup more than with any other type: the questions and answers have to
+ * be VISIBLE on the page, in full, to the visitor. Marking up an answer the
+ * page does not show — or showing a shortened one and marking up a longer one
+ * — is a structured-data violation, not a shortcut. Every caller here renders
+ * the same array through <FaqSection>, which is why they take the same one.
+ *
+ * ⚠ ONE PER PAGE. Two FAQPage nodes in one document is ambiguous and Google
+ * picks one; if a page ever needs two sets, concatenate them into a single
+ * call rather than adding a second node.
+ *
+ * Returns null for an empty list so `graph()` drops it, rather than emitting
+ * an FAQPage with no questions in it.
+ */
+export function faqSchema(faqs) {
+  const present = (faqs || []).filter((item) => item && item.q && item.a)
+  if (!present.length) return null
+  return {
+    '@type': 'FAQPage',
+    mainEntity: present.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  }
+}
+
 /** Wrap page nodes in a @graph with the shared @context. */
 export function graph(nodes) {
   const present = (nodes || []).filter(Boolean)

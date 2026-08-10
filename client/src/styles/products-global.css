@@ -101,6 +101,17 @@ body:where(.page-products) {
   cursor: pointer;
 }
 
+/* Breadcrumb strip, directly under the hero.
+   NOT verbatim — the originals had no breadcrumb at all, visible or marked
+   up. It matches the Overview section's container below it (1280px, the
+   same clamped gutter) so the trail starts on the same vertical line the
+   rest of the page's type does. */
+.sys-crumbs {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.5vh, 1.75rem) clamp(1.25rem, 5vw, 4rem) 0;
+}
+
 /* ── Verbatim from products/sliding.html below this line ───────── */
 
 /* ── Shared editorial primitives ─────────────────────────────── */

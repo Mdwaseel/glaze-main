@@ -1,0 +1,321 @@
+/* ═══════════════════════════════════════════════════════════════
+   /thank-you — the enquiry confirmation.
+
+   Same tokens as the rest of the site. Deliberately calm and short: this
+   page is read once, for about fifteen seconds, by somebody who has just
+   done what we asked them to do.
+   ═══════════════════════════════════════════════════════════════ */
+
+.ty {
+  --ty-pad: clamp(1.375rem, 5vw, 5rem);
+  --ty-rule: rgba(27, 27, 27, 0.1);
+  --ty-muted: rgba(27, 27, 27, 0.6);
+  --ty-faint: rgba(27, 27, 27, 0.38);
+
+  background: var(--arch-white);
+  color: var(--arch-black);
+}
+
+.ty__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-inline: var(--ty-pad);
+  padding-top: calc(var(--nav-height) + clamp(3rem, 9vh, 6rem));
+  padding-bottom: clamp(4.5rem, 12vh, 8rem);
+}
+
+/* ── Head ────────────────────────────────────────────────────── */
+.ty__head {
+  max-width: 46rem;
+}
+
+.ty__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.ty__title {
+  margin-top: 1.5rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.75rem, 6vw, 5rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+}
+
+.ty__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.ty__lede {
+  margin-top: 1.75rem;
+  max-width: 36rem;
+  font-weight: 300;
+  font-size: clamp(1rem, 1.15vw, 1.125rem);
+  line-height: 1.75;
+  color: var(--ty-muted);
+}
+
+/* ── The configuration, when there was one ───────────────────── */
+.ty__recap {
+  margin-top: clamp(2.5rem, 6vh, 3.5rem);
+  padding: clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid var(--ty-rule);
+  border-radius: 3px;
+}
+
+.ty__recap-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ty-faint);
+}
+
+.ty__recap-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem clamp(2rem, 5vw, 4rem);
+  margin-top: 1.35rem;
+}
+
+.ty__recap-row dt {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ty-faint);
+}
+
+.ty__recap-row dd {
+  margin-top: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+
+/* ── What happens next ───────────────────────────────────────── */
+.ty__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.75rem, 3vw, 3rem);
+  margin-top: clamp(3.5rem, 9vh, 5.5rem);
+  padding-top: clamp(2.5rem, 5vh, 3.5rem);
+  border-top: 1px solid var(--ty-rule);
+  list-style: none;
+}
+
+.ty__step-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--champagne);
+}
+
+.ty__step-title {
+  margin-top: 1rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.125rem, 1.5vw, 1.375rem);
+  line-height: 1.25;
+}
+
+.ty__step-copy {
+  margin-top: 0.85rem;
+  max-width: 34ch;
+  font-weight: 300;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--ty-muted);
+}
+
+/* ── Urgent ──────────────────────────────────────────────────── */
+.ty__urgent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem clamp(1.5rem, 3vw, 2.5rem);
+  margin-top: clamp(3rem, 7vh, 4.5rem);
+  padding: clamp(1.5rem, 3vw, 2rem);
+  border: 1px solid var(--ty-rule);
+  border-radius: 3px;
+  background: var(--arch-bone);
+}
+
+.ty__urgent-copy {
+  font-weight: 300;
+  font-size: 0.9375rem;
+  color: var(--ty-muted);
+}
+
+.ty__urgent-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  /* 44px of target on a phone, where this is the button that matters. */
+  min-height: 44px;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  letter-spacing: -0.01em;
+  transition: color 0.35s var(--ease-snap);
+}
+
+.ty__urgent-cta:hover {
+  color: var(--bronze);
+}
+
+.ty__urgent-hours {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ty-faint);
+}
+
+/* ── While you wait ──────────────────────────────────────────── */
+.ty__next {
+  margin-top: clamp(3.5rem, 9vh, 5.5rem);
+  padding-top: clamp(2.5rem, 5vh, 3.5rem);
+  border-top: 1px solid var(--ty-rule);
+}
+
+.ty__next-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ty-faint);
+}
+
+.ty__next-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+  margin-top: 1.75rem;
+}
+
+.ty__card-media {
+  display: block;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--arch-bone);
+  /* Square, because the card stills are: see data/systems.js. Cropping a
+     square source to a letterbox here would upscale it for nothing. */
+  aspect-ratio: 1 / 1;
+}
+
+.ty__card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.55s var(--ease-snap);
+}
+
+.ty__card-name {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+}
+
+.ty__arrow {
+  display: inline-block;
+  transition: transform 0.4s var(--ease-snap);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ty__card:hover .ty__card-media img {
+    transform: scale(1.04);
+  }
+
+  .ty__card:hover .ty__card-name {
+    color: var(--bronze);
+  }
+
+  .ty__card:hover .ty__arrow,
+  .ty__urgent-cta:hover .ty__arrow {
+    transform: translateX(5px);
+  }
+}
+
+.ty__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.75rem;
+  margin-top: clamp(2rem, 4vh, 3rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ty-rule);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ty__links a {
+  /* Thumb-sized without a visible box around it. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ty-muted);
+  transition: color 0.35s var(--ease-snap);
+}
+
+.ty__links a:hover {
+  color: var(--bronze);
+}
+
+/* ── Narrow ──────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .ty__steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .ty__step-copy {
+    max-width: none;
+  }
+
+  .ty__next-grid {
+    /* Three across at 1/1 on a phone is three thumbnails nobody can read;
+       two is still a grid and still shows the system. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .ty__urgent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ty__card-media img,
+  .ty__arrow,
+  .ty__links a,
+  .ty__urgent-cta {
+    transition: none;
+  }
+
+  .ty__card:hover .ty__card-media img {
+    transform: none;
+  }
+
+  .ty__card:hover .ty__arrow,
+  .ty__urgent-cta:hover .ty__arrow {
+    transform: none;
+  }
+}

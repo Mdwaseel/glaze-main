@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/v1/', include('account.urls')),
     path('api/v1/', include('siteconfig.urls')),
     path('api/v1/', include('catalogue.urls')),
+    path('api/v1/', include('gallery.urls')),
     path('api/v1/', include('blog.urls')),
     path('api/v1/', include('analytics.urls')),
     path('api/v1/', include('chatbot.urls')),

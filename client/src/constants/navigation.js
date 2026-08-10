@@ -47,11 +47,42 @@
  * document reload. On Home itself it is marked current; on the inner
  * pages RootLayout recomputes `current` per item, so it is not.
  */
+/**
+ * The About submenu.
+ *
+ * ⚠ THE BAR IS FIVE ITEMS AND STAYS FIVE. The FAQ hub and the gallery both
+ * needed to be reachable from the nav — a page nothing links to is a page
+ * nobody reads, which is the note already written above about the Journal —
+ * and adding two top-level items would put the row back into the 769–1024px
+ * squeeze the seven-item version had.
+ *
+ * They belong under About rather than under Systems because of what they
+ * answer. "Systems" answers what Glaze sells; About answers who Glaze is and
+ * whether they can do it, which is the question both a gallery of finished
+ * buildings and a page of process questions exist to settle.
+ *
+ * ⚠ THE FIRST CHILD REPEATS THE PARENT. "The company" points at the same
+ * /about the parent does, because a submenu whose parent is also a
+ * destination is ambiguous on touch: the tap that opens the menu is the tap
+ * that would have followed the link. Naming the parent's own page as the
+ * first child makes it reachable either way. Same reason the Systems submenu
+ * does not swallow /systems.
+ *
+ * The hrefs are written the way the rest of this file writes them — legacy
+ * filename for the migrated page, real router path for the new ones — and
+ * resolveHref() turns both into <Link>s.
+ */
+export const ABOUT_SUBMENU = [
+  { label: 'The company', href: 'about.html' },
+  { label: 'Gallery', href: '/gallery' },
+  { label: 'FAQs', href: '/faq' },
+]
+
 export const NAV_LINKS = [
   { label: 'Home', href: 'hero.html', current: true },
   { label: 'Systems', href: '/systems' },
   { label: 'Journal', href: '/blog' },
-  { label: 'About', href: 'about.html' },
+  { label: 'About', href: 'about.html', children: ABOUT_SUBMENU },
   { label: 'Contact', href: 'contact.html' },
 ]
 
@@ -64,7 +95,7 @@ export const NAV_LINKS_INNER = [
   { label: 'Home', href: 'hero.html' },
   { label: 'Systems', href: '/systems' },
   { label: 'Journal', href: '/blog' },
-  { label: 'About', href: 'about.html' },
+  { label: 'About', href: 'about.html', children: ABOUT_SUBMENU },
   { label: 'Contact', href: 'contact.html' },
 ]
 
@@ -77,7 +108,7 @@ export const NAV_LINKS_SYSTEM = [
   { label: 'Home', href: 'hero.html' },
   { label: 'Systems', href: '/systems', current: true },
   { label: 'Journal', href: '/blog' },
-  { label: 'About', href: 'about.html' },
+  { label: 'About', href: 'about.html', children: ABOUT_SUBMENU },
   { label: 'Contact', href: 'contact.html' },
 ]
 
@@ -102,7 +133,7 @@ export const NAV_LINKS_BLOG = [
   { label: 'Home', href: 'hero.html' },
   { label: 'Systems', href: '/systems' },
   { label: 'Journal', href: '/blog', current: true },
-  { label: 'About', href: 'about.html' },
+  { label: 'About', href: 'about.html', children: ABOUT_SUBMENU },
   { label: 'Contact', href: 'contact.html' },
 ]
 
@@ -116,6 +147,14 @@ export const FOOTER_EXPLORE_LINKS = [
   { label: 'Systems', href: '/systems' },
   { label: 'Journal', href: '/blog' },
   { label: 'About', href: 'about.html' },
+  /* ⚠ FLAT HERE, NESTED IN THE NAV. The nav hides these under About because
+     the bar has five slots; the footer has a column and no such constraint,
+     and a link that exists only inside a hover menu is a link a crawler
+     following the rendered page finds once. Listing them here is the second
+     path in — and on a phone, where the nav is a drawer, it is often the
+     first one anybody actually uses. */
+  { label: 'Gallery', href: '/gallery' },
+  { label: 'FAQs', href: '/faq' },
   { label: 'Contact', href: 'contact.html' },
 ]
 

@@ -140,12 +140,22 @@ function normalise(v) {
 
 /**
  * @param {HTMLElement} section  #enquiry
+ * @param {object}   [options]
+ * @param {(detail: {system: string}) => boolean} [options.onSuccess]
+ *        Called once the enquiry has been accepted. Return true if it has
+ *        taken over the confirmation (by navigating to /thank-you); the
+ *        in-place panel is shown only when it does not. This is a hook
+ *        rather than an import because `useNavigate` is a hook and this is a
+ *        plain controller module — the same arrangement systemsSequence.js
+ *        uses for the carousel's card links.
  * @returns {(() => void) | undefined} cleanup
  */
-export function initEnquiryForm(section) {
+export function initEnquiryForm(section, options) {
   if (!section) return
   const form = section.querySelector('#enquiryForm')
   if (!form) return
+
+  const onSuccess = options && options.onSuccess
 
   const reduceMotion = prefersReducedMotion()
 
@@ -1079,22 +1089,36 @@ export function initEnquiryForm(section) {
     const data = new FormData(form)
 
     function succeed() {
-      form.style.display = 'none'
-      doneEl.classList.add('is-visible')
-      // hand focus to the confirmation so it's read out
-      doneEl.focus({ preventScroll: true })
-
       // ⚠ HERE, NOT ON THE CLICK. The conversion is reported only once the
       // enquiry has actually been accepted — a Lead counted on submit counts
       // the failures too, and an ad platform optimising toward a number that
       // includes failed submissions will buy more of them. No-op unless a
       // pixel or GA4 id is configured in the panel.
+      //
+      // It also fires BEFORE the navigation below, not after: the /thank-you
+      // route is what makes this conversion visible to tools that only see
+      // URLs, and leaving on a pending beacon would lose the event itself.
       trackEnquiry({
         category: 'contact',
         system: data.get('system') || '',
         variant: data.get('variant') || '',
         project_type: data.get('project_type') || '',
       })
+
+      /* ⚠ THE CONFIRMATION MOVED TO A ROUTE, and this is the handover.
+         `onSuccess` is injected by EnquirySection and navigates to
+         /thank-you; it returns true when it has. The in-place panel below is
+         NOT dead code — it is what runs when this controller is driven
+         outside a router, which is the same fallback shape systemsSequence.js
+         uses for its card links. */
+      if (typeof onSuccess === 'function' && onSuccess({
+        system: data.get('system') || '',
+      })) return
+
+      form.style.display = 'none'
+      doneEl.classList.add('is-visible')
+      // hand focus to the confirmation so it's read out
+      doneEl.focus({ preventScroll: true })
     }
 
     function fail() {

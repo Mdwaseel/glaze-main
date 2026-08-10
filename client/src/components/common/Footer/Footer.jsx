@@ -7,6 +7,7 @@ import {
 } from '@/constants/navigation'
 import { resolveHref } from '@/utils/links'
 import { useSiteSettings } from '@/context/SiteSettingsContext'
+import { LEGAL_LINKS } from '@/data/legal'
 import './footer.css'
 
 /**
@@ -285,6 +286,26 @@ export default function Footer({
               file that would still say 2026 in 2027. */}
           <span>&copy; {new Date().getFullYear()} Glaze Window Systems</span>
           <span>Aluminium Since 1989</span>
+
+          {/* ⚠ THE POLICY LINKS BELONG HERE AND NOWHERE ELSE. The footer's
+              base rule is the one strip that appears on every page of the
+              site, which is exactly the requirement: a privacy policy linked
+              only from the contact page is not "linked from the site" as far
+              as an ad platform's review or a crawler's trust signals are
+              concerned, and a visitor looking for it looks at the bottom.
+
+              They are NOT in the Explore column above. That column is the
+              site's own navigation, and putting "Cookie Policy" beside
+              "Systems" gives a legal notice the weight of a product page.
+
+              ⚠ AFTER both <span>s, not between them: the hairline separator
+              is a `span + span::before` rule, and a <nav> in the middle stops
+              it matching. */}
+          <nav className="footer__legal" aria-label="Policies">
+            {LEGAL_LINKS.map((link) => (
+              <Link key={link.href} to={link.href}>{link.label}</Link>
+            ))}
+          </nav>
         </div>
       </div>
     </footer>

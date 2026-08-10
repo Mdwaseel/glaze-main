@@ -62,8 +62,25 @@ export default function SystemHeroSection({ system }) {
   return (
     <header className="shero" id="sys-hero">
       <div className="shero__media">
+        {/* ⚠ IT HAD `alt=""`, WHICH WAS WRONG HERE and is right for the
+            <video> beside it. The still branch is the largest image on the
+            page and the only picture of the product on it — Fixed is the one
+            system with no clip, so this is Fixed's hero — and an empty alt
+            declares a photograph of the product to be decoration. The clip
+            keeps `aria-hidden`, because a looping film of a window opening
+            has no text equivalent and the heading beside it already names
+            the system.
+
+            The description is built from the system's own catalogue entry
+            rather than typed, so a system added in the panel arrives with a
+            correct one and cannot inherit another system's. */}
         {hero.image ? (
-          <img src={hero.image} alt="" fetchPriority="high" decoding="async" />
+          <img
+            src={hero.image}
+            alt={`Glaze ${system.name} aluminium window system — ${hero.accent || hero.title}`}
+            fetchPriority="high"
+            decoding="async"
+          />
         ) : (
           <video
             id="sheroVideo"

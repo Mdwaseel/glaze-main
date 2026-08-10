@@ -35,6 +35,10 @@ const NAV = [
     items: [
       { to: '/admin/systems', icon: 'tags', label: 'Systems & variants' },
       { to: '/admin/systems/new', icon: 'plus', label: 'New system' },
+      // In the Catalogue group rather than a group of its own: a gallery of
+      // finished work is the products photographed, and one nav entry does
+      // not earn a heading.
+      { to: '/admin/gallery', icon: 'eye', label: 'Gallery' },
     ],
   },
   {

@@ -1,7 +1,10 @@
 import { useLayoutEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useCatalogue } from '@/context/CatalogueContext'
-import SEO, { ORGANIZATION_ID, absoluteUrl, breadcrumbSchema, graph } from '@/components/common/SEO'
+import SEO, { ORGANIZATION_ID, absoluteUrl, breadcrumbSchema, faqSchema, graph } from '@/components/common/SEO'
+import Breadcrumbs from '@/components/common/Breadcrumbs'
+import FaqSection from '@/components/common/FaqSection'
+import { systemFaqs } from '@/data/faqs'
 import { productPath, ROUTES } from '@/constants/routes'
 import {
   useSystemNavHeight,
@@ -110,6 +113,21 @@ export default function SystemPage() {
     return <Navigate to={first ? productPath(first.slug) : ROUTES.HOME} replace />
   }
 
+  /* ⚠ BUILT ONCE, USED TWICE — the <Breadcrumbs> below and the
+     BreadcrumbList in the graph. This page has emitted that schema since the
+     <SEO> component landed and rendered no visible trail to match it, which
+     is the mismatch siteOrigin.js warns about in writing. */
+  const trail = [
+    { name: 'Home', path: ROUTES.HOME },
+    { name: 'Systems', path: ROUTES.SYSTEMS },
+    { name: system.name, path: productPath(system.slug) },
+  ]
+
+  /* Generated from this system's own catalogue entry, so the answers cannot
+     contradict the stats table, the chips or the flagged series above them —
+     and an eighth system added in the panel arrives with its own set. */
+  const faqs = systemFaqs(system)
+
   return (
     <>
       <SEO
@@ -149,15 +167,21 @@ export default function SystemPage() {
               image: absoluteUrl(variant.poster || '/og-default.jpg'),
             })),
           },
-          breadcrumbSchema([
-            { name: 'Home', path: '/' },
-            { name: 'Systems', path: ROUTES.SYSTEMS },
-            { name: system.name, path: productPath(system.slug) },
-          ]),
+          breadcrumbSchema(trail),
+          /* Same array the section below renders. An FAQPage whose answers
+             are not on the page is a violation, not a shortcut — see the
+             note on faqSchema(). */
+          faqSchema(faqs),
         ])}
       />
       <SystemHeroSection system={system} />
       <main>
+        {/* Under the hero rather than over it: the hero is a full-bleed clip
+            with type of its own, and a trail on top of that is one more
+            thing competing for the same corner. */}
+        <div className="sys-crumbs">
+          <Breadcrumbs trail={trail} />
+        </div>
         <OverviewSection system={system} />
         {/* §04 Variants — NEW, not in the originals. Sits between the
             claim and the catalogue on purpose: Overview argues what the
@@ -171,6 +195,18 @@ export default function SystemPage() {
         <FinishSection />
         <BenefitsSection />
         <PartnersMarqueeSection />
+        {/* Immediately before the enquiry form, deliberately: these are the
+            questions somebody has left at the moment they are deciding
+            whether to fill it in, and the last of them ends by telling them
+            how. Dark, so it reads as part of the enquiry block below rather
+            than as a third white section after the benefits. */}
+        <FaqSection
+          faqs={faqs}
+          id="sys-faq"
+          tone="dark"
+          heading={{ lead: `${system.name}, `, em: 'in questions.' }}
+          note={`What people ask before specifying ${system.name} — and the tested figures behind each answer.`}
+        />
         <SystemEnquirySection system={system} />
         <TestimonialsSection />
         <OtherSystemsSection system={system} />

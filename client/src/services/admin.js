@@ -140,6 +140,25 @@ export const adminApi = {
   reorderVariants: (slug, keys) =>
     api.post(`/admin/systems/${slug}/variants/reorder/`, { keys }),
 
+  // ── Gallery ────────────────────────────────────────────────────────
+  // Unpaginated like the catalogue's list: the Studio's grid is a
+  // move-up/move-down surface, and a page control over it means an item can
+  // only be moved within its own page.
+  listGalleryItems: (signal) => api.get('/admin/gallery/items/', { signal }),
+  getGalleryItem: (id, signal) => api.get(`/admin/gallery/items/${id}/`, { signal }),
+  createGalleryItem: (body) => api.post('/admin/gallery/items/', body),
+  updateGalleryItem: (id, body) => api.patch(`/admin/gallery/items/${id}/`, body),
+  deleteGalleryItem: (id) => api.delete(`/admin/gallery/items/${id}/`),
+  /* One call writes the whole sequence. Unlike the systems list — which only
+     ever swaps a pair — a gallery is reordered by dragging one tile across
+     several positions, which renumbers everything in between. */
+  reorderGalleryItems: (ids) => api.post('/admin/gallery/items/reorder/', { ids }),
+
+  listGalleryCategories: (signal) => api.get('/admin/gallery/categories/', { signal }),
+  createGalleryCategory: (body) => api.post('/admin/gallery/categories/', body),
+  updateGalleryCategory: (id, body) => api.patch(`/admin/gallery/categories/${id}/`, body),
+  deleteGalleryCategory: (id) => api.delete(`/admin/gallery/categories/${id}/`),
+
   // ── Settings ───────────────────────────────────────────────────────
   getSiteSettings: (signal) => api.get('/admin/site-settings/', { signal }),
   updateSiteSettings: (body) => api.patch('/admin/site-settings/', body),

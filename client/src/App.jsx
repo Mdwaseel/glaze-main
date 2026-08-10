@@ -10,6 +10,10 @@ import Contact from '@/pages/Contact'
 import Systems from '@/pages/Systems'
 import SystemRoute from '@/pages/Products'
 import { BlogIndex, BlogPost } from '@/pages/Blog'
+import ThankYou from '@/pages/ThankYou'
+import Faq from '@/pages/Faq'
+import Gallery from '@/pages/Gallery'
+import LegalPage from '@/pages/Legal'
 import NotFound from '@/pages/NotFound'
 import { Tracking } from '@/components/common/SEO'
 
@@ -35,6 +39,9 @@ const Taxonomy = lazy(() => import('@/pages/Admin/Taxonomy'))
 // Prefixed: `Systems` is already the public collection page imported above.
 const AdminSystems = lazy(() => import('@/pages/Admin/Systems'))
 const AdminSystemEditor = lazy(() => import('@/pages/Admin/SystemEditor'))
+// Prefixed for the same reason AdminSystems is: `Gallery` is already the
+// public page imported above.
+const AdminGallery = lazy(() => import('@/pages/Admin/Gallery'))
 const Comments = lazy(() => import('@/pages/Admin/Comments'))
 const Enquiries = lazy(() => import('@/pages/Admin/Enquiries'))
 const ContactSettings = lazy(() => import('@/pages/Admin/ContactSettings'))
@@ -106,6 +113,26 @@ export default function App() {
         <Route path={ROUTES.BLOG} element={<BlogIndex />} />
         <Route path={ROUTES.BLOG_POST} element={<BlogPost />} />
 
+        {/* Both hang off "About" in the nav — see constants/navigation.js.
+            /faq is the hub for the question sets that also appear in context
+            on /systems, /contact and each system page; /gallery is the one
+            public page whose entire content comes from the database. */}
+        <Route path={ROUTES.FAQ} element={<Faq />} />
+        <Route path={ROUTES.GALLERY} element={<Gallery />} />
+
+        {/* Where both enquiry forms land. Inside RootLayout like every other
+            public page — a confirmation with no navigation is the same dead
+            end a bare 404 is. */}
+        <Route path={ROUTES.THANK_YOU} element={<ThankYou />} />
+
+        {/* The policies. One component, three routes, three documents in
+            data/legal.js — the same template-plus-data shape SystemPage
+            uses, and for the same reason: they differ only in their words.
+            Deliberately indexable; see the note in pages/Legal. */}
+        <Route path={ROUTES.PRIVACY} element={<LegalPage doc="privacy" />} />
+        <Route path={ROUTES.TERMS} element={<LegalPage doc="terms" />} />
+        <Route path={ROUTES.COOKIES} element={<LegalPage doc="cookies" />} />
+
         {/* ⚠ THE WHITE SCREEN. Without this route React Router matched
             nothing on an unrecognised URL and rendered an EMPTY TREE — not an
             error, not a fallback, a blank white document. Verified headlessly:
@@ -157,6 +184,10 @@ export default function App() {
         <Route path="systems" element={<Suspense fallback={<AdminFallback />}><AdminSystems /></Suspense>} />
         <Route path="systems/new" element={<Suspense fallback={<AdminFallback />}><AdminSystemEditor /></Suspense>} />
         <Route path="systems/:slug" element={<Suspense fallback={<AdminFallback />}><AdminSystemEditor /></Suspense>} />
+        {/* One screen, two tabs — items and the categories they are filed
+            under. See pages/Admin/Gallery. */}
+        <Route path="gallery" element={<Suspense fallback={<AdminFallback />}><AdminGallery /></Suspense>} />
+
         <Route path="comments" element={<Suspense fallback={<AdminFallback />}><Comments /></Suspense>} />
         <Route path="enquiries" element={<Suspense fallback={<AdminFallback />}><Enquiries /></Suspense>} />
         <Route path="settings/contact" element={<Suspense fallback={<AdminFallback />}><ContactSettings /></Suspense>} />

@@ -1,5 +1,8 @@
 import { useLayoutEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCatalogue } from '@/context/CatalogueContext'
+import { absoluteUrl } from '@/components/common/SEO'
+import { ROUTES } from '@/constants/routes'
 import {
   IconVilla, IconApartment, IconHouse, IconCommercial, IconRenovation,
   IconHospitality, IconBuilder, IconArchitect,
@@ -210,7 +213,29 @@ export default function EnquirySection() {
     .map((s) => `${s.slug}:${(s.variants || []).map((v) => v.id).join(',')}`)
     .join('|')
 
-  useLayoutEffect(() => initEnquiryForm(sectionRef.current), [signature])
+  /* Held in a ref, NOT closed over. The effect below re-runs only when the
+     catalogue's SET changes, so it would otherwise capture whichever
+     `navigate` identity existed at mount; reading it through a ref at submit
+     time keeps it current without putting the router in the effect's
+     dependency surface, where a routing-layer re-render would tear the whole
+     stepped form down and rebuild it mid-enquiry. Same arrangement as
+     SystemsSection's carousel. */
+  const navigate = useNavigate()
+  const navigateRef = useRef(navigate)
+  navigateRef.current = navigate
+
+  useLayoutEffect(
+    () =>
+      initEnquiryForm(sectionRef.current, {
+        onSuccess: (detail) => {
+          // `replace`: Back from the confirmation should return to the page
+          // the visitor came from, not re-post the form they just sent.
+          navigateRef.current(ROUTES.THANK_YOU, { replace: true, state: detail })
+          return true
+        },
+      }),
+    [signature],
+  )
 
   return (
     <section id="enquiry" className="enq" aria-labelledby="msf-title" ref={sectionRef}>
@@ -235,6 +260,14 @@ export default function EnquirySection() {
             <input type="hidden" name="_subject" value="New enquiry — glazewindowsystems.com" />
             <input type="hidden" name="_template" value="table" />
             <input type="hidden" name="_captcha" value="false" />
+            {/* ⚠ THE NO-`fetch` PATH USED TO END NOWHERE. When `fetch` is
+                unavailable the submit handler lets the browser POST this form
+                natively, which navigates away to FormSubmit's own generic
+                confirmation — a page with no Glaze branding, no phone number
+                and no way back. `_next` is FormSubmit's redirect target, and
+                it sends that visitor to the same /thank-you the fetch path
+                does. Absolute because it leaves this origin first. */}
+            <input type="hidden" name="_next" value={absoluteUrl(ROUTES.THANK_YOU)} />
             <input type="text" name="_honey" style={{ display: 'none' }} tabIndex="-1" autoComplete="off" aria-hidden="true" />
 
             {/* Progress rail (stepped mode only) */}

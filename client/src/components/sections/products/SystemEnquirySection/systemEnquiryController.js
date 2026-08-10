@@ -35,10 +35,15 @@ const API_ENQUIRY_URL = `${BASE_URL}/enquiries/`
  * bound to `document`, which outlives the route, so without the abort a
  * second visit would paint through a detached form.
  */
-export function initSystemEnquiry(section) {
+export function initSystemEnquiry(section, options) {
   if (!section) return
   const form = section.querySelector('#enqForm')
   if (!form) return
+
+  /* Injected by SystemEnquirySection; navigates to /thank-you and returns
+     true when it has. See the same option on the contact form's controller
+     for why it is a hook rather than an import. */
+  const onSuccess = options && options.onSuccess
 
   const panes = [].slice.call(form.querySelectorAll('.enq__pane'))
   const rail = [].slice.call(form.querySelectorAll('[data-rail]'))
@@ -225,16 +230,29 @@ export function initSystemEnquiry(section) {
       series: spec.series || '',
     })
 
+    const rows = [
+      ['System', spec.system], ['Variant', spec.variant], ['Series', spec.series],
+      ['Glass', spec.glass], ['Finish', spec.finish],
+    ].filter(function (r) { return r[1] })
+
+    /* ⚠ THE CONFIRMATION MOVED TO A ROUTE — and the recap moved with it.
+       This is a configurator: what it collected is the most useful thing the
+       confirmation can say back, so sending everyone to a generic thank-you
+       page would have been a downgrade. The rows are carried in the
+       navigation state and /thank-you prints them. The in-place pane below
+       still runs when this controller is driven outside a router. */
+    if (typeof onSuccess === 'function' && onSuccess({
+      system: spec.system || '',
+      recap: rows.map(function (r) { return { label: r[0], value: r[1] } }),
+    })) return
+
     const recap = section.querySelector('#enqDoneRecap')
     recap.innerHTML = ''
-    ;[['System', spec.system], ['Variant', spec.variant], ['Series', spec.series],
-      ['Glass', spec.glass], ['Finish', spec.finish]]
-      .filter(function (r) { return r[1] })
-      .forEach(function (r) {
-        const el = document.createElement('span')
-        el.innerHTML = r[0] + ' · <b>' + r[1] + '</b>'
-        recap.appendChild(el)
-      })
+    rows.forEach(function (r) {
+      const el = document.createElement('span')
+      el.innerHTML = r[0] + ' · <b>' + r[1] + '</b>'
+      recap.appendChild(el)
+    })
 
     form.querySelector('.enq__rail').style.display = 'none'
     panesWrap.style.display = 'none'

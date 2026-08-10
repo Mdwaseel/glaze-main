@@ -1,6 +1,9 @@
 import SystemsSection from '@/components/sections/home/SystemsSection'
-import SEO, { absoluteUrl, graph } from '@/components/common/SEO'
+import SEO, { absoluteUrl, faqSchema, graph } from '@/components/common/SEO'
+import FaqSection from '@/components/common/FaqSection'
 import { useCatalogue } from '@/context/CatalogueContext'
+import { SYSTEMS_FAQS } from '@/data/faqs'
+import { countWord } from '@/utils/format'
 import { productPath, ROUTES } from '@/constants/routes'
 import './systemsPage.css'
 
@@ -58,9 +61,27 @@ export default function Systems() {
               })),
             },
           },
+          /* Same array <FaqSection> renders below — see faqSchema(). */
+          faqSchema(SYSTEMS_FAQS),
         ])}
       />
       <SystemsSection />
+
+      {/* ⚠ THE CAROUSEL IS NOT A PAGE. This route was one section with no
+          text a crawler could read beyond seven card labels and one teaser
+          at a time, which is thin for the URL the nav points at from every
+          page on the site. These are the questions somebody choosing
+          between the seven actually has, and they are the same eight the
+          FAQPage node above marks up. */}
+      <FaqSection
+        faqs={SYSTEMS_FAQS}
+        id="systems-faq"
+        /* The count is read, not written — the catalogue is editable, and
+           "the seven" is wrong the afternoon someone adds an eighth. Same
+           reason the carousel's own heading counts the list. */
+        heading={{ lead: `Choosing between ${countWord(systems.length).toLowerCase()} `, em: 'systems.' }}
+        note="The questions that come before a system does — sizes, standards, finishes and where we work."
+      />
     </main>
   )
 }

@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import SEO, { ORGANIZATION_ID, absoluteUrl, breadcrumbSchema, graph } from '@/components/common/SEO'
+import Breadcrumbs from '@/components/common/Breadcrumbs'
 import { Link, useParams } from 'react-router-dom'
+import { ROUTES, blogPath } from '@/constants/routes'
 import { blogApi } from '@/services/blog'
 import { mediaUrl } from '@/services/api'
 import { formatDate, initials } from '@/utils/format'
@@ -165,6 +167,13 @@ export default function BlogPost() {
   const hero = mediaUrl(post.featured_image)
   const author = post.show_author ? post.author : null
 
+  // One array, two consumers: the visible trail and the BreadcrumbList.
+  const trail = [
+    { name: 'Home', path: ROUTES.HOME },
+    { name: 'Journal', path: ROUTES.BLOG },
+    { name: post.title, path: blogPath(post.slug) },
+  ]
+
   return (
     <main id="top" className="bl-page">
       <SEO
@@ -208,19 +217,19 @@ export default function BlogPost() {
                  schema that does not match the visible content. */
               : { '@id': ORGANIZATION_ID },
           },
-          breadcrumbSchema([
-            { name: 'Home', path: '/' },
-            { name: 'Journal', path: '/blog' },
-            { name: post.title, path: `/blog/${post.slug}` },
-          ]),
+          breadcrumbSchema(trail),
         ])}
       />
       <ReadingProgress />
       <article>
         <div className="bl-shell">
-          <p style={{ marginBottom: '0.5rem' }}>
-            <Link to="/blog" className="bl-back">← Journal</Link>
-          </p>
+          {/* ⚠ THIS REPLACES THE "← Journal" LINK, it does not sit beside it.
+              The BreadcrumbList above has been in this page's JSON-LD since
+              it was written, with nothing on the page matching it — and a
+              single back-link is not a trail: it names one ancestor and
+              omits the root the schema claims. One trail, built once, used
+              in both places. */}
+          <Breadcrumbs trail={trail} className="bl-crumbs" />
 
           <header className="bl-article__head">
             <p className="bl-eyebrow" style={{ justifyContent: 'center' }}>

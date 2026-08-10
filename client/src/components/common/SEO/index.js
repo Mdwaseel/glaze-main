@@ -7,5 +7,6 @@ export {
   FORCE_NOINDEX,
   absoluteUrl,
   breadcrumbSchema,
+  faqSchema,
   graph,
 } from './siteOrigin'

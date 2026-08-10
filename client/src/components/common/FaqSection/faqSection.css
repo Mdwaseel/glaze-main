@@ -1,0 +1,260 @@
+/* ═══════════════════════════════════════════════════════════════
+   FAQ — one hairline per question, nothing else.
+
+   The house tokens, applied to a list: Playfair for the section title and
+   the questions, Inter for the answers, mono for the eyebrow. No cards, no
+   fills, no shadow. Two tones, because the section sits on white on
+   /systems and /contact and on the products pages' bone ground.
+   ═══════════════════════════════════════════════════════════════ */
+
+.faq {
+  --faq-pad: clamp(1.375rem, 5vw, 5rem);
+  position: relative;
+  /* The FAQ hub's jump list links straight at these sections and the navbar
+     is fixed — without this the group heading lands underneath it. */
+  scroll-margin-top: var(--nav-height);
+}
+
+.faq--light {
+  background: var(--arch-white);
+  color: var(--arch-black);
+  --faq-rule: rgba(27, 27, 27, 0.1);
+  --faq-rule-open: rgba(27, 27, 27, 0.24);
+  --faq-muted: rgba(27, 27, 27, 0.6);
+  --faq-faint: rgba(27, 27, 27, 0.38);
+  --faq-mark: rgba(27, 27, 27, 0.45);
+}
+
+.faq--dark {
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  --faq-rule: rgba(245, 245, 243, 0.12);
+  --faq-rule-open: rgba(245, 245, 243, 0.28);
+  --faq-muted: rgba(245, 245, 243, 0.62);
+  --faq-faint: rgba(245, 245, 243, 0.4);
+  --faq-mark: rgba(245, 245, 243, 0.5);
+}
+
+.faq__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(4rem, 11vh, 7rem) var(--faq-pad);
+  /* Two columns: the heading stands still on the left while the questions
+     run down the right — the same editorial split the Overview section
+     uses, so the page does not acquire a new layout idea for one block. */
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: start;
+}
+
+/* ── Head ────────────────────────────────────────────────────── */
+.faq__head {
+  /* Sticky on desktop only: the questions column is long, and a heading
+     that scrolls away leaves the reader in an unlabelled list. */
+  position: sticky;
+  top: calc(var(--nav-height) + 2rem);
+}
+
+.faq__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.faq--dark .faq__eyebrow {
+  color: var(--champagne);
+}
+
+.faq__title {
+  margin-top: 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+.faq__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.faq__note {
+  margin-top: 1.35rem;
+  max-width: 30ch;
+  font-weight: 300;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--faq-muted);
+}
+
+/* ── The list ────────────────────────────────────────────────── */
+.faq__item {
+  border-top: 1px solid var(--faq-rule);
+  transition: border-color 0.4s var(--ease-snap);
+}
+
+.faq__item:last-child {
+  border-bottom: 1px solid var(--faq-rule);
+}
+
+.faq__item[open] {
+  border-top-color: var(--faq-rule-open);
+}
+
+.faq__q {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  /* Comfortably past 44px, and the whole row is the target. */
+  padding: 1.35rem 0;
+  cursor: pointer;
+  list-style: none;
+  transition: color 0.35s var(--ease-snap);
+}
+
+/* Safari draws its own disclosure triangle unless this is removed, and it
+   sits outside the flex row where nothing can align it. */
+.faq__q::-webkit-details-marker {
+  display: none;
+}
+
+.faq__q:hover {
+  color: var(--bronze);
+}
+
+.faq--dark .faq__q:hover {
+  color: var(--champagne);
+}
+
+.faq__q-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.0625rem, 1.45vw, 1.3125rem);
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+
+/* ── The plus/minus ──────────────────────────────────────────── */
+.faq__mark {
+  position: relative;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  /* Optical: aligns the cross with the first line of a two-line question
+     rather than with the top of its box. */
+  margin-top: 0.35rem;
+}
+
+.faq__mark i {
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1px;
+  background: var(--faq-mark);
+  transition: transform 0.4s var(--ease-snap), background-color 0.4s var(--ease-snap);
+}
+
+/* The upright stroke of the plus. It rotates back to flat when the item
+   opens, which turns the plus into a minus in one movement. */
+.faq__mark i:last-child {
+  transform: rotate(90deg);
+}
+
+.faq__item[open] .faq__mark i:last-child {
+  transform: rotate(0deg);
+}
+
+.faq__q:hover .faq__mark i {
+  background: currentColor;
+}
+
+/* ── The answer ──────────────────────────────────────────────── */
+.faq__a {
+  padding-bottom: 1.6rem;
+  /* An answer is read once, so it opens rather than slides: `<details>`
+     has no animatable height, and the alternatives (a max-height guess, or
+     JS measuring the block) both cost more than the movement is worth.
+     The fade is the whole transition. */
+  animation: faq-in 0.4s var(--ease-snap) both;
+}
+
+.faq__a p {
+  max-width: 62ch;
+  font-weight: 300;
+  font-size: clamp(0.9375rem, 1.05vw, 1.0625rem);
+  line-height: 1.8;
+  color: var(--faq-muted);
+}
+
+.faq__link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding-block: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--faq-rule-open);
+  transition: color 0.35s var(--ease-snap), border-color 0.35s var(--ease-snap);
+}
+
+.faq__link:hover {
+  color: var(--bronze);
+  border-bottom-color: var(--bronze);
+}
+
+.faq--dark .faq__link:hover {
+  color: var(--champagne);
+  border-bottom-color: var(--champagne);
+}
+
+@keyframes faq-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Narrow ──────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .faq__inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.25rem;
+  }
+
+  .faq__head {
+    position: static;
+  }
+
+  .faq__note {
+    max-width: 44ch;
+  }
+}
+
+@media (max-width: 620px) {
+  .faq__q {
+    gap: 1rem;
+    padding: 1.15rem 0;
+  }
+
+  .faq__q-text {
+    font-size: 1.0625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq__item,
+  .faq__q,
+  .faq__mark i,
+  .faq__link {
+    transition: none;
+  }
+
+  .faq__a {
+    animation: none;
+  }
+}

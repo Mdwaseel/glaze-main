@@ -1,6 +1,8 @@
 import { useLayoutEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { SERIES, SERIES_OPTION_ORDER } from '@/data/systems'
 import { useCatalogue } from '@/context/CatalogueContext'
+import { ROUTES } from '@/constants/routes'
 import { initSystemEnquiry } from './systemEnquiryController'
 import './systemEnquirySection.css'
 
@@ -42,7 +44,22 @@ export default function SystemEnquirySection({ system }) {
   const signature = `${system.slug}:${systems.map((s) => s.slug).join(',')}:${
     variants.map((v) => v.id).join(',')}`
 
-  useLayoutEffect(() => initSystemEnquiry(sectionRef.current), [signature])
+  // Through a ref, so a routing-layer re-render cannot rebuild the form
+  // mid-enquiry — see the same note on the contact form.
+  const navigate = useNavigate()
+  const navigateRef = useRef(navigate)
+  navigateRef.current = navigate
+
+  useLayoutEffect(
+    () =>
+      initSystemEnquiry(sectionRef.current, {
+        onSuccess: (detail) => {
+          navigateRef.current(ROUTES.THANK_YOU, { replace: true, state: detail })
+          return true
+        },
+      }),
+    [signature],
+  )
 
   return (
     <section className="enq" id="contact" aria-labelledby="enq-title" ref={sectionRef}>

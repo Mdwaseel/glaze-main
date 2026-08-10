@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'account',
     'siteconfig',
     'catalogue',
+    'gallery',
     'seo',
     'blog',
     'analytics',

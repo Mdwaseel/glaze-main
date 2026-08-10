@@ -480,21 +480,13 @@
   pointer-events: none;
 }
 
-.bl-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  min-height: 44px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(27, 27, 27, 0.5);
-  transition: color 0.22s ease;
-}
-
-.bl-back:hover {
-  color: var(--bronze);
+/* ⚠ `.bl-back` IS GONE, and so is the "← Journal" link it styled. It named
+   one ancestor where the article's own JSON-LD was already claiming a
+   three-step trail (Home → Journal → this article) that nothing on the page
+   showed. <Breadcrumbs> renders that trail from the same array the schema
+   takes; a back-link beside it would be the same destination twice. */
+.bl-crumbs {
+  margin-bottom: 0.5rem;
 }
 
 .bl-article__head {

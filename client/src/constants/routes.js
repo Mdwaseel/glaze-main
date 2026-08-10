@@ -1,8 +1,17 @@
+import { LEGAL_DOCS } from '@/data/legal'
+
 /**
  * Route table for the migrated site.
  *
  * The static pages linked to each other by filename. Keep LEGACY_PATHS in
  * sync so every converted <a href="about.html"> becomes the right <Link>.
+ *
+ * ⚠ THE THREE POLICY PATHS ARE READ FROM data/legal.js, NOT RETYPED HERE.
+ * That file already had to carry each document's path for the footer's link
+ * list and for the page's own canonical, so a second copy in this table
+ * would be a second thing to change when one of them is renamed — and the
+ * failure mode is a footer link to a 404. The dependency runs one way only:
+ * data/legal.js imports nothing from here.
  */
 export const ROUTES = {
   HOME: '/',
@@ -23,6 +32,36 @@ export const ROUTES = {
   /** Blog — no static original; these are new routes, not migrated ones. */
   BLOG: '/blog',
   BLOG_POST: '/blog/:slug',
+
+  /**
+   * Where a submitted enquiry lands.
+   *
+   * NO STATIC ORIGINAL. Both forms confirmed themselves in place, which
+   * cannot be a conversion in GA4, Google Ads or Meta — those measure a URL —
+   * and left the no-`fetch` native-POST path with no confirmation at all.
+   * `noindex, follow`: see pages/ThankYou.
+   */
+  THANK_YOU: '/thank-you',
+
+  /**
+   * The FAQ hub and the gallery. NO STATIC ORIGINAL.
+   *
+   * Both hang off "About" in the nav rather than sitting at the top level:
+   * the bar is five items and stays five items, and both of these answer
+   * "who are these people and can they do it" rather than "what do they
+   * sell", which is what About is for.
+   */
+  FAQ: '/faq',
+  GALLERY: '/gallery',
+
+  /**
+   * The policies. NO STATIC ORIGINAL — the site had none, while collecting
+   * names, phone numbers and uploaded drawings through two forms. One
+   * component serves all three (pages/Legal), driven by data/legal.js.
+   */
+  PRIVACY: LEGAL_DOCS.privacy.path,
+  TERMS: LEGAL_DOCS.terms.path,
+  COOKIES: LEGAL_DOCS.cookies.path,
 
   /**
    * Admin panel. Served by React, NOT by Django — Django's own admin was
@@ -74,6 +113,19 @@ export const PAGE_TITLES = {
   [ROUTES.SYSTEMS]: 'Systems — Glaze | The Collection',
   // /blog sets its own title on mount; /blog/:slug is per-article and is
   // applied by the page from the post's meta_title, so neither is keyed here.
+
+  /* The routes that did not exist in the static site. Each page also sets
+     its own <title> through <SEO>; these are here so RootLayout's map has an
+     entry for every public pathname rather than falling back to Home's
+     title for a frame on the way in. The policy titles come from
+     data/legal.js, which is where their copy lives — they are NOT retyped,
+     so a renamed document cannot end up with two names. */
+  [ROUTES.FAQ]: 'FAQs — Glaze | Aluminium Window & Door Systems',
+  [ROUTES.GALLERY]: 'Gallery — Glaze | Completed Projects',
+  [ROUTES.THANK_YOU]: 'Thank you — Glaze | Your enquiry is with us',
+  [ROUTES.PRIVACY]: LEGAL_DOCS.privacy.title,
+  [ROUTES.TERMS]: LEGAL_DOCS.terms.title,
+  [ROUTES.COOKIES]: LEGAL_DOCS.cookies.title,
 }
 
 /**

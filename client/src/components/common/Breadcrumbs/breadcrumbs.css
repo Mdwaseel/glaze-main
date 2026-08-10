@@ -1,0 +1,100 @@
+/* ═══════════════════════════════════════════════════════════════
+   Breadcrumbs — the visible half of the BreadcrumbList schema.
+
+   Deliberately quiet. A breadcrumb is orientation, not navigation people
+   came for: mono at label size, in the same 11px/0.2em register the rest of
+   the site uses for eyebrows and section labels, so it reads as furniture
+   rather than as a second nav bar.
+   ═══════════════════════════════════════════════════════════════ */
+
+.crumbs {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.crumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.crumbs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  /* Wrapping is allowed — a long system name on a 360px phone has to go
+     somewhere, and truncating the trail is worse than a second line. */
+  min-width: 0;
+}
+
+.crumbs__link,
+.crumbs__current {
+  /* 44px of vertical target on touch without 44px of visible gap: the
+     padding is on the line box, and the row is only 11px of type. */
+  display: inline-block;
+  padding-block: 0.5rem;
+}
+
+.crumbs__link {
+  color: rgba(27, 27, 27, 0.45);
+  transition: color 0.35s var(--ease-snap);
+}
+
+.crumbs__link:hover {
+  color: var(--bronze);
+}
+
+.crumbs__current {
+  color: rgba(27, 27, 27, 0.8);
+}
+
+.crumbs__sep {
+  color: rgba(27, 27, 27, 0.22);
+  /* Nudged up: a slash sits low against small caps. */
+  transform: translateY(-1px);
+}
+
+/* ── On dark media ──────────────────────────────────────────────
+   The system hero is a full-bleed clip with a dark scrim; the same trail
+   in charcoal would be invisible on it. Champagne is the house accent for
+   fine type on dark and is already used that way in the nav. */
+.crumbs--over .crumbs__link {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.crumbs--over .crumbs__link:hover {
+  color: var(--champagne);
+}
+
+.crumbs--over .crumbs__current {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.crumbs--over .crumbs__sep {
+  color: rgba(255, 255, 255, 0.32);
+}
+
+@media (max-width: 620px) {
+  .crumbs {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+
+  .crumbs__list,
+  .crumbs__item {
+    gap: 0 0.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crumbs__link {
+    transition: none;
+  }
+}

@@ -224,7 +224,17 @@
       "Bash(sed -i 's/    await p.waitForTimeout: 0\\\\n//' lab.js)",
       "Bash(node lab.js)",
       "Bash(node --input-type=module -e \"import\\('./processAnimation.js'\\).then\\(\\(\\)=>console.log\\('parses'\\)\\)\")",
-      "Bash(node -e \"require\\('esbuild'\\)\")"
+      "Bash(node -e \"require\\('esbuild'\\)\")",
+      "Bash(awk '{print $5/1048576\\\\\" MB\\\\\", $9}')",
+      "Bash(python -c \"import ast,sys; ast.parse\\(open\\('seo/views.py',encoding='utf-8'\\).read\\(\\)\\); print\\('seo/views.py parses OK'\\)\")",
+      "Bash(mkdir -p \"d:/Projects/glaze-react/glaze-react-migration/server/glaze/gallery/migrations\")",
+      "Bash(touch __init__.py migrations/__init__.py)",
+      "Bash(.venv/Scripts/python.exe -c \"import django; print\\(django.get_version\\(\\)\\)\")",
+      "Bash(../.venv/Scripts/python.exe manage.py makemigrations gallery)",
+      "Bash(../.venv/Scripts/python.exe manage.py migrate gallery)",
+      "Bash(../.venv/Scripts/python.exe manage.py runserver 8123 --noreload)",
+      "Bash(curl -s http://127.0.0.1:8123/api/v1/gallery/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:8123/api/v1/admin/gallery/items/)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Mohd\\AppData\\Local\\Temp\\claude\\chrome-prof",

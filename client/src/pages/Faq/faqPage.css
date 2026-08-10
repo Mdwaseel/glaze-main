@@ -1,0 +1,121 @@
+/* ═══════════════════════════════════════════════════════════════
+   /faq — the hub.
+
+   Only the masthead is styled here. The three question groups below it are
+   <FaqSection>, which brings its own stylesheet and its own two tones, so
+   this file is the page's introduction and nothing else.
+   ═══════════════════════════════════════════════════════════════ */
+
+.faqp {
+  --faqp-pad: clamp(1.375rem, 5vw, 5rem);
+  --faqp-rule: rgba(27, 27, 27, 0.1);
+  --faqp-muted: rgba(27, 27, 27, 0.6);
+  --faqp-faint: rgba(27, 27, 27, 0.38);
+
+  background: var(--arch-white);
+  color: var(--arch-black);
+}
+
+.faqp__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-inline: var(--faqp-pad);
+  padding-top: calc(var(--nav-height) + clamp(1.5rem, 4vh, 2.5rem));
+  /* No bottom padding: the first <FaqSection> brings its own, and two
+     stacked would leave a band of empty white between the standfirst and
+     the first question. */
+}
+
+.faqp__crumbs {
+  margin-bottom: clamp(1.75rem, 5vh, 3rem);
+}
+
+.faqp__head {
+  max-width: 48rem;
+}
+
+.faqp__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.faqp__title {
+  margin-top: 1.5rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.625rem, 5.5vw, 4.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+}
+
+.faqp__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.faqp__lede {
+  margin-top: 1.75rem;
+  max-width: 36rem;
+  font-weight: 300;
+  font-size: clamp(0.9375rem, 1.1vw, 1.0625rem);
+  line-height: 1.75;
+  color: var(--faqp-muted);
+}
+
+/* ── Jump list ───────────────────────────────────────────────────
+   Three groups of six to eight questions is a long page, and somebody
+   arriving from a search has one of the three in mind. The count is on the
+   chip because "how much is under this heading" is the thing that decides
+   whether to jump or scroll. */
+.faqp__jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: clamp(2.5rem, 6vh, 3.5rem);
+  padding-bottom: clamp(2.5rem, 6vh, 4rem);
+}
+
+.faqp__jump-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 44px;
+  padding: 0.7rem 1.15rem;
+  border: 1px solid var(--faqp-rule);
+  border-radius: 999px;
+  transition: border-color 0.35s var(--ease-snap), color 0.35s var(--ease-snap);
+}
+
+.faqp__jump-link:hover {
+  color: var(--bronze);
+  border-color: rgba(114, 102, 85, 0.4);
+}
+
+.faqp__jump-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.faqp__jump-count {
+  /* Tabular so a 6 and an 8 sit at the same width and the row of chips
+     does not shift when a group gains a question. */
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--faqp-faint);
+  padding-left: 0.85rem;
+  border-left: 1px solid var(--faqp-rule);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faqp__jump-link {
+    transition: none;
+  }
+}

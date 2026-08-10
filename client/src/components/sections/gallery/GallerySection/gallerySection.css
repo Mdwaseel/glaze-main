@@ -1,0 +1,496 @@
+/* ═══════════════════════════════════════════════════════════════
+   Gallery — completed work.
+
+   House tokens, applied to a masonry-ish grid: Playfair for the display
+   type, mono for the labels and filter pills, bronze/champagne accents,
+   hairlines instead of cards. The pictures carry the section; everything
+   else is set back so they can.
+   ═══════════════════════════════════════════════════════════════ */
+
+.gal {
+  --gal-pad: clamp(1.375rem, 5vw, 5rem);
+  --gal-rule: rgba(27, 27, 27, 0.1);
+  --gal-muted: rgba(27, 27, 27, 0.6);
+  --gal-faint: rgba(27, 27, 27, 0.38);
+
+  position: relative;
+  background: var(--arch-white);
+  color: var(--arch-black);
+  scroll-margin-top: var(--nav-height);
+}
+
+.gal__inner {
+  max-width: 1460px;
+  margin: 0 auto;
+  padding: clamp(4rem, 10vh, 7rem) var(--gal-pad) clamp(4.5rem, 12vh, 8rem);
+}
+
+/* ── Head ────────────────────────────────────────────────────── */
+.gal__head {
+  max-width: 46rem;
+  padding-bottom: clamp(2rem, 5vh, 3rem);
+}
+
+.gal__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--bronze);
+}
+
+.gal__title {
+  margin-top: 1.35rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+
+.gal__title em {
+  font-family: var(--font-bodoni);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--champagne);
+}
+
+.gal__lede {
+  margin-top: 1.6rem;
+  max-width: 36rem;
+  font-weight: 300;
+  font-size: clamp(0.9375rem, 1.1vw, 1.0625rem);
+  line-height: 1.75;
+  color: var(--gal-muted);
+}
+
+/* Loading, empty and unreachable all land here. One rule, because all
+   three are one sentence in the same place — see the component. */
+.gal__state {
+  padding: clamp(2.5rem, 6vh, 4rem) 0;
+  max-width: 44ch;
+  font-weight: 300;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--gal-muted);
+}
+
+.gal__state a {
+  border-bottom: 1px solid rgba(27, 27, 27, 0.25);
+  transition: border-color 0.35s var(--ease-snap);
+}
+
+.gal__state a:hover {
+  border-bottom-color: var(--bronze);
+}
+
+/* ── Filters ─────────────────────────────────────────────────── */
+.gal__filters {
+  padding-block: 1rem;
+  border-top: 1px solid var(--gal-rule);
+  border-bottom: 1px solid var(--gal-rule);
+  margin-bottom: clamp(2rem, 5vh, 3rem);
+}
+
+/* Scrollable rather than wrapping: the categories are editable, so the
+   row's length is not something this file can be sure of. */
+.gal__filters-track {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gal__filters-track::-webkit-scrollbar {
+  display: none;
+}
+
+.gal__filter {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0.7rem 1.15rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(27, 27, 27, 0.45);
+  background: transparent;
+  border: 1px solid var(--gal-rule);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    color 0.35s var(--ease-snap),
+    background-color 0.35s var(--ease-snap),
+    border-color 0.35s var(--ease-snap);
+}
+
+.gal__filter:hover {
+  color: rgba(27, 27, 27, 0.85);
+  border-color: rgba(27, 27, 27, 0.22);
+}
+
+.gal__filter.is-active {
+  color: var(--arch-white);
+  background: var(--bronze);
+  border-color: var(--bronze);
+}
+
+/* ── Grid ────────────────────────────────────────────────────────
+   Three columns, with featured items spanning two. `grid-auto-flow: dense`
+   lets a single tile fill the hole a wide one leaves at the end of a row,
+   so the grid stays solid without anyone hand-placing anything. */
+.gal__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  gap: clamp(1rem, 1.8vw, 1.75rem);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.gal__cell--wide {
+  grid-column: span 2;
+}
+
+.gal__tile {
+  display: block;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.gal__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--arch-bone);
+  /* 4:3 for a single tile; a wide one is twice as wide in the same row, so
+     it needs a proportionally wider ratio to keep the row heights equal. */
+  aspect-ratio: 4 / 3;
+}
+
+.gal__cell--wide .gal__media {
+  aspect-ratio: 8 / 3;
+}
+
+.gal__media-el {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease-snap);
+}
+
+/* The play badge. Present on films only, and it is the ONLY thing that
+   distinguishes a film from a photograph before it is opened — without it a
+   poster is indistinguishable from a still. */
+.gal__play {
+  position: absolute;
+  inset: auto auto 0.9rem 0.9rem;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(27, 27, 27, 0.55);
+  backdrop-filter: none;
+  transition: background-color 0.4s var(--ease-snap);
+}
+
+.gal__play svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--arch-bone);
+}
+
+.gal__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.9rem;
+  padding-top: 0.9rem;
+}
+
+.gal__caption-title {
+  font-family: var(--font-display);
+  font-size: clamp(0.9375rem, 1.1vw, 1.0625rem);
+  line-height: 1.35;
+}
+
+.gal__caption-system {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gal-faint);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gal__tile:hover .gal__media-el {
+    transform: scale(1.03);
+  }
+
+  .gal__tile:hover .gal__play {
+    background: var(--bronze);
+  }
+
+  .gal__tile:hover .gal__caption-title {
+    color: var(--bronze);
+  }
+}
+
+.gal__tile:focus-visible .gal__media-el {
+  transform: scale(1.03);
+}
+
+.gal__more {
+  margin-top: clamp(2rem, 4vh, 3rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--gal-rule);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gal-faint);
+}
+
+.gal__more a {
+  color: var(--arch-black);
+  border-bottom: 1px solid var(--gal-rule);
+}
+
+.gal__more a:hover {
+  color: var(--bronze);
+  border-bottom-color: var(--bronze);
+}
+
+/* ── Lightbox ────────────────────────────────────────────────────
+   A native <dialog>, so the focus trap, Escape and the top layer are the
+   platform's. Only the paint is here. */
+.gal__lightbox {
+  width: min(1200px, 94vw);
+  max-width: none;
+  max-height: 92vh;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: var(--arch-black);
+  color: var(--arch-bone);
+  overflow: hidden;
+}
+
+.gal__lightbox::backdrop {
+  background: rgba(12, 12, 12, 0.88);
+}
+
+.gal__lb-panel {
+  /* The close button is absolutely positioned against this, not against the
+     <dialog> — a dialog in the top layer is its own containing block only in
+     some engines, and the button has to sit over the media in all of them. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+}
+
+.gal__lb-media {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  background: #0c0c0c;
+}
+
+.gal__lb-media img,
+.gal__lb-media video {
+  display: block;
+  max-width: 100%;
+  /* The footer needs room whatever the aspect ratio, so the media is
+     capped rather than allowed to fill 92vh on its own. */
+  max-height: calc(92vh - 8.5rem);
+  object-fit: contain;
+}
+
+.gal__lb-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(12, 12, 12, 0.55);
+  cursor: pointer;
+  transition: background-color 0.35s var(--ease-snap);
+}
+
+.gal__lb-close:hover {
+  background: var(--bronze);
+}
+
+.gal__lb-close svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--arch-bone);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.gal__lb-foot {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding: 1.25rem clamp(1.25rem, 3vw, 2rem);
+  border-top: 1px solid rgba(245, 245, 243, 0.12);
+}
+
+.gal__lb-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
+  line-height: 1.3;
+}
+
+.gal__lb-caption {
+  margin-top: 0.45rem;
+  max-width: 62ch;
+  font-weight: 300;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: rgba(245, 245, 243, 0.62);
+}
+
+.gal__lb-link {
+  display: inline-block;
+  margin-top: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--champagne);
+}
+
+.gal__lb-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gal__lb-nav button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(245, 245, 243, 0.18);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.35s var(--ease-snap), background-color 0.35s var(--ease-snap);
+}
+
+.gal__lb-nav button:hover {
+  border-color: var(--champagne);
+  background: rgba(167, 154, 135, 0.12);
+}
+
+.gal__lb-nav svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--arch-bone);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gal__lb-count {
+  min-width: 4.5rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  /* Tabular, so "9 / 24" and "10 / 24" do not shift the arrows. */
+  font-variant-numeric: tabular-nums;
+  color: rgba(245, 245, 243, 0.5);
+}
+
+/* ── Narrow ──────────────────────────────────────────────────── */
+@media (max-width: 1080px) {
+  .gal__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gal__cell--wide .gal__media {
+    /* Two columns wide out of two is the full row — a 8:3 letterbox at
+       full width crops too hard, so it relaxes to 16:9. */
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 640px) {
+  .gal__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  /* One column: "wide" has nothing to span, and a letterboxed tile beside
+     4:3 ones would just look like an inconsistency. */
+  .gal__cell--wide {
+    grid-column: auto;
+  }
+
+  .gal__cell--wide .gal__media {
+    aspect-ratio: 4 / 3;
+  }
+
+  .gal__lightbox {
+    width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .gal__lb-panel {
+    max-height: 100vh;
+  }
+
+  .gal__lb-media img,
+  .gal__lb-media video {
+    max-height: calc(100vh - 11rem);
+  }
+
+  .gal__lb-foot {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gal__media-el,
+  .gal__filter,
+  .gal__play,
+  .gal__state a,
+  .gal__lb-close,
+  .gal__lb-nav button {
+    transition: none;
+  }
+
+  .gal__tile:hover .gal__media-el,
+  .gal__tile:focus-visible .gal__media-el {
+    transform: none;
+  }
+}

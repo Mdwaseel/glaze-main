@@ -278,7 +278,14 @@
    A native <dialog>, so the focus trap, Escape and the top layer are the
    platform's. Only the paint is here. */
 .gal__lightbox {
+  /* ⚠ The browser centres a modal <dialog> with `inset: 0; margin: auto`.
+     The global reset zeroes every margin, which pins it to the top-left
+     corner — so both are restated here. */
+  position: fixed;
+  inset: 0;
+  margin: auto;
   width: min(1200px, 94vw);
+  height: fit-content;
   max-width: none;
   max-height: 92vh;
   padding: 0;

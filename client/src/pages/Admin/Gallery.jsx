@@ -102,7 +102,11 @@ function Items() {
   // The systems list, for the optional "which system is in the picture"
   // link. Read from the catalogue the site already has rather than fetched
   // again — it is the same set, and it is already in memory.
-  const { systems } = useCatalogue()
+  //
+  // ⚠ ONLY WHEN `live`. Until the catalogue is seeded the context serves the
+  // systems bundled with the site, which have no database rows — offering
+  // them here meant a save that the API could only reject.
+  const { systems, live } = useCatalogue()
 
   const load = useCallback((signal) => {
     setState('loading')
@@ -291,9 +295,9 @@ function Items() {
   const systemOptions = useMemo(
     () => [
       { value: '', label: '— None —' },
-      ...systems.map((s) => ({ value: s.slug, label: s.name })),
+      ...(live ? systems.map((s) => ({ value: s.slug, label: s.name })) : []),
     ],
-    [systems],
+    [systems, live],
   )
 
   return (
@@ -459,7 +463,9 @@ function Items() {
 
           <SelectField
             label="System in the picture"
-            hint="Optional. Becomes a link from the gallery into that system’s page."
+            hint={live
+              ? 'Optional. Becomes a link from the gallery into that system’s page.'
+              : 'Optional. No systems in the catalogue database yet — add them under Systems to link one here.'}
             value={draft.system ?? ''}
             onChange={(v) => setDraft((p) => ({ ...p, system: v }))}
             options={systemOptions}

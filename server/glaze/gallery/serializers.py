@@ -14,6 +14,8 @@ Same split as catalogue/serializers.py and for the same reason:
 
 from rest_framework import serializers
 
+from catalogue.models import System
+
 from .models import GalleryCategory, GalleryItem
 
 
@@ -72,6 +74,14 @@ class AdminItemSerializer(serializers.ModelSerializer):
     image_url = serializers.CharField(read_only=True)
     video_url = serializers.CharField(read_only=True)
     poster_url = serializers.CharField(read_only=True)
+
+    # ⚠ BY SLUG, NOT PK. Every other admin endpoint addresses a system by its
+    # slug, and so does the Studio's picker — left as the default pk field,
+    # choosing a system rejected the whole upload with "Expected pk value".
+    system = serializers.SlugRelatedField(
+        slug_field='slug', queryset=System.objects.all(),
+        allow_null=True, required=False,
+    )
 
     class Meta:
         model = GalleryItem

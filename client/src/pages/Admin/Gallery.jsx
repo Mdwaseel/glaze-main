@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { adminApi, toRequestBody } from '@/services/admin'
 import { assetUrl } from '@/services/api'
 import { useCatalogue } from '@/context/CatalogueContext'
 import { useToast } from '@/components/admin/Toast'
 import {
-  Card, Empty, ImageUpload, Loading, SelectField, TextField, Toggle,
+  Card, Empty, Field, ImageUpload, Loading, SelectField, TextField, Toggle,
 } from '@/components/admin/ui'
 import Icon from '@/components/admin/Icon'
 import { slugify } from '@/utils/format'
@@ -72,6 +72,9 @@ const EMPTY_ITEM = {
   system: '',
   image: '',
   image_file: null,
+  // Add-only: several photographs picked at once, each saved as its own row
+  // sharing the rest of the form. Never sent to the API as a field.
+  image_files: [],
   video: '',
   video_file: null,
   poster: '',
@@ -140,6 +143,7 @@ function Items() {
       system: item.system ?? '',
       shot_on: item.shot_on ?? '',
       image_file: null,
+      image_files: [],
       video_file: null,
       poster_file: null,
     })
@@ -152,9 +156,10 @@ function Items() {
 
     // The same rule the model and the serialiser enforce, checked here so the
     // editor says so before a round trip rather than after one.
+    const batch = !editingId && draft.kind === 'image' ? draft.image_files : []
     const hasMedia = draft.kind === 'video'
       ? Boolean(draft.video || draft.video_file)
-      : Boolean(draft.image || draft.image_file)
+      : Boolean(draft.image || draft.image_file || batch.length)
     if (!hasMedia) {
       toast.error(draft.kind === 'video'
         ? 'A film needs a video file or a path.'
@@ -162,16 +167,49 @@ function Items() {
       return
     }
 
+    // image_files is form state only; it must not reach the serialiser.
+    const { image_files: _unused, ...fields } = draft
+    const toBody = (overrides = {}) => toRequestBody({
+      ...fields,
+      // Empty select → null, not "". DRF reads "" as an invalid pk for a
+      // nullable FK and rejects the whole row.
+      category: draft.category || null,
+      system: draft.system || null,
+      shot_on: draft.shot_on || null,
+      ...overrides,
+    }, FILE_FIELDS)
+
     setSaving(true)
     try {
-      const body = toRequestBody({
-        ...draft,
-        // Empty select → null, not "". DRF reads "" as an invalid pk for a
-        // nullable FK and rejects the whole row.
-        category: draft.category || null,
-        system: draft.system || null,
-        shot_on: draft.shot_on || null,
-      }, FILE_FIELDS)
+      if (batch.length > 0) {
+        /* One row per photograph, created in sequence so the grid order
+           matches the order they were picked. The title is numbered when
+           there is more than one — every tile needs its own name, and the
+           editor can rename any of them afterwards. */
+        let created = 0
+        try {
+          for (const [index, file] of batch.entries()) {
+            const title = batch.length > 1
+              ? `${draft.title} ${index + 1}`
+              : draft.title
+            await adminApi.createGalleryItem(toBody({ title, image: '', image_file: file }))
+            created += 1
+          }
+        } catch (error) {
+          // Keep the ones that did not make it, so a retry does not duplicate
+          // the ones that did.
+          setDraft((p) => ({ ...p, image_files: batch.slice(created) }))
+          toast.error(`${created} of ${batch.length} added. ${error.message}`)
+          await load()
+          return
+        }
+        toast.success(created > 1 ? `${created} photographs added.` : 'Item added.')
+        reset()
+        await load()
+        return
+      }
+
+      const body = toBody()
 
       if (editingId) {
         await adminApi.updateGalleryItem(editingId, body)
@@ -431,7 +469,24 @@ function Items() {
               Only the fields the chosen kind actually uses. Showing a video
               upload on a photograph is three inputs an editor has to decide
               to ignore. */}
-          {draft.kind === 'image' ? (
+          {draft.kind === 'image' && !editingId ? (
+            <>
+              <PhotoPicker
+                label="Photographs"
+                hint="JPEG, WebP or PNG. Pick several at once — each becomes its own tile with the details above."
+                files={draft.image_files}
+                onChange={(files) => setDraft((p) => ({ ...p, image_files: files }))}
+              />
+              {draft.image_files.length === 0 && (
+                <TextField
+                  label="…or an image path"
+                  hint="A path under client/public, or an absolute URL."
+                  value={draft.image}
+                  onChange={(v) => setDraft((p) => ({ ...p, image: v }))}
+                />
+              )}
+            </>
+          ) : draft.kind === 'image' ? (
             <>
               <ImageUpload
                 label="Photograph"
@@ -498,11 +553,124 @@ function Items() {
 
           <button type="submit" className="ad-btn ad-btn--primary" disabled={saving}>
             <Icon name="save" size={14} />
-            {saving ? 'Saving…' : editingId ? 'Save changes' : 'Add to gallery'}
+            {saving
+              ? 'Saving…'
+              : editingId
+                ? 'Save changes'
+                : draft.image_files.length > 1 && draft.kind === 'image'
+                  ? `Add ${draft.image_files.length} photographs`
+                  : 'Add to gallery'}
           </button>
         </form>
       </Card>
     </div>
+  )
+}
+
+/**
+ * Several photographs at once, for adding only.
+ *
+ * `ImageUpload` holds one File because every other screen stores one image
+ * per record. Here a single pick fans out into several rows, so the picker
+ * keeps a list: new picks append rather than replace, and each thumbnail can
+ * be dropped on its own.
+ */
+function PhotoPicker({ label, hint, files, onChange }) {
+  const inputRef = useRef(null)
+  const [over, setOver] = useState(false)
+  const id = useId()
+
+  // Memoised and revoked for the same reason as ImageUpload's preview: an
+  // object URL pins its File in memory until something lets go of it.
+  const urls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files])
+  useEffect(() => () => urls.forEach((url) => URL.revokeObjectURL(url)), [urls])
+
+  const add = (list) => {
+    const picked = Array.from(list || []).filter((file) => file.type.startsWith('image/'))
+    if (picked.length) onChange([...files, ...picked])
+  }
+
+  const open = () => inputRef.current?.click()
+
+  return (
+    <Field label={label} hint={hint} htmlFor={id}>
+      <div
+        className={`ad-upload${over ? ' is-over' : ''}`}
+        onClick={open}
+        onDragOver={(event) => { event.preventDefault(); setOver(true) }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(event) => {
+          event.preventDefault()
+          setOver(false)
+          add(event.dataTransfer.files)
+        }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            open()
+          }
+        }}
+      >
+        <Icon name="upload" size={22} />
+        <span className="ad-upload__hint">
+          {files.length
+            ? `${files.length} selected · click or drop to add more`
+            : 'Click or drag to upload one or more'}
+        </span>
+        <input
+          id={id}
+          ref={inputRef}
+          type="file"
+          accept="image/webp,image/jpeg,image/png"
+          multiple
+          hidden
+          onChange={(event) => {
+            add(event.target.files)
+            // Cleared so picking the same file again still fires onChange.
+            event.target.value = ''
+          }}
+        />
+      </div>
+
+      {files.length > 0 && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))',
+            gap: '8px',
+            marginTop: '10px',
+          }}
+        >
+          {files.map((file, index) => (
+            <div key={`${file.name}-${file.lastModified}-${index}`} style={{ position: 'relative' }}>
+              <img
+                src={urls[index]}
+                alt={file.name}
+                title={file.name}
+                style={{
+                  width: '100%',
+                  aspectRatio: '1',
+                  objectFit: 'cover',
+                  borderRadius: '6px',
+                  display: 'block',
+                }}
+              />
+              <button
+                type="button"
+                className="ad-btn ad-btn--sm ad-btn--danger"
+                style={{ position: 'absolute', top: '4px', right: '4px', padding: '2px 4px' }}
+                onClick={() => onChange(files.filter((_, i) => i !== index))}
+                aria-label={`Remove ${file.name}`}
+              >
+                <Icon name="x" size={11} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </Field>
   )
 }
 
